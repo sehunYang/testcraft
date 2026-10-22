@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import socket
 import sys
 import threading
 import time
@@ -18,13 +19,14 @@ import webbrowser
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PORT = 8765
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
 def _arguments(argv=None):
     parser = argparse.ArgumentParser(description='Question Studio desktop launcher')
-    parser.add_argument('--port', type=int, default=8765, help='loopback HTTP port (default: 8765; 0 selects a free port)')
+    parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='loopback HTTP port (default: 8765; 0 selects a free port)')
     parser.add_argument('--no-browser', action='store_true', help='start the local app without opening a browser')
     parser.add_argument('--stop', action='store_true', help='stop this installed app instance after verifying its identity')
     parser.add_argument('--data-dir', help='isolated per-user data root used by smoke tests')
@@ -306,14 +308,22 @@ def _clean_stale_instance(user_root, record_path, request_path, record, install_
 
 
 def _create_server(server_type, handler_type, requested_port):
+    class ExclusiveLoopbackServer(server_type):
+        allow_reuse_address = False
+
+        def server_bind(self):
+            if os.name == 'nt':
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+            super().server_bind()
+
     try:
-        return server_type(('127.0.0.1', requested_port), handler_type)
+        return ExclusiveLoopbackServer(('127.0.0.1', requested_port), handler_type)
     except OSError:
-        if requested_port != 8765:
+        if requested_port != DEFAULT_PORT:
             raise
         # Port 8765 belongs to another app or another install. A fresh bind(0)
         # gives this instance its own loopback port without contacting that app.
-        return server_type(('127.0.0.1', 0), handler_type)
+        return ExclusiveLoopbackServer(('127.0.0.1', 0), handler_type)
 
 
 def _wait_for_health(base_url, runtime, data_dir, timeout=12):

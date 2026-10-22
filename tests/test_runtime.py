@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+import http.server
+import socketserver
 import subprocess
 import sys
 import tempfile
@@ -206,6 +208,53 @@ class RuntimeTests(unittest.TestCase):
                 if server_process.poll() is None:
                     server_process.terminate()
                     server_process.wait(timeout=5)
+
+    def test_default_port_collision_uses_private_ephemeral_port(self):
+        with _tempdir() as temporary:
+            ready_path = Path(temporary) / 'listener-port.txt'
+            listener_script = (
+                'import socket, sys, time; '
+                's = socket.socket(); '
+                's.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); '
+                's.bind(("127.0.0.1", 0)); s.listen(); '
+                'open(sys.argv[1], "w").write(str(s.getsockname()[1])); '
+                'time.sleep(60)'
+            )
+            creationflags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+            listener_process = subprocess.Popen(
+                [sys.executable, '-c', listener_script, str(ready_path)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=creationflags,
+            )
+            try:
+                deadline = time.monotonic() + 10
+                while time.monotonic() < deadline and not ready_path.exists():
+                    if listener_process.poll() is not None:
+                        self.fail(f'port owner exited with {listener_process.returncode}')
+                    time.sleep(0.05)
+                self.assertTrue(ready_path.exists(), 'port owner did not publish its port')
+                occupied_port = int(ready_path.read_text(encoding='ascii'))
+
+                # Treat this temporary occupied port as the default to exercise
+                # the exact fallback used for a collision on port 8765.
+                with patch.object(desktop, 'DEFAULT_PORT', occupied_port):
+                    fallback = desktop._create_server(
+                        socketserver.TCPServer,
+                        http.server.BaseHTTPRequestHandler,
+                        occupied_port,
+                    )
+                try:
+                    self.assertNotEqual(fallback.server_address[1], occupied_port)
+                    self.assertTrue(
+                        listener_process.poll() is None,
+                        'fallback must leave the process owning the requested port running',
+                    )
+                finally:
+                    fallback.server_close()
+            finally:
+                if listener_process.poll() is None:
+                    listener_process.terminate()
+                    listener_process.wait(timeout=5)
 
     def test_stop_refuses_to_shutdown_with_running_jobs(self):
         with _tempdir() as temporary:
