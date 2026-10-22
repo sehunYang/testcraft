@@ -20,8 +20,8 @@ from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 
-VERSION = "1.0.0"
-PRODUCT = "Question Studio"
+VERSION = "1.1.0"
+PRODUCT = "TestCraft"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGING_ROOT = Path(__file__).resolve().parent
 REQUIREMENTS_LOCK = PACKAGING_ROOT / "requirements-windows.lock"
@@ -717,7 +717,7 @@ def write_third_party_notice(stage: Path, python_records: list[dict[str, str]], 
 def build_launcher(stage: Path, csc: Path) -> None:
     if not csc.is_file():
         raise BuildError(f"Framework C# compiler was not found: {csc}")
-    launcher_source = PACKAGING_ROOT / "QuestionStudioLauncher.cs"
+    launcher_source = PACKAGING_ROOT / "TestCraftLauncher.cs"
     icon = stage / "app" / "static" / "favicon.ico"
     if not launcher_source.is_file() or not icon.is_file():
         raise BuildError("Launcher source or app icon is missing from packaging inputs.")
@@ -725,7 +725,7 @@ def build_launcher(stage: Path, csc: Path) -> None:
         str(csc),
         "/nologo",
         "/target:winexe",
-        f"/out:{stage / 'QuestionStudio.exe'}",
+        f"/out:{stage / 'TestCraft.exe'}",
         f"/win32icon:{icon}",
         "/reference:System.Windows.Forms.dll",
         str(launcher_source),
@@ -763,7 +763,7 @@ def compile_inno(installer: Path, stage: Path, output: Path) -> None:
     env = os.environ.copy()
     env["QUESTION_STUDIO_RELEASE_STAGE"] = str(stage.resolve())
     env["QUESTION_STUDIO_RELEASE_OUTPUT"] = str(output.resolve())
-    subprocess.run([str(installer.resolve()), str(PACKAGING_ROOT / "QuestionStudio.iss")], check=True, env=env)
+    subprocess.run([str(installer.resolve()), str(PACKAGING_ROOT / "TestCraft.iss")], check=True, env=env)
 
 
 def clean_stage(stage: Path, output: Path, source: Path) -> None:
@@ -773,7 +773,7 @@ def clean_stage(stage: Path, output: Path, source: Path) -> None:
     if stage_resolved == output_resolved or stage_resolved == source_resolved:
         raise BuildError("The staged application path must be a child of the output directory.")
     if not path_is_within(stage_resolved, output_resolved):
-        raise BuildError("The staged application must be output/QuestionStudio.")
+        raise BuildError("The staged application must be output/TestCraft.")
     if path_is_within(output_resolved, source_resolved) or path_is_within(source_resolved, output_resolved):
         raise BuildError("Source and output directories must be separate.")
     if stage.exists():
@@ -802,7 +802,7 @@ def write_build_manifest(
     manifest_path = stage / "BUILD-MANIFEST.json"
     manifest = {
         "schema_version": 1,
-        "product": "question-studio",
+        "product": "testcraft",
         "version": VERSION,
         "platform": "windows-x64",
         "python": {"version": python_version, "archive_sha256": python_hash},
@@ -855,8 +855,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host-python", default=sys.executable, help="Host Python used only to install pinned CPython 3.13 Windows wheels.")
     parser.add_argument("--requirements-lock", type=Path, default=REQUIREMENTS_LOCK, help="Fully pinned Windows wheel requirements lock.")
     parser.add_argument("--wheel-dir", type=Path, help="Optional local wheelhouse; when supplied, pip uses --no-index and --find-links for an offline install.")
-    parser.add_argument("--output", type=Path, default=REPO_ROOT / "dist", help="Output directory; contains QuestionStudio/ and release artifacts.")
-    parser.add_argument("--portable-zip", action="store_true", help="Also create a deterministic portable ZIP of QuestionStudio/.")
+    parser.add_argument("--output", type=Path, default=REPO_ROOT / "dist", help="Output directory; contains TestCraft/ and release artifacts.")
+    parser.add_argument("--portable-zip", action="store_true", help="Also create a deterministic portable ZIP of TestCraft/.")
     return parser.parse_args()
 
 
@@ -907,12 +907,12 @@ def main() -> int:
     args = parse_args()
     source, csc = preflight_inputs(args)
     output = args.output.resolve()
-    stage = output / "QuestionStudio"
+    stage = output / "TestCraft"
     clean_stage(stage, output, source)
     output.mkdir(parents=True, exist_ok=True)
     for stale_name in (
-        f"QuestionStudio-{VERSION}-windows-x64-setup.exe",
-        f"QuestionStudio-{VERSION}-windows-x64-portable.zip",
+        f"TestCraft-{VERSION}-windows-x64-setup.exe",
+        f"TestCraft-{VERSION}-windows-x64-portable.zip",
         "SHA256SUMS",
     ):
         stale = output / stale_name
@@ -978,18 +978,18 @@ def main() -> int:
     )
 
     compile_inno(args.iscc, stage, output)
-    installer = output / f"QuestionStudio-{VERSION}-windows-x64-setup.exe"
+    installer = output / f"TestCraft-{VERSION}-windows-x64-setup.exe"
     if not installer.is_file():
         raise BuildError(f"Inno Setup completed without producing the expected installer: {installer}")
     artifacts = [installer]
     if args.portable_zip:
-        portable = output / f"QuestionStudio-{VERSION}-windows-x64-portable.zip"
+        portable = output / f"TestCraft-{VERSION}-windows-x64-portable.zip"
         deterministic_portable_zip(stage, portable)
         artifacts.append(portable)
     write_sha256sums(artifacts, output)
     print(f"Built: {installer}")
     if args.portable_zip:
-        print(f"Built: {output / f'QuestionStudio-{VERSION}-windows-x64-portable.zip'}")
+        print(f"Built: {output / f'TestCraft-{VERSION}-windows-x64-portable.zip'}")
     print(f"Checksums: {output / 'SHA256SUMS'}")
     return 0
 

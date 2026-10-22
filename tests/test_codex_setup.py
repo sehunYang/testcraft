@@ -24,6 +24,28 @@ def _account(plan, *, account_type='chatgpt', requires_auth=True):
 
 
 class CodexSetupTests(unittest.TestCase):
+    def test_app_server_uses_testcraft_client_metadata(self):
+        with _tempdir() as temporary:
+            requests = []
+
+            def capture_request(client, method, params=None, timeout=None):
+                requests.append((method, params))
+                return {}
+
+            with patch.object(runtime, 'codex_home', return_value=Path(temporary) / 'codex-home'), \
+                    patch.object(runtime, 'codex_environment', return_value={}), \
+                    patch('app.codex_setup.subprocess.Popen', return_value=object()), \
+                    patch.object(codex_setup._AppServerClient, 'request', capture_request), \
+                    patch.object(codex_setup._AppServerClient, 'notify'), \
+                    patch.object(codex_setup.threading.Thread, 'start'):
+                codex_setup._AppServerClient('mock-codex', lambda *_: None)
+
+        method, params = requests[0]
+        self.assertEqual(method, 'initialize')
+        self.assertEqual(params['clientInfo'], {
+            'name': 'testcraft', 'title': 'TestCraft', 'version': runtime.APP_VERSION,
+        })
+
     def test_paid_chatgpt_plans_are_accepted(self):
         for plan in ('plus', 'pro', 'team', 'business', 'enterprise', 'edu'):
             with self.subTest(plan=plan):

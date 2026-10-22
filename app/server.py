@@ -20,11 +20,16 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from . import core, cli, codex_setup, images, labels, runtime, vectors
 from .catalog import subjects, subject_name
+from .hwpx import validate_hwpx_package
 
 TOKEN=secrets.token_urlsafe(32)
 JOBS={}; CANCEL={}
 ACTIVE={}
 DUPLICATE_REQUESTS_MAX=20
+HWP_CONVERSION_LOCK=threading.Lock()
+EXPORT_DOCUMENTS=('시험지_학생용.hwpx','시험지_교사용.hwpx')
+EXPORT_SUPPORT_FILES=('정답과해설.md','문항카드.xlsx','검수기록.json')
+EXPORT_ARCHIVE='출제결과.zip'
 
 def hwp_conversion_available():
     """Advertise conversion only when both pyhwpx and the HWP COM server are registered."""
@@ -126,7 +131,7 @@ def cards_to_records(cards):
         records.append(row)
     return records
 
-def export_exam(exam):
+def export_exam(exam, *, convert_hwpx=True):
     report=core.validate(exam)
     if not report['ready']: raise ValueError('출력 전 검토를 완료해 주세요: '+' / '.join(report['errors'][:8]))
     eid=exam['id']; folder=core.exam_path(eid)
@@ -155,10 +160,192 @@ def export_exam(exam):
     core.export_xlsx(exam['cards'],out/'문항카드.xlsx')
     digest=core.export_digest(exam)
     core.atomic(out/'검수기록.json',{'created':core.now(),'revision':exam['revision'],'content_digest':digest,'report':report,'cards':exam['cards'],'hml_status':'XML·표·그림 검증 완료 / 한글 페이지 배치·수식 재계산 확인 필요'})
-    with zipfile.ZipFile(out/'출제결과.zip','w',zipfile.ZIP_DEFLATED) as z:
-        for p in out.iterdir():
-            if p.suffix!='.zip' and p.name!='문항지_초안.hml': z.write(p,p.name)
-    return {'id':stamp,'created':core.now(),'revision':exam['revision'],'content_digest':digest,'files':[p.name for p in out.iterdir() if p.name!='문항지_초안.hml']}
+    bundle={'id':stamp,'created':core.now(),'revision':exam['revision'],'content_digest':digest}
+    return refresh_export_bundle(out,bundle,convert_hwpx=convert_hwpx)
+
+def _conversion(status,message):
+    return {'status':status,'message':message}
+
+def _write_conversion_audit(folder,conversion):
+    path=folder/'검수기록.json'
+    audit=json.loads(path.read_text(encoding='utf-8'))
+    audit['conversion']=copy.deepcopy(conversion)
+    audit['hml_status']='XML·표·그림 검증 완료 / '+conversion['message']
+    core.atomic(path,audit)
+
+def _published_export_files(folder,conversion):
+    files=[name for name in EXPORT_SUPPORT_FILES if (folder/name).is_file()]
+    if conversion.get('status')=='ready':
+        files.extend(name for name in EXPORT_DOCUMENTS if (folder/name).is_file())
+        if (folder/EXPORT_ARCHIVE).is_file(): files.append(EXPORT_ARCHIVE)
+    return files
+
+def _is_complete_published_export(folder,bundle):
+    expected=[*EXPORT_DOCUMENTS,*EXPORT_SUPPORT_FILES]
+    if not set([*expected,EXPORT_ARCHIVE]).issubset(set(bundle.get('files') or [])): return False
+    try:
+        for name in EXPORT_DOCUMENTS: validate_hwpx_package(folder/name)
+        with zipfile.ZipFile(folder/EXPORT_ARCHIVE) as archive:
+            if archive.testzip() is not None or set(archive.namelist())!=set(expected): return False
+            for name in expected:
+                if archive.read(name)!=(folder/name).read_bytes(): return False
+    except (OSError,ValueError,zipfile.BadZipFile,KeyError):
+        return False
+    return True
+
+def _backup_export_artifacts(folder):
+    token=core.uid()
+    names=(*EXPORT_DOCUMENTS,EXPORT_ARCHIVE,'검수기록.json')
+    backups=[]
+    try:
+        for index,name in enumerate(names):
+            source=folder/name
+            backup=folder/f'.last-good-{token}-{index}.bak'
+            shutil.copy2(source,backup)
+            backups.append((name,backup))
+    except Exception:
+        for _,backup in backups: backup.unlink(missing_ok=True)
+        raise
+    return backups
+
+def _restore_export_artifacts(folder,backups):
+    errors=[]
+    for name,backup in backups:
+        try: os.replace(backup,folder/name)
+        except OSError as exc: errors.append(f'{name}: {exc}')
+    return errors
+
+def _cleanup_export_backups(backups):
+    for _,backup in backups:
+        backup.unlink(missing_ok=True)
+
+def _remove_published_hwpx(folder):
+    for name in (*EXPORT_DOCUMENTS,EXPORT_ARCHIVE):
+        try: (folder/name).unlink(missing_ok=True)
+        except OSError: pass
+
+def _tail(value,limit=500):
+    if isinstance(value,bytes): value=value.decode('utf-8',errors='replace')
+    return str(value or '')[-limit:].strip()
+
+def _run_hwpx_conversion(folder):
+    if not hwp_conversion_available():
+        return _conversion('unavailable','이 PC에서 한글 자동 변환을 사용할 수 없습니다. Windows용 한컴오피스 한글 설치를 확인한 뒤 다시 연결해 주세요.')
+    sources=[folder/'시험지_학생용.hml',folder/'시험지_교사용.hml']
+    if not all(path.is_file() for path in sources):
+        return _conversion('failed','변환할 학생용·교사용 HML 원본을 찾을 수 없습니다.')
+    token=core.uid()
+    staged=[folder/f'.hwpx-{token}-student.hwpx',folder/f'.hwpx-{token}-teacher.hwpx']
+    command=[sys.executable,str(core.ROOT/'tools'/'수식크기_재계산.py'),'--batch',
+             str(sources[0]),str(staged[0]),str(sources[1]),str(staged[1])]
+    creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0
+    try:
+        # Hancom COM is not safe to drive concurrently. One helper process
+        # converts both outputs in sequence while this lock serializes bundles.
+        with HWP_CONVERSION_LOCK:
+            result=subprocess.run(command,capture_output=True,encoding='utf-8',errors='replace',
+                                  timeout=180,creationflags=creationflags)
+            if result.returncode:
+                detail=' '.join(part for part in (_tail(result.stdout),_tail(result.stderr)) if part)
+                raise RuntimeError(f'한글 변환 프로세스가 실패했습니다 (종료 코드 {result.returncode}). {detail}')
+            validate_hwpx_package(staged[0],sources[0])
+            validate_hwpx_package(staged[1],sources[1])
+            if any(stage.stat().st_size == 0 for stage in staged):
+                raise ValueError('변환된 HWPX 파일이 비어 있습니다.')
+            final=[folder/name for name in EXPORT_DOCUMENTS]
+            backups=[folder/f'.hwpx-{token}-backup-{index}.hwpx' for index in range(2)]
+            saved=[]; promoted=[]
+            try:
+                for destination,backup in zip(final,backups):
+                    if destination.exists():
+                        os.replace(destination,backup); saved.append((destination,backup))
+                for stage,destination in zip(staged,final):
+                    os.replace(stage,destination); promoted.append(destination)
+            except Exception:
+                for destination in promoted:
+                    destination.unlink(missing_ok=True)
+                for destination,backup in reversed(saved):
+                    if backup.exists(): os.replace(backup,destination)
+                raise
+            for _,backup in saved: backup.unlink(missing_ok=True)
+        return _conversion('ready','학생용·교사용 HWPX 변환과 패키지 검증을 마쳤습니다.')
+    except subprocess.TimeoutExpired as exc:
+        detail=' '.join(part for part in (_tail(exc.stdout),_tail(exc.stderr)) if part)
+        return _conversion('failed','한글 변환이 180초 안에 끝나지 않았습니다. 한글 상태를 확인한 뒤 다시 시도해 주세요. '+detail)
+    except Exception as exc:
+        return _conversion('failed',f'한글 HWPX 변환에 실패했습니다. 한글 상태를 확인한 뒤 다시 시도해 주세요. {exc}')
+    finally:
+        for path in staged: path.unlink(missing_ok=True)
+
+def _build_export_zip(folder):
+    expected=[*EXPORT_DOCUMENTS,*EXPORT_SUPPORT_FILES]
+    missing=[name for name in expected if not (folder/name).is_file()]
+    if missing: raise ValueError('ZIP에 넣을 출력 파일이 없습니다: '+', '.join(missing))
+    for name in EXPORT_DOCUMENTS:
+        validate_hwpx_package(folder/name)
+    temporary=folder/f'.출제결과-{core.uid()}.partial.zip'
+    destination=folder/EXPORT_ARCHIVE
+    try:
+        with zipfile.ZipFile(temporary,'w',zipfile.ZIP_DEFLATED) as archive:
+            for name in expected: archive.write(folder/name,name)
+        with zipfile.ZipFile(temporary) as archive:
+            if archive.testzip() is not None or set(archive.namelist())!=set(expected):
+                raise ValueError('출제결과 ZIP 검증에 실패했습니다.')
+        os.replace(temporary,destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+def refresh_export_bundle(folder,bundle,*,convert_hwpx=True):
+    previous_good=_is_complete_published_export(folder,bundle)
+    backups=[]
+    backup_error=None
+    if previous_good:
+        try: backups=_backup_export_artifacts(folder)
+        except Exception as exc: backup_error=exc
+    if backup_error is not None:
+        conversion=_conversion('failed',f'기존 HWPX 파일을 보존하기 위한 백업에 실패해 변환을 시작하지 않았습니다. {backup_error}')
+    elif not convert_hwpx:
+        conversion=_conversion('pending','테스트에서 한글 자동 변환을 건너뛰었습니다.')
+    else:
+        conversion=_run_hwpx_conversion(folder)
+    if conversion['status']=='ready':
+        try:
+            _write_conversion_audit(folder,conversion)
+            _build_export_zip(folder)
+        except Exception as exc:
+            conversion=_conversion('failed',f'HWPX 묶음 ZIP을 만들지 못했습니다. HWPX 파일을 확인한 뒤 다시 시도해 주세요. {exc}')
+    preserve_backups=False
+    if conversion['status']!='ready':
+        retry_error=conversion['message']
+        if previous_good:
+            restore_errors=_restore_export_artifacts(folder,backups) if backups else []
+            if restore_errors:
+                conversion['message']+=' 기존 정상 파일 복원 중 오류: '+' / '.join(restore_errors)
+                preserve_backups=True
+                _remove_published_hwpx(folder)
+            else:
+                conversion=_conversion('ready','재시도에 실패했지만 이전 정상 HWPX와 ZIP을 유지했습니다. '+retry_error)
+                conversion['retry_error']=retry_error
+        else:
+            _remove_published_hwpx(folder)
+            _write_conversion_audit(folder,conversion)
+    if not preserve_backups: _cleanup_export_backups(backups)
+    bundle['conversion']=conversion
+    if conversion['status']=='ready':
+        bundle['files']=_published_export_files(folder,conversion)
+    elif previous_good and backups and not preserve_backups:
+        bundle['files']=list(bundle.get('files') or [])
+    else:
+        bundle['files']=_published_export_files(folder,conversion)
+    return bundle
+
+def recalculate_export(exam,export_id):
+    bundle=next((item for item in exam.get('exports',[]) if item.get('id')==export_id),None)
+    if bundle is None: raise ValueError('출력 버전 오류')
+    folder=core.exam_path(exam['id'])/'exports'/export_id
+    if not folder.is_dir(): raise ValueError('출력 파일을 찾을 수 없습니다.')
+    refresh_export_bundle(folder,bundle,convert_hwpx=True)
+    return bundle
 
 def asset_path(eid,name):
     if not re.fullmatch(r'[a-f0-9]{16}\.(png|svg)',name): raise ValueError('파일 이름 오류')
@@ -571,7 +758,7 @@ def launch_job(eid, payload):
     return job
 
 class Handler(BaseHTTPRequestHandler):
-    server_version='QuestionStudio/1.0'
+    server_version='TestCraft/1.1'
     def log_message(self,*args): pass
 
     def send(self,value,status=200,content_type='application/json; charset=utf-8'):
@@ -656,16 +843,24 @@ class Handler(BaseHTTPRequestHandler):
             if p.startswith('/download/'):
                 parts=p.split('/'); eid,rid,name=parts[2:]
                 if not re.fullmatch('[a-f0-9]{16}',rid) or Path(name).name!=name or '\\' in name: raise ValueError('경로 오류')
+                exam=core.read_exam(eid)
+                bundle=next((item for item in exam.get('exports',[]) if item.get('id')==rid),None)
+                if bundle is None or name not in bundle.get('files',[]):
+                    self.send({'error':'요청한 파일은 공개된 출력물이 아닙니다.'},404); return
                 f=core.exam_path(eid)/'exports'/rid/name
+                if not f.is_file(): self.send({'error':'출력 파일을 찾을 수 없습니다.'},404); return
                 self.send_response(200); self.send_header('Content-Type','application/octet-stream'); self.send_header('Content-Disposition',"attachment; filename*=UTF-8''"+urllib.parse.quote(name)); self.send_header('Content-Length',str(f.stat().st_size)); self.end_headers(); self.wfile.write(f.read_bytes()); return
             if p=='/template':
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
-            static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
-            static.update({path:path.lstrip('/') for path in ('/favicon.ico','/icons/studio.svg','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-512.png','/site.webmanifest')})
+            static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
+            static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
             if p not in static: self.send({'error':'페이지 없음'},404); return
             f=core.ROOT/'app/static'/static[p]
             content_types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json; charset=utf-8'}
             content=f.read_bytes()
+            if p=='/':
+                port=getattr(getattr(self,'server',None),'server_address',('127.0.0.1',8765))[1]
+                content=content.replace(b'http://127.0.0.1:8765/icons/',f'http://127.0.0.1:{port}/icons/'.encode())
             if p=='/' and q.get('ux',['new'])[0]=='old':
                 page=content.decode('utf-8')
                 page=page.replace('<link rel="stylesheet" href="/ux-minimal.css"><link rel="stylesheet" href="/ux-designer.css">','')
@@ -921,12 +1116,7 @@ class Handler(BaseHTTPRequestHandler):
                     exam['exports'].append(bundle); self.send(core.save_exam(exam)); return
                 if path=='/api/recalculate':
                     exam=core.read_exam(eid); rid=data['export_id']
-                    if not any(b['id']==rid for b in exam['exports']): raise ValueError('출력 버전 오류')
-                    folder=core.exam_path(eid)/'exports'/rid
-                    result=subprocess.run([sys.executable,str(core.ROOT/'tools/수식크기_재계산.py'),str(folder/'시험지_학생용.hml'),str(folder/'시험지_학생용.hwp')],capture_output=True,encoding='utf-8',errors='replace',timeout=120,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
-                    if result.returncode or not (folder/'시험지_학생용.hwp').exists(): raise ValueError('한글 재계산 실패. 한글과 pyhwpx 설치를 확인해 주세요. '+result.stdout[-500:]+result.stderr[-500:])
-                    b=next(b for b in exam['exports'] if b['id']==rid)
-                    if '시험지_학생용.hwp' not in b['files']: b['files'].append('시험지_학생용.hwp')
+                    recalculate_export(exam,rid)
                     self.send(core.save_exam(exam)); return
                 raise ValueError('알 수 없는 요청')
         except Exception as e:
@@ -940,5 +1130,5 @@ class StudioHTTPServer(ThreadingHTTPServer):
 def serve(port=8765):
     core.DATA.mkdir(parents=True,exist_ok=True)
     server=StudioHTTPServer(('127.0.0.1',port),Handler)
-    print(f'Question Maker Studio: http://127.0.0.1:{port}',flush=True)
+    print(f'TestCraft: http://127.0.0.1:{port}',flush=True)
     server.serve_forever()

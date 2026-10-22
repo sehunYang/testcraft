@@ -6,7 +6,7 @@ const labels=['문항카드','문항 작성','자료 그림','검토 · 출력']
 let toastTimer,pollTimer,jobWatchId=null,jobWatchToken=0,jobPollErrors=0,jobProgressDismissed=false;
 const uxModeSwitch=$('#uxModeSwitch');
 if(uxModeSwitch&&new URLSearchParams(location.search).get('ux')==='old'){
- uxModeSwitch.href='/?ux=new';uxModeSwitch.textContent='새 화면 보기';uxModeSwitch.setAttribute('aria-label','새 문항 스튜디오 화면으로 전환');
+ uxModeSwitch.href='/?ux=new';uxModeSwitch.textContent='새 화면 보기';uxModeSwitch.setAttribute('aria-label','새 출제 화면으로 전환');
 }
 function toast(message){$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,7000)}
 async function api(path,data){if(data?.exam_id&&data.exam_id===state.exam?.id&&data.revision===undefined)data.revision=state.exam.revision;const response=await fetch(path,data?{method:'POST',headers:{'Content-Type':'application/json','X-Studio-Token':state.boot.token},body:JSON.stringify(data)}:{});const value=await response.json();if(!response.ok){const error=new Error(value.error||'요청에 실패했습니다.');error.status=response.status;error.code=value.code||null;error.details=value.details||null;throw error}return value}

@@ -69,7 +69,7 @@ class VectorTests(unittest.TestCase):
         c=image_card();c['labels_initialized']=True;c['image_labels']=[dict(id=core.uid(),kind='physics',text='v_0',size=28,x=700,y=300,rotation=0)]
         eid=core.uid();c['image']=server.make_image(eid,c,None,svg=SOURCE);c['image_scene']=vectors.from_svg(SOURCE,c['image']['sha256']);c['image_scene']['objects'][0]['matrix']=[2,0,0,1,0,0]
         server.finalize_image(eid,c);e=core.save_exam(dict(id=eid,title='객체 출력 검증',subject='12역학',cards=[c],exports=[],revision=0,card_approval={'digest':core.cards_digest([c])}))
-        bundle=server.export_exam(e);root=ET.parse(core.exam_path(eid)/'exports'/bundle['id']/'시험지_학생용.hml')
+        bundle=server.export_exam(e,convert_hwpx=False);root=ET.parse(core.exam_path(eid)/'exports'/bundle['id']/'시험지_학생용.hml')
         self.assertEqual(base64.b64decode(root.find('.//BINDATA').text),server.asset_path(eid,c['image']['final_file']).read_bytes())
 
 if __name__=='__main__':unittest.main()

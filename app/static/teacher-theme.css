@@ -39,6 +39,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--focus); outline:
 .brand { font-size: 20px; color: #3151c4; gap: 10px; }
 .brand-icon { width: 36px; height: 36px; border-radius: 10px; background: #365eef; font-size: 18px; }
 .brand small { color: #616873; font-size: 10px; letter-spacing: 1px; }
+.brand>span { min-width: 0; }
+.brand small { letter-spacing: 0; white-space: normal; line-height: 1.4; margin-top: 3px; }
 .side-label { margin: 40px 10px 14px; font-size: 13px; color: #616873; letter-spacing: 0; }
 .new-exam { border-radius: 999px; background: #365eef; color: white; min-height: 44px; }
 .new-exam:hover { background: #284bd3; }

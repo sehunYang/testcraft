@@ -64,7 +64,7 @@ class LayerTests(unittest.TestCase):
         server.finalize_image(e['id'],saved);self.assertTrue(saved['image']['approved'])
         final=server.asset_path(e['id'],saved['image']['final_file'])
         with Image.open(final) as im:self.assertEqual(im.size,(3000,1920))
-        e['cards']=[saved];bundle=server.export_exam(e)
+        e['cards']=[saved];bundle=server.export_exam(e,convert_hwpx=False)
         hml=ET.parse(core.exam_path(e['id'])/'exports'/bundle['id']/'시험지_학생용.hml')
         self.assertEqual(base64.b64decode(hml.find('.//BINDATA').text),final.read_bytes())
     def test_first_image_automatically_creates_independent_text(self):

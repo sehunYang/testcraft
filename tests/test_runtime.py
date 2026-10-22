@@ -32,19 +32,41 @@ class RuntimeTests(unittest.TestCase):
             with patch.dict(os.environ, {
                 'QUESTION_STUDIO_INSTALLED': '1', 'LOCALAPPDATA': str(local),
             }, clear=True):
-                user_root = local / 'QuestionStudio'
+                user_root = local / 'TestCraft'
                 self.assertTrue(runtime.installed_mode())
                 self.assertEqual(runtime.user_root(root), user_root.resolve())
                 self.assertEqual(runtime.data_dir(root), user_root.resolve() / 'exams' / '_studio')
                 self.assertEqual(runtime.label_cache_dir(root), user_root.resolve() / 'cache' / 'labels-v2')
                 self.assertEqual(runtime.log_dir(root), user_root.resolve() / 'logs')
 
+    def test_existing_legacy_data_root_remains_authoritative(self):
+        with _tempdir() as temporary:
+            local = Path(temporary) / 'Local App Data'
+            legacy_root = local / 'QuestionStudio'
+            legacy_root.mkdir(parents=True)
+            saved_data = legacy_root / 'exams' / '_studio' / 'saved-question.json'
+            saved_data.parent.mkdir(parents=True)
+            saved_data.write_text('{"saved": true}', encoding='utf-8')
+            root = Path(temporary) / 'install'
+
+            with patch.dict(os.environ, {
+                'QUESTION_STUDIO_INSTALLED': '1', 'LOCALAPPDATA': str(local),
+            }, clear=True):
+                self.assertEqual(runtime.user_root(root), legacy_root.resolve())
+                self.assertEqual(runtime.data_dir(root), saved_data.parent.resolve())
+                self.assertEqual(saved_data.read_text(encoding='utf-8'), '{"saved": true}')
+                self.assertFalse((local / 'TestCraft').exists())
+
     def test_data_dir_override_is_an_isolated_user_root(self):
         with _tempdir() as temporary:
             override = Path(temporary) / 'smoke'
+            local = Path(temporary) / 'Local App Data'
+            legacy = local / 'QuestionStudio'
+            legacy.mkdir(parents=True)
             root = Path(temporary) / 'install'
             with patch.dict(os.environ, {
                 'QUESTION_STUDIO_INSTALLED': '1', 'QUESTION_STUDIO_DATA_DIR': str(override),
+                'LOCALAPPDATA': str(local),
             }, clear=True):
                 self.assertEqual(runtime.user_root(root), override.resolve())
                 self.assertEqual(runtime.data_dir(root), override.resolve() / 'exams' / '_studio')
@@ -191,7 +213,7 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(reuse.returncode, 0)
                 self.assertTrue(desktop._health(record['base_url'], runtime.APP_ID,
                                                 runtime.APP_VERSION, data_dir))
-                self.assertIn('Reusing verified Question Studio instance',
+                self.assertIn('Reusing verified TestCraft instance',
                               log_path.read_text(encoding='utf-8', errors='replace'))
 
                 stop = invoke('--stop', timeout=25)

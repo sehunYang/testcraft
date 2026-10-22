@@ -2,32 +2,32 @@
 <html lang="ko"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>문항 스튜디오 · 교사용 출제 작업실</title>
-<meta name="description" content="문항카드부터 자료 그림, 시험지와 답지까지. 성취기준에 맞춘 문항 작성과 AI 생성, 그림 편집, 학교 양식 출력을 한곳에서 진행하세요.">
-<meta name="application-name" content="문항 스튜디오">
+<title>TestCraft · 교사를 위한 시험공방</title>
+<meta name="description" content="평가의 의도를 담아, 시험을 빚다. TestCraft에서 문항카드, 자료 그림, 시험지와 답지를 한 흐름으로 작성하고 검토하세요.">
+<meta name="application-name" content="TestCraft">
 <meta name="theme-color" content="#365EEF">
 <meta name="robots" content="noindex, nofollow">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:site_name" content="문항 스튜디오">
-<meta property="og:title" content="문항 스튜디오 · 교사용 출제 작업실">
-<meta property="og:description" content="문항카드부터 자료 그림, 시험지와 답지까지 한곳에서 만드는 교사용 출제 작업실">
+<meta property="og:site_name" content="TestCraft">
+<meta property="og:title" content="TestCraft · 교사를 위한 시험공방">
+<meta property="og:description" content="Crafting assessments with purpose. 문항카드부터 자료 그림, 시험지와 답지까지 한 흐름으로 작성하고 검토하세요.">
 <meta property="og:image" content="http://127.0.0.1:8765/icons/icon-512.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
-<meta property="og:image:alt" content="파란 바탕의 시험지와 체크 표시로 구성한 문항 스튜디오 아이콘">
+<meta property="og:image:alt" content="시험지와 제도 도구로 정교한 출제 과정을 표현한 TestCraft 로고">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="문항 스튜디오 · 교사용 출제 작업실">
-<meta name="twitter:description" content="문항카드부터 자료 그림, 시험지와 답지까지 한곳에서">
+<meta name="twitter:title" content="TestCraft · 교사를 위한 시험공방">
+<meta name="twitter:description" content="Crafting assessments with purpose. 문항카드부터 자료 그림, 시험지와 답지까지.">
 <meta name="twitter:image" content="http://127.0.0.1:8765/icons/icon-512.png">
-<link rel="icon" href="/favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256">
-<link rel="icon" href="/icons/studio.svg" type="image/svg+xml" sizes="any">
+<link rel="icon" href="/favicon.ico?v=testcraft-02" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256">
+<link rel="icon" href="/icons/testcraft.svg?v=02" type="image/svg+xml" sizes="any">
 <link rel="apple-touch-icon" href="/icons/icon-180.png" sizes="180x180">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/teacher-theme.css"><link rel="stylesheet" href="/designer.css"><link rel="stylesheet" href="/ux-minimal.css"><link rel="stylesheet" href="/ux-designer.css"><link rel="stylesheet" href="/generation.css"><link rel="stylesheet" href="/onboarding.css"><script src="/app.js" defer></script><script src="/layers.js" defer></script><script src="/vectors.js" defer></script><script src="/vendor/svg-edit/studio-core.js" defer></script><script src="/distribution.js" defer></script><script src="/designer.js" defer></script><script src="/snapping.js" defer></script><script src="/image-flow.js" defer></script><script src="/teacher-ui.js" defer></script><script src="/ux-minimal.js" defer></script><script src="/ux-designer.js" defer></script><script src="/onboarding.js" defer></script></head>
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/teacher-theme.css"><link rel="stylesheet" href="/designer.css"><link rel="stylesheet" href="/ux-minimal.css"><link rel="stylesheet" href="/ux-designer.css"><link rel="stylesheet" href="/generation.css"><link rel="stylesheet" href="/onboarding.css"><script src="/app.js" defer></script><script src="/layers.js" defer></script><script src="/vectors.js" defer></script><script src="/vendor/svg-edit/studio-core.js" defer></script><script src="/distribution.js" defer></script><script src="/designer.js" defer></script><script src="/snapping.js" defer></script><script src="/image-flow.js" defer></script><script src="/teacher-ui.js" defer></script><script src="/ux-minimal.js" defer></script><script src="/ux-designer.js" defer></script><script src="/hwpx-export.js" defer></script><script src="/onboarding.js" defer></script></head>
 <body>
 <aside class="sidebar">
- <a class="brand" href="/"><img class="brand-icon" src="/icons/studio.svg" width="36" height="36" alt=""><span>문항 스튜디오<small>QUESTION MAKER</small></span></a>
+ <a class="brand" href="/"><img class="brand-icon" src="/icons/icon-192.png" width="36" height="36" alt=""><span>TestCraft<small>Crafting assessments with purpose.</small></span></a>
  <div class="side-label">출제 작업실</div>
  <button class="workspace-home" id="workspaceHome">내 시험</button>
  <button class="new-exam" id="newExam">＋ 새 시험 만들기</button>
@@ -64,7 +64,7 @@
 <dialog id="scoreDialog" class="large-dialog"></dialog><dialog id="reviewSummaryDialog" class="large-dialog"></dialog><dialog id="conflictDialog" class="large-dialog"></dialog><dialog id="approvalDiscrepancyDialog" class="large-dialog"></dialog>
 <dialog id="designImagePreviewDialog" class="design-image-preview-dialog" aria-labelledby="designImagePreviewTitle"><div class="design-image-preview-head"><div><div class="eyebrow">자료 그림 미리보기</div><h2 id="designImagePreviewTitle"></h2></div><button class="icon-btn" type="button" data-image-preview-close aria-label="그림 미리보기 닫기">×</button></div><div class="design-image-preview-frame"><img id="designImagePreviewImage" alt=""></div></dialog><input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" hidden>
 <dialog id="codexSetupDialog" class="codex-setup-dialog" aria-labelledby="codexSetupTitle" aria-describedby="codexSetupDescription" aria-modal="true">
- <div class="codex-setup-brand"><span class="codex-setup-mark" aria-hidden="true">Q</span><div><div class="eyebrow">QUESTION STUDIO</div><h2 id="codexSetupTitle">Codex 연결을 완료하세요</h2></div></div>
+ <div class="codex-setup-brand"><img class="codex-setup-mark" src="/icons/icon-192.png" alt=""><div><div class="eyebrow">TESTCRAFT</div><h2 id="codexSetupTitle">Codex 연결을 완료하세요</h2></div></div>
  <p id="codexSetupDescription" class="codex-setup-intro">처음 사용하기 전에 Codex CLI와 ChatGPT 계정을 연결해 주세요.</p>
  <div class="codex-setup-status" aria-live="polite">
   <div class="codex-setup-status-row"><span class="codex-setup-status-icon" aria-hidden="true">⌘</span><div><b>Codex CLI</b><span data-setup-cli>준비 상태를 확인하고 있습니다.</span></div></div>

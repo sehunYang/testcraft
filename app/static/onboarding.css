@@ -11,7 +11,7 @@
 }
 .codex-setup-dialog::backdrop { background: rgba(15, 26, 49, .58); backdrop-filter: blur(5px); }
 .codex-setup-brand { display: flex; align-items: center; gap: 14px; }
-.codex-setup-mark { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border-radius: 15px; color: white; background: linear-gradient(145deg, #557bff, #3158d7); font-size: 21px; font-weight: 800; box-shadow: 0 8px 20px rgba(53, 91, 214, .24); }
+.codex-setup-mark { display: block; width: 46px; height: 46px; flex: 0 0 46px; object-fit: contain; border-radius: 12px; }
 .codex-setup-brand .eyebrow { margin: 0 0 4px; color: #61718f; letter-spacing: .12em; }
 .codex-setup-brand h2 { margin: 0; color: #162340; font-size: clamp(21px, 5vw, 27px); line-height: 1.25; }
 .codex-setup-intro { margin: 20px 0 18px; color: #55647e; line-height: 1.7; }

@@ -1,16 +1,21 @@
-# 문항 스튜디오 · Question Studio
+# TestCraft · 교사를 위한 시험공방
+
+<img src="app/static/icons/icon-192.png" width="112" height="112" alt="TestCraft 로고">
+
+**Crafting assessments with purpose.**<br>
+평가의 의도를 담아, 시험을 빚다.
 
 교사가 성취기준과 문항 의도를 설계하고, AI 초안을 검토한 뒤 자료 그림과 시험지·해설을 만드는 Windows 로컬 앱입니다.
 
 ## 설치
 
-1. [최신 릴리스](https://github.com/sehunYang/question-studio/releases/latest)에서 `QuestionStudio-1.0.0-windows-x64-setup.exe`를 받습니다.
-2. 설치 후 시작 메뉴의 **Question Studio**를 실행합니다. 관리자 권한은 필요하지 않습니다.
+1. [최신 릴리스](https://github.com/sehunYang/testcraft/releases/latest)에서 `TestCraft-1.1.0-windows-x64-setup.exe`를 받습니다.
+2. 설치 후 시작 메뉴의 **TestCraft**를 실행합니다. 관리자 권한은 필요하지 않습니다.
 3. 첫 화면에서 내장 Codex CLI 확인을 기다리고, **Codex 계정으로 로그인**을 누릅니다. 공식 로그인 페이지에서 Codex를 사용할 수 있는 유료 ChatGPT 계정으로 인증합니다.
 
 Windows 10/11 x64용입니다. Python·Node.js·Codex CLI와 필요한 렌더링 모듈을 포함합니다. API 키를 입력할 필요가 없습니다. 서비스 계정과 구독은 별도로 필요하며 설치 파일에 인증 정보가 포함되지 않습니다.
 
-한컴오피스 한글이 설치되어 있으면 신명 중명조 한글 글씨 레이어와 HWP 변환·수식 크기 재계산 기능을 사용할 수 있습니다. 한글 프로그램과 해당 글꼴은 재배포하지 않습니다. Latin Modern Math와 Pretendard GOV는 해당 라이선스와 함께 포함합니다.
+한컴오피스 한글이 설치되어 있으면 신명 중명조 한글 글씨 레이어와 HWPX 출력·수식 크기 재계산 기능을 사용할 수 있습니다. 앱이 별도의 숨김 한글 프로세스에서 내부 HML을 열어 학생용·교사용 HWPX로 저장합니다. 한글 프로그램과 해당 글꼴은 재배포하지 않습니다. Latin Modern Math와 Pretendard GOV는 해당 라이선스와 함께 포함합니다.
 
 ## 출제 흐름
 
@@ -23,9 +28,9 @@ Windows 10/11 x64용입니다. Python·Node.js·Codex CLI와 필요한 렌더링
 - 문항 검토·배점·전체 승인 후 실제 그림 제작
 - strict·mixed·flexible 그림 프롬프트와 독립 글씨 레이어
 - SVG 객체 편집·회전·스냅, 글씨 추가·이동·후편집
-- 학생용·교사용 HML, 해설 Markdown, 문항카드 XLSX, ZIP 출력
+- 학생용·교사용 HWPX, 해설 Markdown, 문항카드 XLSX, ZIP 출력 (내부 HML은 보존)
 
-시험과 그림은 내 컴퓨터의 `%LOCALAPPDATA%\QuestionStudio`에 저장됩니다. 업데이트와 앱 제거 시 이 폴더를 삭제하지 않습니다. AI 생성 시 선택한 문항 내용은 로그인한 Codex 서비스로 전달됩니다. 생성 결과와 계산·그림은 교사가 검토하고 승인합니다.
+새 설치의 시험과 그림은 내 컴퓨터의 `%LOCALAPPDATA%\TestCraft`에 저장됩니다. 이전 Question Studio 설치의 `%LOCALAPPDATA%\QuestionStudio` 폴더가 있으면 그 위치를 계속 사용해 시험과 로그인 정보를 보존합니다. 업데이트와 앱 제거 시 작업물 폴더를 삭제하지 않습니다. AI 생성 시 선택한 문항 내용은 로그인한 Codex 서비스로 전달됩니다. 생성 결과와 계산·그림은 교사가 검토하고 승인합니다.
 
 ## 소스 실행과 빌드
 

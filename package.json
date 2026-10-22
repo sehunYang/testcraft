@@ -1,7 +1,7 @@
 {
-  "name": "question-maker-studio",
+  "name": "testcraft",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "학교 문항 출제 통합 로컬 워크플로우",
   "dependencies": { "sharp": "^0.34.0" }
 }

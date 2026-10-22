@@ -84,7 +84,7 @@ class WorkflowTests(unittest.TestCase):
         c['image_plan_approval']={'context':core.image_plan_context(c)}
         e=self.exam([c]);buf=io.BytesIO();Image.new('RGB',(400,240),'white').save(buf,format='PNG')
         c['image']=server.make_image(e['id'],c,buf.getvalue());c['labels_initialized']=True;server.finalize_image(e['id'],c)
-        e['cards']=[c];b=server.export_exam(e);folder=core.exam_path(e['id'])/'exports'/b['id']
+        e['cards']=[c];b=server.export_exam(e,convert_hwpx=False);folder=core.exam_path(e['id'])/'exports'/b['id']
         s=ET.parse(folder/'시험지_학생용.hml').getroot();t=ET.parse(folder/'시험지_교사용.hml').getroot()
         self.assertEqual(len(list(s.iter('PICTURE'))),1)
         self.assertEqual(len(list(s.iter('MARKPENBEGIN'))),0)
@@ -120,7 +120,7 @@ class WorkflowTests(unittest.TestCase):
         path=Path(self.tmp.name)/'twenty.xlsx';core.export_xlsx(cards,path)
         self.assertEqual(len(core.import_cards(path.read_bytes())),20)
         for c in cards:c['review_approved']=True
-        exam=self.exam(cards);bundle=server.export_exam(exam)
+        exam=self.exam(cards);bundle=server.export_exam(exam,convert_hwpx=False)
         paper=core.exam_path(exam['id'])/'exports'/bundle['id']/'시험지_교사용.hml'
         root=ET.parse(paper).getroot()
         self.assertEqual(len(list(root.iter('MARKPENBEGIN'))),20)

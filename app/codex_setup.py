@@ -153,11 +153,11 @@ class _AppServerClient:
         self._pending = {}
         self._next_id = 0
         self._closed = threading.Event()
-        self._reader = threading.Thread(target=self._read_loop, name='question-studio-codex-rpc', daemon=True)
+        self._reader = threading.Thread(target=self._read_loop, name='testcraft-codex-rpc', daemon=True)
         self._reader.start()
         try:
             result = self.request('initialize', {'clientInfo': {
-                'name': 'question_studio', 'title': 'Question Studio', 'version': runtime.APP_VERSION,
+                'name': 'testcraft', 'title': runtime.APP_NAME, 'version': runtime.APP_VERSION,
             }}, timeout=_APP_SERVER_TIMEOUT)
             if not isinstance(result, dict):
                 raise CodexSetupError('Codex app-server did not initialize correctly.')
@@ -417,7 +417,7 @@ def _download_and_install():
     backup = tools_root / ('.codex-backup-' + uuid.uuid4().hex)
     archive_path = None
     try:
-        fd, archive_name = tempfile.mkstemp(prefix='question-studio-codex-', suffix='.zip', dir=str(user_root))
+        fd, archive_name = tempfile.mkstemp(prefix='testcraft-codex-', suffix='.zip', dir=str(user_root))
         archive_path = Path(archive_name)
         digest = hashlib.sha256()
         total = 0
@@ -565,7 +565,7 @@ class CodexSetup:
                 return
             self._phase = 'checking'
             self._error = None
-        threading.Thread(target=self._check_worker, name='question-studio-codex-check', daemon=True).start()
+        threading.Thread(target=self._check_worker, name='testcraft-codex-check', daemon=True).start()
 
     def status(self):
         required = runtime.installed_mode()
@@ -605,7 +605,7 @@ class CodexSetup:
             self._phase = 'installing'
             self._error = None
         threading.Thread(target=self._install_worker, args=(bool(repair),),
-                         name='question-studio-codex-install', daemon=True).start()
+                         name='testcraft-codex-install', daemon=True).start()
         return self.status()
 
     def _install_worker(self, repair):
@@ -648,7 +648,7 @@ class CodexSetup:
             self._login_id = None
             self._login_event = None
             self._login_completion = None
-        threading.Thread(target=self._login_worker, name='question-studio-codex-login', daemon=True).start()
+        threading.Thread(target=self._login_worker, name='testcraft-codex-login', daemon=True).start()
         return self.status()
 
     def _login_worker(self):
@@ -728,7 +728,7 @@ class CodexSetup:
                 event.set()
         if login_id:
             threading.Thread(target=self._cancel_worker, args=(login_id,),
-                             name='question-studio-codex-cancel', daemon=True).start()
+                             name='testcraft-codex-cancel', daemon=True).start()
         return self.status()
 
     def _cancel_worker(self, login_id):

@@ -150,7 +150,8 @@ class ApprovalOverrideApiTests(unittest.TestCase):
         self.exam = core.save_exam(saved)
         saved = core.read_exam(self.exam['id'])
         self.assertTrue(core.validate(saved)['ready'])
-        self.assertIn('시험지_학생용.hml', server.export_exam(saved)['files'])
+        bundle=server.export_exam(saved,convert_hwpx=False)
+        self.assertTrue((core.exam_path(saved['id'])/'exports'/bundle['id']/'시험지_학생용.hml').is_file())
 
         changed = copy.deepcopy(saved['cards'][0])
         changed['checks'][0]['rhs'] = '4'
@@ -219,7 +220,8 @@ class ApprovalOverrideApiTests(unittest.TestCase):
         self.assertEqual(saved['cards'][0]['image']['checks'], [{'label':'길이 비례','ok':False,'detail':'-1'},
                                                                 {'label':'힘 평형','ok':True,'detail':'0'}])
         self.assertTrue(core.validate(saved)['ready'])
-        self.assertIn('시험지_학생용.hml', server.export_exam(saved)['files'])
+        bundle=server.export_exam(saved,convert_hwpx=False)
+        self.assertTrue((core.exam_path(saved['id'])/'exports'/bundle['id']/'시험지_학생용.hml').is_file())
 
         changed = copy.deepcopy(saved['cards'][0])
         changed['question'] += ' 조건을 추가한다.'

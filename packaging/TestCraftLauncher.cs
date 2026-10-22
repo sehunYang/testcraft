@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
-internal static class QuestionStudioLauncher
+internal static class TestCraftLauncher
 {
     [STAThread]
     private static int Main(string[] args)
@@ -18,9 +18,9 @@ internal static class QuestionStudioLauncher
         if (!File.Exists(pythonw) || !File.Exists(desktopScript))
         {
             MessageBox.Show(
-                "Question Studio could not find its bundled Python runtime or desktop entry point.\r\n\r\n" +
+                "TestCraft could not find its bundled Python runtime or desktop entry point.\r\n\r\n" +
                 "Try repairing the installation from Windows Settings > Apps.",
-                "Question Studio",
+                "TestCraft",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
             return 2;
@@ -57,9 +57,9 @@ internal static class QuestionStudioLauncher
                 int exitCode = child.ExitCode;
                 child.Dispose();
                 MessageBox.Show(
-                    "Question Studio stopped while starting (exit code " + exitCode.ToString() + ").\r\n\r\n" +
+                    "TestCraft stopped while starting (exit code " + exitCode.ToString() + ").\r\n\r\n" +
                     "Try repairing the installation from Windows Settings > Apps. If the problem continues, contact support with the time this message appeared.",
-                    "Question Studio",
+                    "TestCraft",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return 1;
@@ -70,9 +70,9 @@ internal static class QuestionStudioLauncher
         catch (Exception error)
         {
             MessageBox.Show(
-                "Question Studio could not start.\r\n\r\n" + error.Message +
+                "TestCraft could not start.\r\n\r\n" + error.Message +
                 "\r\n\r\nTry repairing the installation from Windows Settings > Apps.",
-                "Question Studio",
+                "TestCraft",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
             return 1;

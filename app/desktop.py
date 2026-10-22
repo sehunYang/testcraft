@@ -1,4 +1,4 @@
-"""Hidden Windows desktop launcher for the installed Question Studio app."""
+"""Hidden Windows desktop launcher for the installed TestCraft app."""
 import argparse
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
 
 
 def _arguments(argv=None):
-    parser = argparse.ArgumentParser(description='Question Studio desktop launcher')
+    parser = argparse.ArgumentParser(description='TestCraft desktop launcher')
     parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='loopback HTTP port (default: 8765; 0 selects a free port)')
     parser.add_argument('--no-browser', action='store_true', help='start the local app without opening a browser')
     parser.add_argument('--stop', action='store_true', help='stop this installed app instance after verifying its identity')
@@ -210,7 +210,7 @@ def _claim_instance(lock_path, record_path, identity, version, data_dir, wait_se
             if healthy:
                 return None, base_url
         if time.monotonic() >= deadline:
-            raise RuntimeError('이미 실행 중인 Question Studio 인스턴스를 확인할 수 없습니다. 로그를 확인하거나 기존 앱을 닫아 주세요.')
+            raise RuntimeError('이미 실행 중인 TestCraft 인스턴스를 확인할 수 없습니다. 로그를 확인하거나 기존 앱을 닫아 주세요.')
         time.sleep(0.2)
 
 
@@ -264,13 +264,13 @@ def _handle_stop_request(request_path, user_root, record, jobs, server, core, st
     with core.LOCK:
         if _has_running_jobs(jobs):
             status = 'busy'
-            message = 'AI 작업이 진행 중이어서 Question Studio를 종료하지 않았습니다. 작업이 끝난 뒤 다시 종료해 주세요.'
+            message = 'AI 작업이 진행 중이어서 TestCraft를 종료하지 않았습니다. 작업이 끝난 뒤 다시 종료해 주세요.'
         else:
             # Serialize this transition with launch_job so a new worker cannot
             # start after the idle check but before the server shuts down.
             stop_flag.set()
             status = 'stopping'
-            message = 'Question Studio is stopping.'
+            message = 'TestCraft is stopping.'
         try:
             _write_record(response_path, {
                 'request_id': request_id, 'install_root': record.get('install_root'),
@@ -348,7 +348,7 @@ def _run(args, runtime):
     lock, existing_url = _claim_instance(lock_path, record_path, runtime.APP_ID,
                                           runtime.APP_VERSION, data_dir, install_root=ROOT)
     if existing_url:
-        print(f'Reusing verified Question Studio instance at {existing_url}', flush=True)
+        print(f'Reusing verified TestCraft instance at {existing_url}', flush=True)
         if not args.no_browser:
             webbrowser.open(existing_url + '/', new=2)
         return 0
@@ -363,7 +363,7 @@ def _run(args, runtime):
     def guarded_launch_job(*job_args, **job_kwargs):
         with core.LOCK:
             if stop_flag.is_set():
-                raise RuntimeError('Question Studio is shutting down.')
+                raise RuntimeError('TestCraft is shutting down.')
             return original_launch_job(*job_args, **job_kwargs)
 
     server_module.launch_job = guarded_launch_job
@@ -392,11 +392,11 @@ def _run(args, runtime):
         }
         _write_record(record_path, record)
         server_thread = threading.Thread(target=server.serve_forever,
-                                         name='question-studio-http', daemon=True)
+                                         name='testcraft-http', daemon=True)
         server_thread.start()
         if not _wait_for_health(base_url, runtime, data_dir):
-            raise RuntimeError('Question Studio 서버가 시작되지 않았습니다. 로그에서 오류를 확인해 주세요.')
-        print(f'Question Studio {runtime.APP_VERSION} listening at {base_url} (data: {data_dir})', flush=True)
+            raise RuntimeError('TestCraft 서버가 시작되지 않았습니다. 로그에서 오류를 확인해 주세요.')
+        print(f'TestCraft {runtime.APP_VERSION} listening at {base_url} (data: {data_dir})', flush=True)
         if not args.no_browser:
             webbrowser.open(base_url + '/', new=2)
         stopping = False
@@ -413,7 +413,7 @@ def _run(args, runtime):
                 break
         server_thread.join()
         if stopping:
-            print(f'Question Studio stopped at {base_url}', flush=True)
+            print(f'TestCraft stopped at {base_url}', flush=True)
         return 0
     finally:
         if server and server_thread and server_thread.is_alive():
@@ -450,13 +450,13 @@ def _stop(args, runtime):
                 _clean_stale_instance(user_root, record_path, request_path, record, ROOT)
             finally:
                 probe.release()
-            print('Question Studio is not running.', flush=True)
+            print('TestCraft is not running.', flush=True)
             return 0
 
         record = _read_record(record_path)
         if record is not None:
             if _path_key(record.get('install_root', '')) != _path_key(ROOT):
-                print('This installation has no running Question Studio instance.', flush=True)
+                print('This installation has no running TestCraft instance.', flush=True)
                 return 0
             if (record.get('identity') != runtime.APP_ID
                     or record.get('version') != runtime.APP_VERSION
@@ -470,7 +470,7 @@ def _stop(args, runtime):
                 break
 
         if time.monotonic() >= deadline:
-            raise RuntimeError('실행 중인 Question Studio 인스턴스의 상태를 확인할 수 없습니다.')
+            raise RuntimeError('실행 중인 TestCraft 인스턴스의 상태를 확인할 수 없습니다.')
         time.sleep(0.15)
 
     stop_token = record.get('stop_token')
@@ -499,7 +499,7 @@ def _stop(args, runtime):
                     raise RuntimeError(response.get('message') or 'AI 작업이 진행 중이어서 앱을 종료하지 않았습니다.')
                 if response.get('status') == 'stopping':
                     break
-                raise RuntimeError('Question Studio가 종료 요청을 확인할 수 없습니다.')
+                raise RuntimeError('TestCraft가 종료 요청을 확인할 수 없습니다.')
             current = _read_record(record_path)
             if not _pid_alive(record.get('pid')):
                 return 0
@@ -507,14 +507,14 @@ def _stop(args, runtime):
                 break
             time.sleep(0.15)
         else:
-            raise RuntimeError('Question Studio가 종료 요청에 응답하지 않았습니다.')
+            raise RuntimeError('TestCraft가 종료 요청에 응답하지 않았습니다.')
 
         deadline = time.monotonic() + 12
         while time.monotonic() < deadline:
             if not _pid_alive(record.get('pid')):
                 return 0
             time.sleep(0.15)
-        raise RuntimeError('Question Studio가 제한 시간 안에 종료되지 않았습니다.')
+        raise RuntimeError('TestCraft가 제한 시간 안에 종료되지 않았습니다.')
     finally:
         _remove_stop_request(request_path, request_id)
         _remove_file(response_path)

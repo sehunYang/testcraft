@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "문항 스튜디오",
-  "short_name": "문항 스튜디오",
-  "description": "문항카드부터 자료 그림, 시험지와 답지까지 한곳에서 만드는 교사용 출제 작업실",
+  "name": "TestCraft",
+  "short_name": "TestCraft",
+  "description": "평가의 의도를 담아, 시험을 빚다. 문항카드부터 자료 그림, 시험지와 답지까지 한 흐름으로 작성하고 검토하는 교사용 출제 작업실",
   "lang": "ko",
   "start_url": "/",
   "scope": "/",

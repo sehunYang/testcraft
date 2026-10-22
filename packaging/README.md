@@ -1,6 +1,6 @@
 # Windows x64 release build
 
-This folder builds the per-user `QuestionStudio-1.0.0-windows-x64-setup.exe` installer and, optionally, a portable ZIP. The build consumes a curated source staging folder and tool distributions supplied by the release builder. It does not download or install Python, Node.js, Codex, or Inno Setup on the build machine.
+This folder builds the per-user `TestCraft-1.1.0-windows-x64-setup.exe` installer and, optionally, a portable ZIP. The build consumes a curated source staging folder and tool distributions supplied by the release builder. It does not download or install Python, Node.js, Codex, or Inno Setup on the build machine.
 
 The source stage must contain the approved `app/`, `tools/`, `templates/`, and `instructions/` trees. It may also include root `LICENSE`, `README.md`, and `THIRD_PARTY_NOTICES.md`; the build copies those files explicitly when present. It must include the release `app/desktop.py` entry point and `app/static/favicon.ico`. The build copies only those trees and named root files, filters local data, audit folders, credentials, caches, and private exam folders, then checks required files before packaging.
 
@@ -17,7 +17,7 @@ Example invocation from the repository root (replace paths with the verified rel
 
 ```powershell
 python packaging/build_windows.py `
-  --source C:\release\question-studio-source `
+  --source C:\release\testcraft-source `
   --python-embed C:\release\python-3.13-embed-amd64.zip `
   --python-version 3.13.17 `
   --wheel-dir C:\release\python-wheelhouse `
@@ -30,8 +30,8 @@ python packaging/build_windows.py `
   --portable-zip
 ```
 
-`--python-archive-sha256` and `--node-archive` / `--node-archive-sha256` can verify the official runtime archives. `--codex-version` and `--codex-archive-sha256` may be supplied explicitly; otherwise both are read from the Codex `release-info.json`. The embedded runtime layout is `dist\QuestionStudio\`; the final installer, optional portable ZIP, and `SHA256SUMS` are written directly under the selected output directory. Python wheels are installed into the isolated runtime using the provided host Python and the lock file's CPython 3.13 Windows x64 tags. Pass `--wheel-dir` with a prepared local wheelhouse to force an offline install using explicit pip `--no-index --find-links` options; without it pip may use its configured package index.
+`--python-archive-sha256` and `--node-archive` / `--node-archive-sha256` can verify the official runtime archives. `--codex-version` and `--codex-archive-sha256` may be supplied explicitly; otherwise both are read from the Codex `release-info.json`. The embedded runtime layout is `dist\TestCraft\`; the final installer, optional portable ZIP, and `SHA256SUMS` are written directly under the selected output directory. Python wheels are installed into the isolated runtime using the provided host Python and the lock file's CPython 3.13 Windows x64 tags. Pass `--wheel-dir` with a prepared local wheelhouse to force an offline install using explicit pip `--no-index --find-links` options; without it pip may use its configured package index.
 
-The installer runs without elevation and defaults to `%LOCALAPPDATA%\Programs\QuestionStudio`. It creates a Start Menu shortcut and offers an unchecked desktop shortcut task. App data is held separately in the user profile and is not targeted by install or uninstall rules. The same app icon is embedded in `QuestionStudio.exe`, shown by Setup, and used for shortcuts and the Add/Remove Programs entry.
+The installer runs without elevation and defaults to `%LOCALAPPDATA%\Programs\TestCraft`. It creates a Start Menu shortcut and offers an unchecked desktop shortcut task. App data is held separately in the user profile and is not targeted by install or uninstall rules. The same app icon is embedded in `TestCraft.exe`, shown by Setup, and used for shortcuts and the Add/Remove Programs entry.
 
 Before an update or uninstall, Setup invokes the installed `app/desktop.py --stop` with its bundled `pythonw.exe`. This requests a graceful shutdown of that installation's server, waits for its process to exit, and refuses to interrupt a running AI job. No other Python applications are targeted. For manual troubleshooting, the same command accepts `--data-dir` to address an isolated test profile.

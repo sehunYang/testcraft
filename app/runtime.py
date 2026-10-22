@@ -1,11 +1,13 @@
-"""Installed and source-checkout runtime paths for Question Studio."""
+"""Installed and source-checkout runtime paths for TestCraft."""
 from pathlib import Path
 import os
 import shutil
 
 
+# Stable installation/IPC identity preserves upgrades and existing running-instance records.
 APP_ID = 'question-studio'
-APP_VERSION = '1.0.0'
+APP_NAME = 'TestCraft'
+APP_VERSION = '1.1.0'
 
 
 def is_installed():
@@ -24,12 +26,21 @@ def user_root(source_root=None):
         return Path(override).expanduser().resolve()
     if not is_installed():
         return (Path(source_root).resolve() if source_root else Path.cwd().resolve()) / '.runtime'
+
+    # Keep data from Question Studio installs in place. A clean TestCraft
+    # profile gets the new branded directory, while an existing legacy root
+    # remains authoritative until the user explicitly moves that data.
     local_app_data = os.environ.get('LOCALAPPDATA', '').strip()
     if local_app_data:
-        return Path(local_app_data).expanduser().resolve() / 'QuestionStudio'
-    if os.name == 'nt':
-        return Path.home() / 'AppData' / 'Local' / 'QuestionStudio'
-    return Path.home() / '.local' / 'share' / 'QuestionStudio'
+        base = Path(local_app_data).expanduser().resolve()
+    elif os.name == 'nt':
+        base = Path.home() / 'AppData' / 'Local'
+    else:
+        base = Path.home() / '.local' / 'share'
+    legacy_root = base / 'QuestionStudio'
+    if legacy_root.exists():
+        return legacy_root
+    return base / APP_NAME
 
 
 def data_dir(source_root):
