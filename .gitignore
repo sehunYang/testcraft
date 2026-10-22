@@ -1,0 +1,13 @@
+.runtime/
+.runtime*/
+.venv/
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+exams/
+lessons/
+reference/
+.env*
+auth.json
+*.log

@@ -1,0 +1,8 @@
+openpyxl>=3.1,<4
+Pillow>=11,<13
+sympy>=1.13,<2
+ziamath==0.13
+latex2mathml==3.81.0
+fonttools>=4.61,<5
+pyhwpx==1.7.2; sys_platform == 'win32'
+pymupdf>=1.26,<2

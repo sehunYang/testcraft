@@ -1,0 +1,7 @@
+{
+  "name": "question-maker-studio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "학교 문항 출제 통합 로컬 워크플로우",
+  "dependencies": { "sharp": "^0.34.0" }
+}
