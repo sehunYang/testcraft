@@ -1,0 +1,97 @@
+/* The unmodified, locally hosted variable font is identical to the app body font. */
+@font-face {
+  font-family: "Studio Pretendard GOV";
+  src: url("./assets/fonts/PretendardGOVVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+:root { font-family: "Studio Pretendard GOV", "Pretendard GOV", "Malgun Gothic", sans-serif; }
+body { font-size: 18px; line-height: 1.8; }
+.brand { font-size: 26px; }
+.site-header nav, .header-download { font-size: 16px; }
+.button { font-size: 17px; min-height: 54px; }
+.header-download { min-height: 46px; }
+.hero h1 { font-size: clamp(44px, 4.2vw, 62px); line-height: 1.25; letter-spacing: -2px; }
+.hero-description { font-size: 19px; line-height: 1.85; }
+.eyebrow { font-size: 15px; letter-spacing: .5px; }
+.text-link { font-size: 16px; }
+.download-caption, .account-note { font-size: 15px; line-height: 1.7; max-width: none; }
+.figure-heading, .hero-visual figcaption { font-size: 13px; }
+.figure-number { font-size: 11px; }
+.spec-strip { font-size: 16px; }
+h2, .output-inner h2 { font-size: 44px; line-height: 1.35; letter-spacing: -1.4px; }
+.section-heading > p { font-size: 18px; }
+.process b { font-size: 21px; }
+.process li > span { font-size: 14px; }
+.process p { font-size: 16px; max-width: none; }
+.showcase-tabs button { font-size: 19px; }
+.showcase-tabs button > span:first-child { font-size: 14px; }
+.panel-caption { grid-template-columns: 1fr 1.35fr; }
+.panel-caption h3 { font-size: 26px; line-height: 1.45; }
+.panel-caption p { font-size: 17px; line-height: 1.8; }
+.image-note { font-size: 14px; }
+.output-inner p:not(.eyebrow) { font-size: 18px; }
+.output-inner .output-note { font-size: 16px !important; }
+.file-stack > div > span:not(.file-icon) { font-size: 20px; }
+.file-stack small { font-size: 15px; }
+.file-stack b { font-size: 14px; }
+.download-intro h2 { font-size: 46px; }
+.download-intro > p:last-child { font-size: 18px; }
+.download-main h3 { font-size: 30px; }
+.release-line, .release-badge, .download-main > p, .alternative-downloads { font-size: 16px; }
+.download-main .file-size { font-size: 14px; }
+.download-requirements h3 { font-size: 21px; }
+.download-requirements dl > div { grid-template-columns: 72px 1fr; font-size: 16px; }
+.download-requirements > p { font-size: 15px; }
+.install-steps b { font-size: 18px; }
+.install-steps b > span { font-size: 13px; }
+.install-steps p { font-size: 16px; }
+.faq summary { font-size: 19px; padding-block: 24px; }
+.faq details p { font-size: 17px; line-height: 1.85; }
+.site-footer .brand { font-size: 23px; }
+.site-footer p, .footer-links { font-size: 15px; }
+.site-footer small { font-size: 13px; }
+@media (max-width: 1100px) {
+  .hero h1 { font-size: clamp(40px, 4.2vw, 54px); }
+  .hero-description { font-size: 18px; }
+  .hero-actions .button { font-size: 16px; }
+  .panel-caption { grid-template-columns: 1fr; gap: 12px; }
+  .panel-caption h3 { font-size: 25px; }
+  .figure-heading { font-size: 12px; }
+}
+@media (max-width: 800px) {
+  body { font-size: 17px; }
+  .brand { font-size: 24px; }
+  .hero h1 { font-size: clamp(36px, 6.4vw, 48px); }
+  .hero-description { font-size: 18px; }
+  .eyebrow { font-size: 14px; }
+  .spec-strip { font-size: 15px; }
+  h2, .output-inner h2, .download-intro h2 { font-size: 36px; }
+  .showcase-tabs button { font-size: 17px; }
+  .panel-caption { grid-template-columns: 1fr; }
+  .panel-caption h3 { font-size: 25px; }
+  .panel-caption p { font-size: 17px; }
+  .download-main h3 { font-size: 28px; }
+  .download-main > .button { font-size: 17px; }
+  .faq summary { font-size: 18px; }
+  .faq details p { font-size: 16px; }
+  .site-footer small { font-size: 13px; }
+}
+@media (max-width: 390px) {
+  .brand { font-size: 22px; }
+  .hero h1 { font-size: clamp(32px, 9.5vw, 37px); letter-spacing: -1.4px; }
+  .hero-description { font-size: 16px; }
+  .hero-description br { display: none; }
+  .hero-actions .text-link { font-size: 16px; }
+  h2, .output-inner h2, .download-intro h2 { font-size: 32px; }
+  .spec-strip { font-size: 14px; }
+  .figure-heading, .hero-visual figcaption { font-size: 12px; }
+  .figure-number { font-size: 10px; }
+  .showcase-tabs button { font-size: 15px; gap: 7px; }
+  .showcase-tabs button > span:first-child { font-size: 12px; }
+  .download-main h3 { font-size: 25px; }
+  .download-main > .button { font-size: 16px; }
+  .alternative-downloads { font-size: 15px; }
+  .download-requirements dl > div { grid-template-columns: 64px 1fr; gap: 9px; }
+}

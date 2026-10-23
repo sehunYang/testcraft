@@ -1,6 +1,6 @@
 # Windows x64 release build
 
-This folder builds the per-user `TestCraft-1.1.0-windows-x64-setup.exe` installer and, optionally, a portable ZIP. The build consumes a curated source staging folder and tool distributions supplied by the release builder. It does not download or install Python, Node.js, Codex, or Inno Setup on the build machine.
+This folder builds the per-user `TestCraft-1.1.1-windows-x64-setup.exe` installer and, optionally, a portable ZIP. The build consumes a curated source staging folder and tool distributions supplied by the release builder. It does not download or install Python, Node.js, Codex, or Inno Setup on the build machine.
 
 The source stage must contain the approved `app/`, `tools/`, `templates/`, and `instructions/` trees. It may also include root `LICENSE`, `README.md`, and `THIRD_PARTY_NOTICES.md`; the build copies those files explicitly when present. It must include the release `app/desktop.py` entry point and `app/static/favicon.ico`. The build copies only those trees and named root files, filters local data, audit folders, credentials, caches, and private exam folders, then checks required files before packaging.
 

@@ -27,8 +27,8 @@ JOBS={}; CANCEL={}
 ACTIVE={}
 DUPLICATE_REQUESTS_MAX=20
 HWP_CONVERSION_LOCK=threading.Lock()
-EXPORT_DOCUMENTS=('시험지_학생용.hwpx','시험지_교사용.hwpx')
-EXPORT_SUPPORT_FILES=('정답과해설.md','문항카드.xlsx','검수기록.json')
+EXPORT_DOCUMENTS=('시험지_학생용.hwpx','시험지_교사용.hwpx','정답과해설.hwpx')
+EXPORT_SUPPORT_FILES=('문항카드.xlsx','검수기록.json')
 EXPORT_ARCHIVE='출제결과.zip'
 
 def hwp_conversion_available():
@@ -149,17 +149,11 @@ def export_exam(exam, *, convert_hwpx=True):
             assets.append((c['no'],block['id'],raw))
     for student,name in [(True,'시험지_학생용.hml'),(False,'시험지_교사용.hml')]:
         (out/name).write_text(images.embed(hml,assets,student),encoding='utf-8')
-    lines=[f"# {exam['title']} — 정답 및 해설",'', '| 번호 | 정답 | 배점 | 난이도 |','|---|---|---|---|']
-    lines += [f"| {c['no']} | {'①②③④⑤'[c['answer']-1]} | {c['points']} | {c['difficulty']} |" for c in exam['cards']]
-    for c in exam['cards']:
-        lines += ['',f"## {c['no']}번 · 정답 {'①②③④⑤'[c['answer']-1]} · {c['points']}점",f"성취기준: {c['standard']} {c['standard_name']}",f"내용 영역: {c['concepts']}",'',c['explanation']]
-    lines+=['','## 출제 분포','','| 성취기준 | 문항 수 |','|---|---|']
-    for standard in sorted(set(c['standard'] for c in exam['cards'])): lines.append(f"| {standard} | {sum(c['standard']==standard for c in exam['cards'])} |")
-    lines+=['','## 문항별 내용 영역','','| 번호 | 내용 영역 |','|---|---|']+[f"| {c['no']} | {c['concepts']} |" for c in exam['cards']]
-    (out/'정답과해설.md').write_text('\n'.join(lines),encoding='utf-8')
+    from .answers import build_answer_hml
+    build_answer_hml(exam['title'],exam['cards'],out/'정답과해설.hml')
     core.export_xlsx(exam['cards'],out/'문항카드.xlsx')
     digest=core.export_digest(exam)
-    core.atomic(out/'검수기록.json',{'created':core.now(),'revision':exam['revision'],'content_digest':digest,'report':report,'cards':exam['cards'],'hml_status':'XML·표·그림 검증 완료 / 한글 페이지 배치·수식 재계산 확인 필요'})
+    core.atomic(out/'검수기록.json',{'title':exam['title'],'created':core.now(),'revision':exam['revision'],'content_digest':digest,'report':report,'cards':exam['cards'],'hml_status':'XML·표·그림 검증 완료 / 한글 페이지 배치·수식 재계산 확인 필요'})
     bundle={'id':stamp,'created':core.now(),'revision':exam['revision'],'content_digest':digest}
     return refresh_export_bundle(out,bundle,convert_hwpx=convert_hwpx)
 
@@ -182,9 +176,13 @@ def _published_export_files(folder,conversion):
 
 def _is_complete_published_export(folder,bundle):
     expected=[*EXPORT_DOCUMENTS,*EXPORT_SUPPORT_FILES]
+    # Preserve a valid historical pair + Markdown bundle if its upgrade fails.
+    if '정답과해설.hwpx' not in (bundle.get('files') or []):
+        expected=[*EXPORT_DOCUMENTS[:2],'정답과해설.md',*EXPORT_SUPPORT_FILES]
     if not set([*expected,EXPORT_ARCHIVE]).issubset(set(bundle.get('files') or [])): return False
     try:
-        for name in EXPORT_DOCUMENTS: validate_hwpx_package(folder/name)
+        for name in expected:
+            if name.endswith('.hwpx'): validate_hwpx_package(folder/name)
         with zipfile.ZipFile(folder/EXPORT_ARCHIVE) as archive:
             if archive.testzip() is not None or set(archive.namelist())!=set(expected): return False
             for name in expected:
@@ -200,6 +198,7 @@ def _backup_export_artifacts(folder):
     try:
         for index,name in enumerate(names):
             source=folder/name
+            if not source.is_file(): continue
             backup=folder/f'.last-good-{token}-{index}.bak'
             shutil.copy2(source,backup)
             backups.append((name,backup))
@@ -212,6 +211,9 @@ def _restore_export_artifacts(folder,backups):
     errors=[]
     for name,backup in backups:
         try: os.replace(backup,folder/name)
+        except OSError as exc: errors.append(f'{name}: {exc}')
+    for name in set(EXPORT_DOCUMENTS)-{name for name,_ in backups}:
+        try: (folder/name).unlink(missing_ok=True)
         except OSError as exc: errors.append(f'{name}: {exc}')
     return errors
 
@@ -228,32 +230,50 @@ def _tail(value,limit=500):
     if isinstance(value,bytes): value=value.decode('utf-8',errors='replace')
     return str(value or '')[-limit:].strip()
 
+def _ensure_answer_source(folder):
+    destination=folder/'정답과해설.hml'
+    if destination.is_file(): return
+    # Rebuild from this export's immutable card snapshot, never the current exam.
+    audit=json.loads((folder/'검수기록.json').read_text(encoding='utf-8'))
+    cards=audit.get('cards')
+    if not isinstance(cards,list) or not cards:
+        raise ValueError('이 출력 버전의 문항 기록이 없습니다. 새 출력본을 만들어 주세요.')
+    title=audit.get('title')
+    if not title:
+        legacy=folder/'정답과해설.md'
+        if legacy.is_file():
+            title=legacy.read_text(encoding='utf-8').splitlines()[0].removeprefix('# ').removesuffix(' — 정답 및 해설')
+    from .answers import build_answer_hml
+    build_answer_hml(title or '정답과 해설',cards,destination)
+
+
 def _run_hwpx_conversion(folder):
     if not hwp_conversion_available():
         return _conversion('unavailable','이 PC에서 한글 자동 변환을 사용할 수 없습니다. Windows용 한컴오피스 한글 설치를 확인한 뒤 다시 연결해 주세요.')
-    sources=[folder/'시험지_학생용.hml',folder/'시험지_교사용.hml']
+    try: _ensure_answer_source(folder)
+    except Exception as exc: return _conversion('failed',f'정답·해설 변환 원본을 만들지 못했습니다. {exc}')
+    sources=[folder/Path(name).with_suffix('.hml') for name in EXPORT_DOCUMENTS]
     if not all(path.is_file() for path in sources):
-        return _conversion('failed','변환할 학생용·교사용 HML 원본을 찾을 수 없습니다.')
+        return _conversion('failed','변환할 시험지 또는 정답·해설 HML 원본을 찾을 수 없습니다.')
     token=core.uid()
-    staged=[folder/f'.hwpx-{token}-student.hwpx',folder/f'.hwpx-{token}-teacher.hwpx']
+    staged=[folder/f'.hwpx-{token}-{index}.hwpx' for index in range(len(sources))]
     command=[sys.executable,str(core.ROOT/'tools'/'수식크기_재계산.py'),'--batch',
-             str(sources[0]),str(staged[0]),str(sources[1]),str(staged[1])]
+             *[str(path) for pair in zip(sources,staged) for path in pair]]
     creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0
     try:
         # Hancom COM is not safe to drive concurrently. One helper process
-        # converts both outputs in sequence while this lock serializes bundles.
+        # converts all documents in sequence while this lock serializes bundles.
         with HWP_CONVERSION_LOCK:
             result=subprocess.run(command,capture_output=True,encoding='utf-8',errors='replace',
                                   timeout=180,creationflags=creationflags)
             if result.returncode:
                 detail=' '.join(part for part in (_tail(result.stdout),_tail(result.stderr)) if part)
                 raise RuntimeError(f'한글 변환 프로세스가 실패했습니다 (종료 코드 {result.returncode}). {detail}')
-            validate_hwpx_package(staged[0],sources[0])
-            validate_hwpx_package(staged[1],sources[1])
+            for stage,source in zip(staged,sources): validate_hwpx_package(stage,source)
             if any(stage.stat().st_size == 0 for stage in staged):
                 raise ValueError('변환된 HWPX 파일이 비어 있습니다.')
             final=[folder/name for name in EXPORT_DOCUMENTS]
-            backups=[folder/f'.hwpx-{token}-backup-{index}.hwpx' for index in range(2)]
+            backups=[folder/f'.hwpx-{token}-backup-{index}.hwpx' for index in range(len(sources))]
             saved=[]; promoted=[]
             try:
                 for destination,backup in zip(final,backups):
@@ -268,7 +288,7 @@ def _run_hwpx_conversion(folder):
                     if backup.exists(): os.replace(backup,destination)
                 raise
             for _,backup in saved: backup.unlink(missing_ok=True)
-        return _conversion('ready','학생용·교사용 HWPX 변환과 패키지 검증을 마쳤습니다.')
+        return _conversion('ready','학생용·교사용 시험지와 정답·해설의 HWPX 변환·검증을 마쳤습니다.')
     except subprocess.TimeoutExpired as exc:
         detail=' '.join(part for part in (_tail(exc.stdout),_tail(exc.stderr)) if part)
         return _conversion('failed','한글 변환이 180초 안에 끝나지 않았습니다. 한글 상태를 확인한 뒤 다시 시도해 주세요. '+detail)
@@ -297,6 +317,8 @@ def _build_export_zip(folder):
 
 def refresh_export_bundle(folder,bundle,*,convert_hwpx=True):
     previous_good=_is_complete_published_export(folder,bundle)
+    previous_files=list(bundle.get('files') or [])
+    restored_previous=False
     backups=[]
     backup_error=None
     if previous_good:
@@ -326,12 +348,15 @@ def refresh_export_bundle(folder,bundle,*,convert_hwpx=True):
             else:
                 conversion=_conversion('ready','재시도에 실패했지만 이전 정상 HWPX와 ZIP을 유지했습니다. '+retry_error)
                 conversion['retry_error']=retry_error
+                restored_previous=True
         else:
             _remove_published_hwpx(folder)
             _write_conversion_audit(folder,conversion)
     if not preserve_backups: _cleanup_export_backups(backups)
     bundle['conversion']=conversion
-    if conversion['status']=='ready':
+    if restored_previous:
+        bundle['files']=previous_files
+    elif conversion['status']=='ready':
         bundle['files']=_published_export_files(folder,conversion)
     elif previous_good and backups and not preserve_backups:
         bundle['files']=list(bundle.get('files') or [])

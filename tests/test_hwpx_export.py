@@ -61,7 +61,7 @@ class HwpxExportTests(unittest.TestCase):
     @staticmethod
     def successful_process(command,**kwargs):
         args=command[3:]
-        for source,destination in ((args[0],args[1]),(args[2],args[3])):
+        for source,destination in zip(args[0::2],args[1::2]):
             fake_hwpx(destination,source)
         return SimpleNamespace(returncode=0,stdout='모의 변환 성공',stderr='')
 
@@ -82,11 +82,14 @@ class HwpxExportTests(unittest.TestCase):
         self.assertEqual(run.call_count,1)
         self.assertIn('시험지_학생용.hwpx',bundle['files'])
         self.assertIn('시험지_교사용.hwpx',bundle['files'])
+        self.assertIn('정답과해설.hwpx',bundle['files'])
+        self.assertNotIn('정답과해설.md',bundle['files'])
         self.assertIn('출제결과.zip',bundle['files'])
         self.assertFalse(any(name.endswith('.hml') for name in bundle['files']))
         folder=core.exam_path(self.exam['id'])/'exports'/bundle['id']
         self.assertTrue((folder/'시험지_학생용.hml').is_file())
         self.assertTrue((folder/'시험지_교사용.hml').is_file())
+        self.assertTrue((folder/'정답과해설.hml').is_file())
         audit=json.loads((folder/'검수기록.json').read_text(encoding='utf-8'))
         self.assertEqual(audit['conversion'],bundle['conversion'])
         with zipfile.ZipFile(folder/'출제결과.zip') as archive:
@@ -229,6 +232,66 @@ class HwpxExportTests(unittest.TestCase):
         handler=MemoryHandler();handler.do_GET()
         self.assertEqual(handler.status,404)
         self.assertIn('공개된 출력물',handler.wfile.getvalue().decode('utf-8'))
+
+    def legacy_bundle(self):
+        bundle=server.export_exam(self.exam,convert_hwpx=False)
+        folder=core.exam_path(self.exam['id'])/'exports'/bundle['id']
+        (folder/'정답과해설.hml').unlink()
+        for name in server.EXPORT_DOCUMENTS[:2]: fake_hwpx(folder/name,folder/Path(name).with_suffix('.hml'))
+        bundle['conversion']={'status':'ready','message':'기존 시험지 변환 완료'}
+        (folder/'정답과해설.md').write_text('# 이전 시험 — 정답 및 해설\n',encoding='utf-8')
+        legacy=[*server.EXPORT_DOCUMENTS[:2],'정답과해설.md',*server.EXPORT_SUPPORT_FILES]
+        with zipfile.ZipFile(folder/server.EXPORT_ARCHIVE,'w') as archive:
+            for name in legacy: archive.write(folder/name,name)
+        bundle['files']=[*legacy,server.EXPORT_ARCHIVE]
+        self.store_bundle(bundle)
+        return bundle,folder
+
+    def test_legacy_markdown_upgrade_uses_export_snapshot(self):
+        bundle,folder=self.legacy_bundle()
+        original=self.exam['cards'][0]['explanation']
+        self.exam['cards'][0]['explanation']='현재 편집 중인 다른 해설'
+        with patch.object(server,'hwp_conversion_available',return_value=True), \
+             patch.object(server.subprocess,'run',side_effect=self.successful_process):
+            result=server.recalculate_export(self.exam,bundle['id'])
+        self.assertEqual(result['conversion']['status'],'ready')
+        text=''.join(ET.parse(folder/'정답과해설.hml').getroot().itertext())
+        self.assertIn(original,text)
+        self.assertNotIn('현재 편집 중인 다른 해설',text)
+        self.assertIn('정답과해설.hwpx',result['files'])
+        self.assertNotIn('정답과해설.md',result['files'])
+        with zipfile.ZipFile(folder/server.EXPORT_ARCHIVE) as archive:
+            self.assertNotIn('정답과해설.md',archive.namelist())
+
+    def test_legacy_upgrade_failure_preserves_existing_files_and_manifest(self):
+        bundle,folder=self.legacy_bundle()
+        original_files=list(bundle['files'])
+        original={name:(folder/name).read_bytes() for name in original_files}
+        def fail_answer(command,**kwargs):
+            args=command[3:]
+            for source,destination in zip(args[:4:2],args[1:4:2]): fake_hwpx(destination,source)
+            return SimpleNamespace(returncode=1,stdout='',stderr='정답·해설 저장 실패')
+        with patch.object(server,'hwp_conversion_available',return_value=True), \
+             patch.object(server.subprocess,'run',side_effect=fail_answer):
+            result=server.recalculate_export(self.exam,bundle['id'])
+        self.assertIn('retry_error',result['conversion'])
+        self.assertEqual(result['files'],original_files)
+        self.assertEqual({name:(folder/name).read_bytes() for name in original_files},original)
+        self.assertFalse((folder/'정답과해설.hwpx').exists())
+
+    def test_answer_equations_missing_prevents_publication(self):
+        def drop_answer_equations(command,**kwargs):
+            args=command[3:]
+            for index,(source,destination) in enumerate(zip(args[0::2],args[1::2])):
+                fake_hwpx(destination,source,keep_equations=index!=2)
+            return SimpleNamespace(returncode=0,stdout='',stderr='')
+        self.exam['cards'][0]['explanation']=r'물리량은 $P_0 V_0$이다.'
+        self.exam['card_approval']={'digest':core.cards_digest(self.exam['cards'])}
+        with patch.object(server,'hwp_conversion_available',return_value=True), \
+             patch.object(server.subprocess,'run',side_effect=drop_answer_equations):
+            bundle=server.export_exam(self.exam)
+        self.assertEqual(bundle['conversion']['status'],'failed')
+        self.assertFalse(any(name.endswith('.hwpx') for name in bundle['files']))
 
 
 if __name__=='__main__': unittest.main(verbosity=2)

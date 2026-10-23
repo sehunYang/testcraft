@@ -93,7 +93,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn('프롬프트 시작',''.join(s.itertext()))
         stored=s.find('TAIL/BINDATASTORAGE/BINDATA')
         self.assertEqual(base64.b64decode(stored.text),server.asset_path(e['id'],c['image']['final_file']).read_bytes())
-        self.assertTrue((folder/'정답과해설.md').exists())
+        self.assertTrue((folder/'정답과해설.hml').exists())
     def test_export_more_than_24(self):
         from tools import gen
         cards=[card(no=n) for n in range(1,26)]

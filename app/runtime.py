@@ -7,7 +7,7 @@ import shutil
 # Stable installation/IPC identity preserves upgrades and existing running-instance records.
 APP_ID = 'question-studio'
 APP_NAME = 'TestCraft'
-APP_VERSION = '1.1.0'
+APP_VERSION = '1.1.1'
 
 
 def is_installed():

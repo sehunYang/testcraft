@@ -6,8 +6,8 @@ const assert=require('node:assert/strict');
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  let requests=0,release;
- const pair=['시험지_학생용.hwpx','시험지_교사용.hwpx'];
- const support=['정답과해설.md','문항카드.xlsx','검수기록.json'];
+ const pair=['시험지_학생용.hwpx','시험지_교사용.hwpx','정답과해설.hwpx'];
+ const support=['문항카드.xlsx','검수기록.json'];
  const bundle=status=>({id:'1234567890abcdef',created:'2026-10-22T12:00:00',revision:1,
   content_digest:'fixture-content',conversion:{status,message:status==='ready'?'HWPX 준비 완료':'검증용 한글 변환 실패'},
   files:status==='ready'?[...pair,...support,'출제결과.zip']:support});
@@ -42,7 +42,8 @@ const assert=require('node:assert/strict');
   await page.locator('[data-recalc]').first().click();
   await page.locator('a.download[href$=".hwpx"]').first().waitFor();
   assert.equal(requests,2,'one handler per conversion');
-  assert.equal(await page.locator('a.download[href$=".hwpx"]').count(),2);
+  assert.equal(await page.locator('a.download[href$=".hwpx"]').count(),3);
+  assert.equal(await page.locator('a.download[href$=".md"]').count(),0);
   assert.equal(await page.locator('#taskActionBar a').innerText(),'전체 받기');
   assert.equal(await page.locator('#hwpxProgressDialog').evaluate(el=>el.open),false);
   // A legacy bundle can be converted, but its old HML/ZIP cannot look like final HWPX output.

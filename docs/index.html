@@ -18,6 +18,8 @@
   <link rel="icon" href="./favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="./assets/logo.png">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="preload" href="./assets/fonts/PretendardGOVVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./typography.css">
   <script src="./site.js" defer></script>
 </head>
 <body>
@@ -33,8 +35,8 @@
         <p class="eyebrow"><span></span> 교사를 위한 시험공방</p>
         <h1 id="hero-title">평가의 의도를 담아,<br>시험을 <em>빚다.</em></h1>
         <p class="hero-description">어떤 생각을 묻고 싶은지에서 시작하세요.<br>문항 설계부터 AI 초안, 자료 그림, 시험지 완성까지.<br>선생님의 출제 과정을 한 작업실에 담았습니다.</p>
-        <div class="hero-actions"><a class="button primary" data-download="setup" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.0/TestCraft-1.1.0-windows-x64-setup.exe">Windows용 다운로드 <span aria-hidden="true">↓</span></a><a class="text-link" href="#workflow">작업실 둘러보기 <span aria-hidden="true">↗</span></a></div>
-        <p class="download-caption"><span data-release-version>v1.1.0</span> · Windows 10/11 · 64비트</p>
+        <div class="hero-actions"><a class="button primary" data-download="setup" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.1/TestCraft-1.1.1-windows-x64-setup.exe">Windows용 다운로드 <span aria-hidden="true">↓</span></a><a class="text-link" href="#workflow">작업실 둘러보기 <span aria-hidden="true">↗</span></a></div>
+        <p class="download-caption"><span data-release-version>v1.1.1</span> · Windows 10/11 · 64비트</p>
         <p class="account-note">AI 기능에는 Codex를 사용할 수 있는 유료 ChatGPT 계정이 필요합니다.</p>
       </div>
       <figure class="hero-visual">
@@ -70,11 +72,11 @@
       <p class="image-note">실제 앱에 공개용 예시 문항을 넣은 화면입니다. 이미지 클릭 시 원본을 볼 수 있습니다. 버전에 따라 배치가 다를 수 있습니다.</p>
     </section>
 
-    <section class="output-band" aria-labelledby="output-title"><div class="wrap output-inner"><div><p class="eyebrow">끝은, 바로 쓸 수 있는 파일로</p><h2 id="output-title">시험지와 답지까지<br>같은 흐름 안에서.</h2><p>한글 수식을 담은 학생용·교사용 시험지,<br>정답과 해설, 문항카드를 함께 준비합니다.</p><p class="output-note">HWPX 출력에는 한컴오피스 한글 설치가 필요합니다.</p></div><div class="file-stack" aria-label="출력 파일 목록"><div><span class="file-icon">H</span><span>학생용 · 교사용 시험지<small>학교 양식과 한글 수식</small></span><b>HWPX</b></div><div><span class="file-icon">M</span><span>정답과 해설<small>검토한 풀이와 정답</small></span><b>MD</b></div><div><span class="file-icon">X</span><span>문항카드<small>출제 기준과 문항 구성</small></span><b>XLSX</b></div></div></div></section>
+    <section class="output-band" aria-labelledby="output-title"><div class="wrap output-inner"><div><p class="eyebrow">끝은, 바로 쓸 수 있는 파일로</p><h2 id="output-title">시험지와 답지까지<br>같은 흐름 안에서.</h2><p>한글 수식을 담은 학생용·교사용 시험지,<br>정답과 해설, 문항카드를 함께 준비합니다.</p><p class="output-note">HWPX 출력에는 한컴오피스 한글 설치가 필요합니다.</p></div><div class="file-stack" aria-label="출력 파일 목록"><div><span class="file-icon">H</span><span>학생용 · 교사용 시험지<small>학교 양식과 한글 수식</small></span><b>HWPX</b></div><div><span class="file-icon">H</span><span>정답과 해설<small>정답 요약표와 문항별 풀이 · 한글 수식</small></span><b>HWPX</b></div><div><span class="file-icon">X</span><span>문항카드<small>출제 기준과 문항 구성</small></span><b>XLSX</b></div></div></div></section>
 
     <section class="download-section wrap section" id="download" aria-labelledby="download-title">
       <div class="download-intro"><p class="eyebrow">선생님의 다음 시험을 위해</p><h2 id="download-title">작업실을 열어보세요.</h2><p>Windows에 설치하고, Codex 계정을 연결하면 시작할 수 있습니다.<br>Python·Node.js·Codex CLI를 포함해 따로 준비할 필요가 없습니다.</p></div>
-      <div class="download-box"><div class="download-main"><div class="release-line"><span class="release-badge" data-release-version>v1.1.0</span><span>Windows 10/11 · x64</span></div><h3>TestCraft for Windows</h3><p>처음 사용한다면 설치 파일을 선택하세요.</p><a class="button primary" data-download="setup" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.0/TestCraft-1.1.0-windows-x64-setup.exe">설치 파일 다운로드 <span aria-hidden="true">↓</span></a><p class="file-size">EXE · <span data-release-size="setup">182.4 MB</span></p><div class="alternative-downloads"><a data-download="portable" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.0/TestCraft-1.1.0-windows-x64-portable.zip">무설치 ZIP <span aria-hidden="true">↗</span></a><a data-release-notes href="https://github.com/sehunYang/testcraft/releases/latest">릴리스 기록 <span aria-hidden="true">↗</span></a><a data-download="checksums" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.0/SHA256SUMS">SHA256 확인 <span aria-hidden="true">↗</span></a></div></div><div class="download-requirements"><h3>시작 전에 확인하세요</h3><dl><div><dt>운영체제</dt><dd>Windows 10/11, 64비트</dd></div><div><dt>AI 계정</dt><dd>Codex를 사용할 수 있는 유료 ChatGPT 구독 계정. 첫 실행에서 로그인합니다.</dd></div><div><dt>한글 출력</dt><dd>HWPX 변환과 수식 크기 계산에는 설치된 한컴오피스 한글이 필요합니다.</dd></div><div><dt>인터넷</dt><dd>계정 로그인과 AI 생성에 필요합니다.</dd></div></dl><p>앱과 소스는 AGPL-3.0으로 공개합니다. AI 구독과 한글 프로그램은 별도로 준비해 주세요.</p></div></div>
+      <div class="download-box"><div class="download-main"><div class="release-line"><span class="release-badge" data-release-version>v1.1.1</span><span>Windows 10/11 · x64</span></div><h3>TestCraft for Windows</h3><p>처음 사용한다면 설치 파일을 선택하세요.</p><a class="button primary" data-download="setup" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.1/TestCraft-1.1.1-windows-x64-setup.exe">설치 파일 다운로드 <span aria-hidden="true">↓</span></a><p class="file-size">EXE · <span data-release-size="setup">182.4 MB</span></p><div class="alternative-downloads"><a data-download="portable" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.1/TestCraft-1.1.1-windows-x64-portable.zip">무설치 ZIP <span aria-hidden="true">↗</span></a><a data-release-notes href="https://github.com/sehunYang/testcraft/releases/latest">릴리스 기록 <span aria-hidden="true">↗</span></a><a data-download="checksums" href="https://github.com/sehunYang/testcraft/releases/download/v1.1.1/SHA256SUMS">SHA256 확인 <span aria-hidden="true">↗</span></a></div></div><div class="download-requirements"><h3>시작 전에 확인하세요</h3><dl><div><dt>운영체제</dt><dd>Windows 10/11, 64비트</dd></div><div><dt>AI 계정</dt><dd>Codex를 사용할 수 있는 유료 ChatGPT 구독 계정. 첫 실행에서 로그인합니다.</dd></div><div><dt>한글 출력</dt><dd>HWPX 변환과 수식 크기 계산에는 설치된 한컴오피스 한글이 필요합니다.</dd></div><div><dt>인터넷</dt><dd>계정 로그인과 AI 생성에 필요합니다.</dd></div></dl><p>앱과 소스는 AGPL-3.0으로 공개합니다. AI 구독과 한글 프로그램은 별도로 준비해 주세요.</p></div></div>
       <ol class="install-steps"><li><b><span>1</span> 설치하기</b><p>파일을 실행하고 설치를 마칩니다.<br>시작 메뉴에서 TestCraft를 엽니다.</p></li><li><b><span>2</span> 계정 연결하기</b><p>내장 CLI 확인 후 Codex 로그인을 누릅니다.<br>공식 인증 화면에서 로그인합니다.</p></li><li><b><span>3</span> 첫 문항 설계하기</b><p>새 시험의 과목을 고르고,<br>첫 문항의 출제 기준을 입력합니다.</p></li></ol>
     </section>
 

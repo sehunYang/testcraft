@@ -155,12 +155,11 @@ def main(argv=None):
     args = list(sys.argv[1:] if argv is None else argv)
     try:
         if args and args[0] == '--batch':
-            if len(args) != 5:
-                raise ValueError('--batch에는 입력 HML과 출력 HWPX를 학생용·교사용 순서로 지정하세요.')
-            print('한글 변환 시작: 학생용', flush=True)
-            convert_one(args[1], args[2], 'HWPX')
-            print('한글 변환 시작: 교사용', flush=True)
-            convert_one(args[3], args[4], 'HWPX')
+            if len(args) < 3 or len(args) % 2 != 1:
+                raise ValueError('--batch에는 입력 HML과 출력 HWPX를 쌍으로 지정하세요.')
+            for source,destination in zip(args[1::2],args[2::2]):
+                print(f'한글 변환 시작: {Path(source).stem}', flush=True)
+                convert_one(source,destination,'HWPX')
             return 0
 
         if len(args) >= 2:

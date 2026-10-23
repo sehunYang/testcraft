@@ -11,6 +11,9 @@ const path=require('node:path');
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto(url);await page.waitForFunction(()=>document.querySelectorAll('[role="tab"]').length===3);
+  await page.evaluate(()=>document.fonts.ready);
+  assert(await page.evaluate(()=>document.fonts.check('18px "Studio Pretendard GOV"')),'app body font loaded');
+  assert((await page.locator('body').evaluate(el=>getComputedStyle(el).fontFamily)).includes('Studio Pretendard GOV'));
   assert.match(await page.title(),/TestCraft/);
   for(const tab of await page.getByRole('tab').all()){
    await tab.click();const panel=page.locator('#'+await tab.getAttribute('aria-controls'));
@@ -23,6 +26,8 @@ const path=require('node:path');
   await page.getByRole('tab').first().click();
   for(const width of [1440,1024,768,390,320]){
    await page.setViewportSize({width,height:1000});
+   assert(await page.locator('.hero-description').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16));
+   assert(await page.locator('.faq summary').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=18));
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'horizontal overflow '+width);
    for(const cta of await page.locator('[data-download="setup"]').all()){
     assert.equal(await cta.getAttribute('href'),setup);

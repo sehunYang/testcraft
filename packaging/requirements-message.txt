@@ -1,4 +1,4 @@
-TestCraft 1.1.0 — 처음 실행하기
+TestCraft 1.1.1 — 처음 실행하기
 
 이 설치 파일에는 앱, 내장 Python, Sharp가 포함된 Node.js, 공식 Windows x64 OpenAI Codex CLI와 네이티브 샌드박스 도구가 들어 있습니다. Python이나 Node.js를 따로 설치하지 않아도 됩니다.
 
