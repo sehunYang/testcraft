@@ -6,8 +6,13 @@ const root=path.resolve(__dirname,'../app/static');
 const source=fs.readFileSync(path.join(root,'icons/testcraft-master.png'));
 (async()=>{
  // Only normalize export padding; retain the approved drawing and its details.
- const cropped=await sharp(source).trim({threshold:20}).png().toBuffer();
- const render=size=>sharp(cropped).resize(size-Math.max(2,Math.round(size*.04))*2,size-Math.max(2,Math.round(size*.04))*2,{fit:'contain',background:'#ffffff'}).extend({top:Math.max(2,Math.round(size*.04)),bottom:Math.max(2,Math.round(size*.04)),left:Math.max(2,Math.round(size*.04)),right:Math.max(2,Math.round(size*.04)),background:'#ffffff'}).png();
+ const transparent={r:0,g:0,b:0,alpha:0};
+ const {data,info}=await sharp(source).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+ // Normalize near-opaque generator alpha to opaque PNG foreground; retain edge antialiasing.
+ for(let pixel=3;pixel<data.length;pixel+=4)if(data[pixel]>=250)data[pixel]=255;
+ const normalized=await sharp(data,{raw:{width:info.width,height:info.height,channels:4}}).png().toBuffer();
+ const cropped=await sharp(normalized).trim({threshold:20}).png().toBuffer();
+ const render=size=>sharp(cropped).resize(size-Math.max(2,Math.round(size*.04))*2,size-Math.max(2,Math.round(size*.04))*2,{fit:'contain',background:transparent}).extend({top:Math.max(2,Math.round(size*.04)),bottom:Math.max(2,Math.round(size*.04)),left:Math.max(2,Math.round(size*.04)),right:Math.max(2,Math.round(size*.04)),background:transparent}).png();
  for(const size of [16,24,32,48,64,128,180,192,256,512])await render(size).toFile(path.join(root,`icons/icon-${size}.png`));
  const icon=fs.readFileSync(path.join(root,'icons/icon-512.png')).toString('base64');
  const wrapper=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>TestCraft</title><image width="512" height="512" href="data:image/png;base64,${icon}"/></svg>`;
