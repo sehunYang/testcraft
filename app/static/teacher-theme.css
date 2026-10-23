@@ -161,6 +161,11 @@ dialog label { margin-top: 16px; }
 .teacher-help details p { margin: 0 0 18px; font-size: 15px; }
 .teacher-help .help-context { background: #f6f7f9; border-radius: 8px; padding: 12px 16px; }
 .breadcrumb { display: flex; align-items: center; min-width: 0; }
+.topbar-brand { display: none; flex: 0 0 auto; align-items: center; gap: 8px; color: #3151c4; white-space: nowrap; font-size: 18px; line-height: 1; }
+.topbar-brand img { display: block; flex: 0 0 auto; object-fit: contain; }
+body.sidebar-collapsed .topbar-brand { display: inline-flex; }
+body.sidebar-collapsed .breadcrumb .crumb { display: none; }
+.breadcrumb #crumbTitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #sidebarToggle { font-size: 19px; padding: 0; min-width: 36px; margin-right: 10px; }
 .workspace-home { width: 100%; text-align: left; border: 0; margin-bottom: 12px; }
 .workspace-home.active { background: #eef2ff; color: #3151c4; }

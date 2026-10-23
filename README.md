@@ -2,8 +2,7 @@
 
 <img src="app/static/icons/icon-192.png" width="112" height="112" alt="TestCraft 로고">
 
-**Crafting assessments with purpose.**<br>
-평가의 의도를 담아, 시험을 빚다.
+**평가의 의도를 담아, 시험을 빚다.**
 
 교사가 성취기준과 문항 의도를 설계하고, AI 초안을 검토한 뒤 자료 그림과 시험지·해설을 만드는 Windows 로컬 앱입니다.
 

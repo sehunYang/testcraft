@@ -47,6 +47,7 @@ body.sidebar-collapsed main { margin-left: 0; }
   backdrop-filter: blur(10px);
 }
 .breadcrumb { min-width: 0; flex: 1 1 auto; }
+body:not([data-studio-stage="welcome"]) .breadcrumb { padding-right: 300px; }
 .breadcrumb #crumbTitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-actions { flex: 0 0 auto; gap: 4px; }
 .topbar-actions button { min-height: 36px; }
@@ -78,7 +79,7 @@ body:not([data-studio-stage="welcome"]) .topbar-actions {
   position: fixed;
   z-index: 34;
   top: 7px;
-  right: clamp(150px, 14vw, 204px);
+  right: 210px;
 }
 body:not([data-studio-stage="welcome"]) #settingsBtn { display: none; }
 body:not([data-studio-stage="welcome"]) .page-heading h1 {
@@ -655,7 +656,7 @@ dialog .danger { color: #b42332; }
 }
 
 @media (max-width: 800px) {
-  :root { --studio-topbar: 56px; }
+  :root { --studio-topbar: 92px; }
   .authoring-choice-options { grid-template-columns: minmax(0, 1fr); }
   .authoring-choice-options > button { min-height: 108px; }
   .authoring-heading { flex-direction: column; gap: 8px; }
@@ -665,8 +666,13 @@ dialog .danger { color: #b42332; }
   button { min-height: 44px; }
   .small-btn, .quiet, .icon-btn { min-height: 44px; }
   .topbar { height: var(--studio-topbar); min-height: var(--studio-topbar); flex-wrap: nowrap; gap: 6px; padding: 0 10px; }
-  body:not([data-studio-stage="welcome"]) .topbar { padding-right: calc(clamp(150px, 14vw, 204px) + 72px); }
-  .breadcrumb { flex: 1 1 0; overflow: hidden; }
+  .topbar, body:not([data-studio-stage="welcome"]) .topbar { padding-right: 10px; align-items: flex-start; }
+  .breadcrumb, body:not([data-studio-stage="welcome"]) .breadcrumb { display: grid; grid-template-columns: 36px minmax(0,1fr); grid-template-rows: 48px 36px; column-gap: 5px; flex: 1 1 0; overflow: hidden; padding-right: 0; }
+  .topbar-brand { grid-column: 2; grid-row: 1; justify-self: start; font-size: 17px; }
+  .breadcrumb #crumbTitle { grid-column: 1 / -1; grid-row: 2; max-width: calc(100% - 160px); align-self: center; }
+  .topbar-actions, body:not([data-studio-stage="welcome"]) .topbar-actions { position: absolute; top: 48px; right: 10px; }
+  body:not([data-studio-stage="welcome"]) .topbar-actions { top: 2px; }
+  body:not([data-studio-stage="welcome"]) .page-heading { top: 48px; height: 36px; min-height: 36px; }
   .breadcrumb .crumb, .breadcrumb .slash { display: none; }
   .breadcrumb #sidebarToggle { flex: 0 0 36px; min-width: 36px; margin: 0 5px 0 0; }
   .topbar-actions { gap: 0; }
@@ -677,7 +683,7 @@ dialog .danger { color: #b42332; }
   body:has(#uxJobChip[data-status="completed"]) #uxJobChip {
     position: fixed;
     z-index: 36;
-    top: 58px;
+    top: calc(var(--studio-topbar) + 2px);
     right: 12px;
     left: 12px;
     justify-content: space-between;
