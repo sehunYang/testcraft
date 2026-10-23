@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shy.ai.kr/testcraft/sitemap.xml

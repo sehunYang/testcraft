@@ -1,0 +1,27 @@
+{
+  "version": "v1.1.0",
+  "published_at": "2026-10-23T00:12:34Z",
+  "assets": [
+    {
+      "kind": "setup",
+      "name": "TestCraft-1.1.0-windows-x64-setup.exe",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.1.0/TestCraft-1.1.0-windows-x64-setup.exe",
+      "size": 191219740,
+      "digest": "sha256:0376351b34d18426d21c1a994e7d5c99c5b1c274880643a33a99c43b25cd24d0"
+    },
+    {
+      "kind": "portable",
+      "name": "TestCraft-1.1.0-windows-x64-portable.zip",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.1.0/TestCraft-1.1.0-windows-x64-portable.zip",
+      "size": 303761633,
+      "digest": "sha256:58e1caa8a1fde04e5ebbed5be3af86a7ac1fb5c47765182caf8be8bb677a5d29"
+    },
+    {
+      "kind": "checksums",
+      "name": "SHA256SUMS",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.1.0/SHA256SUMS",
+      "size": 211,
+      "digest": "sha256:ccd6ec2116c92b428776487b904ca7d1120da633d81fd49616ac8ec9e4afe59a"
+    }
+  ]
+}

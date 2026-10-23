@@ -1,0 +1,55 @@
+name: Deploy TestCraft guide
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'tools/build_site.py', '.github/workflows/pages.yml']
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/configure-pages@v5
+      - name: Check guide assets and release validation
+        run: python -m unittest tests.test_site
+      - name: Read the current public installer release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .runtime
+          gh api repos/sehunYang/testcraft/releases/latest > .runtime/release.json
+      - name: Build the static guide with verified download links
+        run: python tools/build_site.py --output .runtime/pages --release-json .runtime/release.json
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .runtime/pages
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

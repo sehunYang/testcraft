@@ -15,7 +15,7 @@ INSTRUCTIONS=(
     '과학-선화-생성-지침.md','HWPML-문항지-생성-지침.md',
     '통합-앱-사용법.md','자료-디자인-오픈소스.md',
 )
-TOOLS=('gen.py','metrics.py','hwp_equation.py','수식크기_재계산.py','build_brand_assets.cjs')
+TOOLS=('gen.py','metrics.py','hwp_equation.py','수식크기_재계산.py','build_brand_assets.cjs','build_site.py','capture_site_demo.cjs')
 def copy(source,destination):
     destination.parent.mkdir(parents=True,exist_ok=True)
     shutil.copy2(source,destination)
@@ -24,12 +24,12 @@ def prepare(destination):
     if destination==ROOT or ROOT in destination.parents and destination.name in {'app','exams','reference','instructions','tools','templates'}:
         raise ValueError('Choose a separate publication directory.')
     destination.mkdir(parents=True,exist_ok=True)
-    for relative in ('app','packaging'):
+    for relative in ('app','packaging','docs'):
         for source in (ROOT/relative).rglob('*'):
             if not source.is_file() or '__pycache__' in source.parts or source.suffix in {'.pyc','.pyo','.log'}:continue
             copy(source,destination/source.relative_to(ROOT))
     for source in (ROOT/'tests').glob('*.py'):copy(source,destination/'tests'/source.name)
-    for name in ('browser_branding.cjs','browser_hwpx_export.cjs'):
+    for name in ('browser_branding.cjs','browser_hwpx_export.cjs','browser_site.cjs'):
         copy(ROOT/'tests'/name,destination/'tests'/name)
     for name in TOOLS:copy(ROOT/'tools'/name,destination/'tools'/name)
     for source in (ROOT/'templates').iterdir():
@@ -59,6 +59,8 @@ def prepare(destination):
     if workflow.is_file():copy(workflow,destination/'.github/workflows/release.yml')
     workflow=ROOT/'packaging/test-workflow.yml'
     if workflow.is_file():copy(workflow,destination/'.github/workflows/test.yml')
+    workflow=ROOT/'packaging/pages-workflow.yml'
+    if workflow.is_file():copy(workflow,destination/'.github/workflows/pages.yml')
     # Private past exams are deliberately absent from the public repository.
     test=destination/'tests/test_workflow.py'
     text=test.read_text(encoding='utf-8')
