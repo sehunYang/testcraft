@@ -199,3 +199,9 @@ python -m http.server 8080 --directory .runtime/pages
 **[GNU AGPL-3.0](LICENSE)** © sehunYang
 
 외부 구성 요소는 각자의 라이선스를 유지합니다. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)와 설치 폴더의 `notices`를 참고하세요. TestCraft는 OpenAI 또는 한컴의 공식 제품이 아닙니다.
+
+## 영상으로 시작하기
+
+[7편의 한국어 사용 튜토리얼과 30초 소개 영상](https://shy.ai.kr/testcraft/#tutorials)을 제공합니다. 앱 상단의 **도움말**은 현재 화면에 맞는 영상과 실제 버튼을 강조하는 따라 하기 안내를 엽니다.
+
+공통 오리지널 음악 *Quiet Precision*은 튜토리얼 108 BPM과 홍보 리프라이즈 128 BPM으로 편곡했습니다. 실제 앱 조작을 녹화했으며 AI 생성 대기는 단축 표시합니다. [영상·음악 제작 소스](instructions/영상-제작-운영.md)도 공개합니다.

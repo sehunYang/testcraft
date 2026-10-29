@@ -794,7 +794,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length',str(len(raw)))
         self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' https://github.com https://release-assets.githubusercontent.com; connect-src 'self' https://github.com https://release-assets.githubusercontent.com; frame-ancestors 'none'")
         self.end_headers(); self.wfile.write(raw)
 
     def check_host(self):
@@ -879,9 +879,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
             static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
             static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
+            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json')})
+            static.update({'/tutorials/'+name+'.vtt':'tutorials/'+name+'.vtt' for name in ('01-start','02-design','03-author','04-review','05-figure','06-editor','07-export')})
             if p not in static: self.send({'error':'페이지 없음'},404); return
             f=core.ROOT/'app/static'/static[p]
-            content_types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json; charset=utf-8'}
+            content_types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json; charset=utf-8','.json':'application/json; charset=utf-8','.vtt':'text/vtt; charset=utf-8'}
             content=f.read_bytes()
             if p=='/':
                 port=getattr(getattr(self,'server',None),'server_address',('127.0.0.1',8765))[1]
@@ -1138,11 +1140,11 @@ class Handler(BaseHTTPRequestHandler):
                     self.send(core.save_exam(exam)); return
                 if path=='/api/export':
                     exam=core.read_exam(eid); bundle=export_exam(exam)
-                    exam['exports'].append(bundle); self.send(core.save_exam(exam)); return
+                    exam['exports'].append(bundle); self.send(exam_for_client(core.save_exam(exam))); return
                 if path=='/api/recalculate':
                     exam=core.read_exam(eid); rid=data['export_id']
                     recalculate_export(exam,rid)
-                    self.send(core.save_exam(exam)); return
+                    self.send(exam_for_client(core.save_exam(exam))); return
                 raise ValueError('알 수 없는 요청')
         except Exception as e:
             self.send({'error':str(e)},400)

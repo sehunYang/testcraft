@@ -14,8 +14,10 @@ INSTRUCTIONS=(
     '문항-문안-다듬기-지침.md','참조자료-제반사항.md',
     '과학-선화-생성-지침.md','HWPML-문항지-생성-지침.md',
     '통합-앱-사용법.md','자료-디자인-오픈소스.md',
+    '영상-제작-운영.md',
 )
-TOOLS=('gen.py','metrics.py','hwp_equation.py','수식크기_재계산.py','build_brand_assets.cjs','build_site.py','capture_site_demo.cjs')
+TOOLS=('gen.py','metrics.py','hwp_equation.py','수식크기_재계산.py','build_brand_assets.cjs','build_site.py','capture_site_demo.cjs',
+       'media_requirements.txt','media-script.json','serve_media_studio.py','capture_media.cjs','build_media_audio.py','render_media.py','verify_media.py')
 def copy(source,destination):
     destination.parent.mkdir(parents=True,exist_ok=True)
     shutil.copy2(source,destination)
@@ -29,7 +31,7 @@ def prepare(destination):
             if not source.is_file() or '__pycache__' in source.parts or source.suffix in {'.pyc','.pyo','.log'}:continue
             copy(source,destination/source.relative_to(ROOT))
     for source in (ROOT/'tests').glob('*.py'):copy(source,destination/'tests'/source.name)
-    for name in ('browser_branding.cjs','browser_hwpx_export.cjs','browser_site.cjs'):
+    for name in ('browser_branding.cjs','browser_hwpx_export.cjs','browser_site.cjs','browser_tutorials.cjs','browser_media.cjs'):
         copy(ROOT/'tests'/name,destination/'tests'/name)
     for name in TOOLS:copy(ROOT/'tools'/name,destination/'tools'/name)
     for source in (ROOT/'templates').iterdir():

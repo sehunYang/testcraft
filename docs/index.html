@@ -21,12 +21,12 @@
   <link rel="preload" href="./assets/fonts/PretendardGOVVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./typography.css">
   <script src="./site.js" defer></script>
-</head>
+<link rel="stylesheet" href="./media.css"><script src="./media.js" defer></script></head>
 <body>
   <a class="skip-link" href="#main">본문으로 바로 가기</a>
   <header class="site-header">
     <a class="brand" href="#" aria-label="TestCraft 처음으로"><img src="./assets/logo.png" width="38" height="38" alt=""><span>TestCraft</span></a>
-    <nav aria-label="주 메뉴"><a href="#workflow">출제 과정</a><a href="#faq">자주 묻는 질문</a><a class="github-link" href="https://github.com/sehunYang/testcraft">GitHub <span aria-hidden="true">↗</span></a></nav>
+    <nav aria-label="주 메뉴"><a href="#workflow">출제 과정</a><a href="#tutorials">사용 안내</a><a href="#faq">자주 묻는 질문</a><a class="github-link" href="https://github.com/sehunYang/testcraft">GitHub <span aria-hidden="true">↗</span></a></nav>
     <a class="button header-download" href="#download">다운로드 <span aria-hidden="true">↓</span></a>
   </header>
   <main id="main">
@@ -41,7 +41,7 @@
       </div>
       <figure class="hero-visual">
         <div class="figure-heading"><span class="window-dots" aria-hidden="true">● ● ●</span><span>TestCraft / 자료 디자인</span><span class="live-label">내 컴퓨터의 작업실</span></div>
-        <a href="./assets/studio-designer.png" target="_blank" rel="noopener" aria-label="자료 디자인 예시 화면 원본 보기"><img src="./assets/studio-designer.png" width="1440" height="960" alt="TestCraft 자료 디자인 화면. 물체와 힘의 화살표를 개별 객체로 편집하고 글씨를 별도 레이어로 배치합니다." fetchpriority="high"></a>
+        <div class="hero-motion"><video id="heroLoop" muted loop playsinline preload="none" poster="./assets/studio-designer.png" aria-label="문항 설계부터 자료 편집과 출력까지 실제 작업실 시연"><source src="./media/testcraft-loop.mp4" type="video/mp4"></video><img id="heroMotionPoster" src="./assets/studio-designer.png" width="1440" height="960" alt="TestCraft 자료 디자인 작업실" hidden><button id="heroMotionToggle" type="button" aria-label="시연 영상 재생">▶ 재생</button></div>
         <figcaption><span class="figure-number">01 / THE WORKSHOP</span><span>그림은 정교하게. 글씨는 자유롭게.</span></figcaption>
       </figure>
     </section>
@@ -71,6 +71,13 @@
       </div>
       <p class="image-note">실제 앱에 공개용 예시 문항을 넣은 화면입니다. 이미지 클릭 시 원본을 볼 수 있습니다. 버전에 따라 배치가 다를 수 있습니다.</p>
     </section>
+
+    <section class="section wrap" id="tutorials" aria-labelledby="tutorials-title">
+      <div class="tutorial-intro"><div><p class="eyebrow">처음부터, 함께 만드는 시험</p><h2 id="tutorials-title">보고, 바로 따라 하세요.</h2><p>실제 작업실을 조작하며 설명하는 7편의 안내.<br>앱의 도움말에서는 현재 화면에 맞는 영상과 화면 안내를 만납니다.</p></div><button id="watchShort" class="button" type="button">30초로 만나는 TestCraft ▶</button></div>
+      <div class="tutorial-layout"><div class="tutorial-watch"><video id="siteTutorialVideo" controls playsinline preload="none" poster="./media/01-start.jpg" aria-label="TestCraft 사용 튜토리얼"></video><div class="tutorial-watch-copy"><h3 id="siteTutorialTitle">처음 시작하기</h3><p id="siteTutorialDescription">공개용 예제 시험을 실제로 만드는 과정입니다.</p><p id="siteTutorialError" class="media-error" role="status" hidden>영상을 불러오지 못했습니다. 영상 새 창에서 보기 또는 아래 글 안내를 이용해 주세요.</p><ol id="siteTutorialChapters" class="tutorial-site-chapters" aria-label="영상 챕터"></ol><a id="siteTutorialDownload" href="https://github.com/sehunYang/testcraft/releases/download/media-v1/01-start.mp4" target="_blank" rel="noopener">영상 새 창에서 보기 ↗</a><details><summary>글로 읽기</summary><div id="siteTutorialTranscript"></div></details></div></div><ol id="siteTutorialList" class="tutorial-playlist" aria-label="사용 튜토리얼 목록">
+<li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/01-start.mp4">1. 처음 시작하기 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/02-design.mp4">2. 시험 설계하기 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/03-author.mp4">3. AI 초안과 직접 작성 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/04-review.mp4">4. 검토하고 승인하기 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/05-figure.mp4">5. 자료 그림 계획과 생성 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/06-editor.mp4">6. 그림과 글씨 편집하기 ↗</a></li><li><a href="https://github.com/sehunYang/testcraft/releases/download/media-v1/07-export.mp4">7. HWPX 시험지 완성하기 ↗</a></li></ol></div><p class="media-note">실제 앱 조작 녹화 · 대기 구간 단축 표시 · 공개용 예제 사용 · 공통 오리지널 음악 Quiet Precision</p>
+    </section>
+    <dialog id="shortDialog" class="short-dialog"><video controls playsinline preload="none" aria-label="TestCraft 홍보 숏츠"></video><button type="button">닫기</button></dialog>
 
     <section class="output-band" aria-labelledby="output-title"><div class="wrap output-inner"><div><p class="eyebrow">끝은, 바로 쓸 수 있는 파일로</p><h2 id="output-title">시험지와 답지까지<br>같은 흐름 안에서.</h2><p>한글 수식을 담은 학생용·교사용 시험지,<br>정답과 해설, 문항카드를 함께 준비합니다.</p><p class="output-note">HWPX 출력에는 한컴오피스 한글 설치가 필요합니다.</p></div><div class="file-stack" aria-label="출력 파일 목록"><div><span class="file-icon">H</span><span>학생용 · 교사용 시험지<small>학교 양식과 한글 수식</small></span><b>HWPX</b></div><div><span class="file-icon">H</span><span>정답과 해설<small>정답 요약표와 문항별 풀이 · 한글 수식</small></span><b>HWPX</b></div><div><span class="file-icon">X</span><span>문항카드<small>출제 기준과 문항 구성</small></span><b>XLSX</b></div></div></div></section>
 

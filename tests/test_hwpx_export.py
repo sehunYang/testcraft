@@ -76,6 +76,34 @@ class HwpxExportTests(unittest.TestCase):
         exam['exports'].append(bundle)
         self.exam=core.save_exam(exam)
 
+    def test_export_and_recalculate_return_current_validation_and_digest(self):
+        # The download UI must immediately recognize successful output without
+        # reloading the page; plain save_exam records lack these derived fields.
+        bundle={'id':core.uid(),'created':core.now(),'revision':self.exam['revision'],
+                'content_digest':core.export_digest(self.exam),
+                'conversion':{'status':'ready','message':'완료'},
+                'files':list(server.EXPORT_DOCUMENTS)}
+        for path in ('/api/export','/api/recalculate'):
+            body=json.dumps({'exam_id':self.exam['id'],'revision':self.exam['revision'],
+                             'export_id':bundle['id']}).encode()
+            class MemoryHandler(server.Handler):
+                def __init__(self):
+                    self.path=path
+                    self.headers={'Host':'127.0.0.1','X-Studio-Token':server.TOKEN,'Content-Length':str(len(body))}
+                    self.rfile=io.BytesIO(body);self.wfile=io.BytesIO();self.status=None
+                def send_response(self,status,message=None):self.status=status
+                def send_header(self,*args):pass
+                def end_headers(self):pass
+            handler=MemoryHandler()
+            with patch.object(server,'export_exam',return_value=bundle),patch.object(server,'recalculate_export'):
+                handler.do_POST()
+            self.assertEqual(handler.status,200)
+            result=json.loads(handler.wfile.getvalue())
+            self.assertTrue(result['validation']['ready'])
+            self.assertEqual(result['content_digest'],result['exports'][-1]['content_digest'])
+            self.assertTrue(result['cards_approved'])
+            self.exam=result
+
     def test_automatic_conversion_publishes_valid_pair_and_complete_zip(self):
         bundle,run=self.export_with_mock_converter()
         self.assertEqual(bundle['conversion']['status'],'ready')
