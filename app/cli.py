@@ -10,7 +10,7 @@ import threading
 import time
 from .core import ROOT, uid, now, atomic, image_prompt, SUBJECTIVE_TYPES
 from . import runtime
-from . import formats, maps
+from . import diagrams, formats, maps
 from .catalog import GROUP_OF
 
 PROCESSES={}
@@ -233,6 +233,7 @@ def question_instructions(subject_id='', written=False):
     reference = '\n\n'.join(body for head, body in _sections(read('참조자료-제반사항.md'))
                               if head.startswith('2. ') or (science and head.startswith('1. ')))
     map_help = maps.PROMPT if group in ('사회', '과학') else ''
+    if group == '과학': map_help += diagrams.PROMPT
     return '\n\n'.join(x for x in (agent, style, map_help, phrasing, reference) if x.strip())
 
 

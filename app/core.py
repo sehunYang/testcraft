@@ -19,7 +19,7 @@ import openpyxl
 from . import runtime
 from .catalog import subject_id, infer_subject, subjects
 from . import catalog as subject_catalog
-from . import formats, maps
+from . import diagrams, formats, maps
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = runtime.data_dir(ROOT)
@@ -297,6 +297,9 @@ def image_plan_errors(card):
     if maps.is_map(locked):      # 지도는 앱이 그리고 글씨도 명세에서 만든다
         if mode!='strict': errors.append('지도는 strict 그림으로 만들어 주세요.')
         return errors+maps.errors(locked)
+    if diagrams.is_diagram(locked):      # 가계도·입자 모형 같은 도식도 앱이 그린다
+        if mode!='strict': errors.append('도식은 strict 그림으로 만들어 주세요.')
+        return errors+diagrams.errors(locked)
     if mode in ('strict','mixed') and not locked: errors.append('SVG 규칙을 적어 주세요.')
     if mode in ('flexible','mixed') and not creative: errors.append('창작 허용 영역을 적어 주세요.')
     if mode=='strict' and creative: errors.append('strict의 창작 허용 영역은 빈칸이어야 합니다.')

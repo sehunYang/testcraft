@@ -19,7 +19,7 @@ import traceback
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import core, cli, codex_setup, formats, images, labels, literature, maps, runtime, vectors
+from . import core, cli, codex_setup, diagrams, formats, images, labels, literature, maps, runtime, vectors
 from .catalog import subjects, subject_name, GROUP_OF
 from .hwpx import validate_hwpx_package
 
@@ -758,6 +758,9 @@ def launch_job(eid, payload):
             if step=='image' and maps.is_map(card.get('image_locked')):
                 svg,map_labels=maps.render(card['image_locked'])
                 return {'svg':svg,'constraints':[],'map_labels':map_labels,'review_note':'지도 자료입니다. 표시한 위치와 범위가 시대·사실에 맞는지 확인해 주세요.'}
+            if step=='image' and diagrams.is_diagram(card.get('image_locked')):
+                svg,map_labels=diagrams.render(card['image_locked'])
+                return {'svg':svg,'constraints':[],'map_labels':map_labels,'review_note':'앱이 명세대로 그린 도식입니다. 명세의 수와 관계가 문항 조건과 맞는지 확인해 주세요.'}
             extra=asset_path(eid,card['image']['svg']).read_text(encoding='utf-8') if step=='labels' and (card.get('image') or {}).get('svg') else ''
             return cli.execute(provider,folder/f"{card['id']}-{material_id+'-' if material_id else ''}{step}",cli.prompt_for(card,step,feedback,subject_name(exam['subject']),extra,exam['subject'],context if step=='question' else ''),cli.schema_for(step),str(payload.get('model','')),cancel)
         def persist():
