@@ -1,0 +1,30 @@
+/* 지도 자료 편집. 그림 계획의 SVG 규칙 칸 아래에 붙는다. */
+.map-start { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 12px; }
+.map-editor { margin: 8px 0 16px; padding: 12px; border: 1px solid var(--studio-line, #dde1e8); border-radius: var(--studio-radius, 8px); background: #fbfcfd; }
+.map-editor-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 8px; }
+.map-view-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; margin-bottom: 10px; }
+.map-view-row label, .map-prop-grid label { display: flex; flex-direction: column; gap: 2px; }
+.map-view-row .check-row, .map-prop-grid .check-row { flex-direction: row; align-items: center; gap: 6px; min-height: 40px; }
+.map-num input { width: 92px; }
+.map-editor-body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 12px; align-items: start; }
+.map-editor.is-readonly .map-editor-body { grid-template-columns: minmax(0, 1fr); }
+.map-canvas-wrap { border: 1px solid var(--studio-line, #dde1e8); background: white; }
+.map-canvas { display: block; width: 100%; height: auto; touch-action: none; user-select: none; }
+.map-label { font-family: "Shinmyeongjo", "Batang", serif; fill: #111; pointer-events: none; }
+.map-handle { fill: rgba(54, 94, 239, 0.14); stroke: #365eef; stroke-width: 2; cursor: grab; }
+.map-handle.is-active { fill: rgba(54, 94, 239, 0.28); }
+.map-handle.is-hot { stroke-width: 3.5; }
+.map-items { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.map-item-list { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow: auto; }
+.map-item-list button { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.map-item-list small { color: var(--studio-muted, #616873); font-weight: 400; }
+.map-item-props { border-top: 1px solid var(--studio-line, #dde1e8); padding-top: 8px; }
+.map-item-props h4 { margin: 0 0 6px; font-size: 14px; }
+.map-prop-grid { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-bottom: 8px; }
+.map-prop-grid > label:not(.map-num):not(.check-row) { flex: 1 1 100%; }
+.map-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 100%; }
+.map-errors:not(:empty) { color: #b42318; margin: 8px 0 0; }
+@media (max-width: 900px) {
+  .map-editor-body { grid-template-columns: minmax(0, 1fr); }
+}
+.map-prop-grid textarea { width: 100%; resize: vertical; font: inherit; }

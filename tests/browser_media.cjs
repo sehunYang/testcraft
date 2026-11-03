@@ -2,7 +2,8 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
  const root=path.resolve(__dirname,'..'),out=path.join(root,'.runtime/media-production');
- const url=process.env.SITE_TEST_URL||JSON.parse(fs.readFileSync(path.join(out,'site-preview.json'),'utf8')).url;
+ const preview=process.env.SITE_TEST_URL?null:await require('./serve_docs.cjs')();
+ const url=process.env.SITE_TEST_URL||preview.url;
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),errors=[];
@@ -32,5 +33,5 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow');}
   await page.setViewportSize({width:1440,height:1000});await page.locator('#tutorials').screenshot({path:path.join(out,'site-tutorials-qa.png')});
   assert.deepEqual(errors,[]);console.log('Actual videos, subtitles, seeking, short, motion preference and responsive media UI passed.');
- }finally{await browser.close()}
+ }finally{await browser.close();preview?.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

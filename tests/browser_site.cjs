@@ -3,7 +3,8 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 (async()=>{
- const url=process.env.SITE_TEST_URL;if(!url)throw Error('Set SITE_TEST_URL to the guide preview.');
+ const preview=process.env.SITE_TEST_URL?null:await require('./serve_docs.cjs')();
+ const url=process.env.SITE_TEST_URL||preview.url;
  const browser=await chromium.launch({channel:'msedge',headless:true});
  const snapshot=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/release.json'),'utf8'));
  const setup=snapshot.assets.find(asset=>asset.kind==='setup').url;
@@ -52,5 +53,5 @@ const path=require('node:path');
   assert.equal(await plain.locator('[data-download="setup"]').first().getAttribute('href'),setup);await noScript.close();
   assert.deepEqual(errors,[]);
   console.log('Guide: responsive 320–1440px, keyboard tabs, FAQ, release updates, rejected external URL, offline metadata and no-JS downloads PASS');
- }finally{await browser.close()}
+ }finally{await browser.close();preview?.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -29,7 +29,7 @@ async function waitJob(){if(epIndex<from)return;if(epIndex===6){await page.waitF
 async function addAI(idea,standard,material=false){
  await click('#addCard');await click('[data-authoring-choice="ai"]');
  await select('[data-authoring-field="standard"]',standard);
- await select('[data-authoring-field="type"]','단일 정답형');
+ await select('[data-authoring-field="type"]','최선답형');
  await select('[data-authoring-field="difficulty"]',material?'하':'중');
  await fill('[data-authoring-field="idea"]',idea);
  if(material){await page.locator('[data-authoring-request-kind="image"]').check();await select('[data-authoring-field="material_request_image_mode"]','strict');await fill('[data-authoring-field="materials_request"]','글씨 없는 수평면 위 상자와 오른쪽 힘 화살표 하나. 상자와 화살표는 서로 분리된 SVG 객체. 독립 물리량 글씨는 상자 위 m, 화살표 위 F 두 개만. 그림에 숫자나 글씨를 직접 그리지 않는다.');}
@@ -60,7 +60,7 @@ async function addAI(idea,standard,material=false){
   await scene('create',async()=>{await click('#newExam');await fill('#createDialog [name="title"]','튜토리얼 예제 · 힘과 운동');await select('#createDialog [name="subject"]','12역학');await click('#createDialog button[type="submit"]');await page.waitForFunction(()=>Boolean(state.exam));fs.writeFileSync(path.join(out,'exam-id.txt'),await page.evaluate(()=>state.exam.id))});
   const standard=await page.evaluate(()=>Object.keys(state.standards).find(k=>k.includes('12역학01-01'))||Object.keys(state.standards).find(k=>k.includes('12역학')));
   await scene('method',async()=>{await click('#addCard');await click('[data-authoring-choice="ai"]')});
-  await scene('criteria',async()=>{await select('[data-authoring-field="standard"]',standard);await select('[data-authoring-field="type"]','단일 정답형');await select('[data-authoring-field="difficulty"]','하');await fill('[data-authoring-field="idea"]','마찰 없는 수평면 위 질량 m인 상자에 일정한 수평 힘 F가 작용한다. 가속도의 크기를 뉴턴 운동 법칙으로 판단하는 5지선다 문항. 복잡한 계산 없이 a=F/m을 고르게 한다. 수식과 물리량은 $...$로 감싼다. 답 ②. 선택지 ① F/(2m), ② F/m, ③ 2F/m, ④ m/F, ⑤ 2m/F. 독립 글씨는 m과 F만.')});
+  await scene('criteria',async()=>{await select('[data-authoring-field="standard"]',standard);await select('[data-authoring-field="type"]','최선답형');await select('[data-authoring-field="difficulty"]','하');await fill('[data-authoring-field="idea"]','마찰 없는 수평면 위 질량 m인 상자에 일정한 수평 힘 F가 작용한다. 가속도의 크기를 뉴턴 운동 법칙으로 판단하는 5지선다 문항. 복잡한 계산 없이 a=F/m을 고르게 한다. 수식과 물리량은 $...$로 감싼다. 답 ②. 선택지 ① F/(2m), ② F/m, ③ 2F/m, ④ m/F, ⑤ 2m/F. 독립 글씨는 m과 F만.')});
   await scene('materials',async()=>{await page.locator('[data-authoring-request-kind="image"]').check();await select('[data-authoring-field="material_request_image_mode"]','strict');await fill('[data-authoring-field="materials_request"]','수평면, 흰 상자, 오른쪽 힘 화살표를 분리된 SVG 객체로 만든다. 배경 글씨 금지. 상자 위 m과 화살표 위 F는 별도 물리량 글씨로만 지정. 검산식은 기호 F,m,a를 쓰지 말고 없음으로 한다.')});
   await scene('distribution',()=>click('#authoringDraftForm button[type="submit"]'));
   await scene('second',()=>addAI('같은 질량의 두 물체에 각각 F와 2F가 작용할 때 가속도를 비교한다. 자료 그림이나 표 없이 문장만으로 제시한다. 5지선다, 정답 ③. 보기의 단위를 통일하고 수식은 $...$로 작성한다.',standard));
@@ -69,7 +69,7 @@ async function addAI(idea,standard,material=false){
   await scene('generate',()=>click('[data-ux-action="generate-questions"], [data-ux-action="retry-questions"]'),5);
   await waitJob();
   await scene('result',async()=>{await click('[data-ux-action="start-review"]');await page.waitForSelector('#previewSheet')});
-  await scene('manual',async()=>{await click('[data-stage="0"]');await click('#addCard');await click('[data-authoring-choice="manual"]');await select('[data-authoring-field="standard"]',standard);await select('[data-authoring-field="type"]','단일 정답형');await select('[data-authoring-field="difficulty"]','하');await fill('[data-authoring-field="idea"]','힘이 작용하지 않는 물체의 운동 상태');await fill('[data-authoring-field="stem"]','마찰이 없는 수평면 위에서 물체가 일정한 속력으로 움직이고 있다.');await fill('[data-authoring-field="question"]','물체에 작용하는 알짜힘으로 옳은 것은?');await click('#authoringDraftForm button[type="submit"]')});
+  await scene('manual',async()=>{await click('[data-stage="0"]');await click('#addCard');await click('[data-authoring-choice="manual"]');await select('[data-authoring-field="standard"]',standard);await select('[data-authoring-field="type"]','최선답형');await select('[data-authoring-field="difficulty"]','하');await fill('[data-authoring-field="idea"]','힘이 작용하지 않는 물체의 운동 상태');await fill('[data-authoring-field="stem"]','마찰이 없는 수평면 위에서 물체가 일정한 속력으로 움직이고 있다.');await fill('[data-authoring-field="question"]','물체에 작용하는 알짜힘으로 옳은 것은?');await click('#authoringDraftForm button[type="submit"]')});
   await scene('revise',async()=>{await click('[data-review-tab="answer"]');await fill('[data-field="choices"]','① 운동 방향으로 작용한다.\n② 운동 반대 방향으로 작용한다.\n③ 위쪽으로 작용한다.\n④ 아래쪽으로 작용한다.\n⑤ 0이다.');await fill('[data-field="answer"]','5');await fill('[data-field="explanation"]','등속 직선 운동을 하므로 가속도는 0이다. 따라서 뉴턴 운동 법칙에 따라 물체에 작용하는 알짜힘은 0이다.');await click('#saveBtn')});
   fs.writeFileSync(path.join(out,'generated-checkpoint.json'),JSON.stringify(await page.evaluate(()=>state.exam),null,2));
   epIndex=3;

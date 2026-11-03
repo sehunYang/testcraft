@@ -10,6 +10,8 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
+from .catalog import official_code
+from .core import SUBJECTIVE_TYPES
 from .mathtext import math_segments
 
 
@@ -53,6 +55,9 @@ def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
           'body': paragraph(after=380), 'cell': paragraph(spacing=140, align='Center'),
           'cell_left': paragraph(spacing=140), 'summary_note': paragraph(before=500, after=0), 'spacer': paragraph(after=200)}
     secdef = copy.deepcopy(gen.SECDEF)
+    # 시험지는 B4 2단이지만 정답과 해설은 교사가 보는 A4 문서다.
+    secdef.find('PAGEDEF').attrib.update(Width='59528', Height='84188')
+    secdef.find('PAGEDEF/PAGEMARGIN').attrib.update(Left='8504', Right='8504', Top='5668', Bottom='4252', Header='4252', Footer='4252', Gutter='0')
     section = ET.Element('SECTION', {'Id': '0'})
     first = gen.mkP('', ps['spacer'], cs['body'])
     first.find('TEXT').insert(0, secdef)
@@ -69,8 +74,10 @@ def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
     append(f'TestCraft  ·  {len(cards)}문항  ·  합계 {total:g}점', 'meta')
     append('정답 한눈에 보기', 'heading')
     rows = [['문항', '정답', '배점', '난이도', '성취기준']]
-    rows.extend([[f"{card['no']}번", '①②③④⑤'[int(card['answer'])-1], f"{card['points']}점",
-                  str(card.get('difficulty') or ''), str(card.get('standard') or '')] for card in cards])
+    written = {card['no']: order for order, card in enumerate((c for c in cards if c.get('type') in SUBJECTIVE_TYPES), 1)}
+    label = lambda card: f"서답형 {written[card['no']]}" if card['no'] in written else f"{card['no']}번"
+    rows.extend([[label(card), card['type'] if card['no'] in written else '①②③④⑤'[int(card['answer'])-1], f"{card['points']}점",
+                  str(card.get('difficulty') or ''), official_code(str(card.get('standard') or ''))] for card in cards])
     table = gen.data_table(rows)
     page = secdef.find('PAGEDEF'); margin = page.find('PAGEMARGIN')
     body_width = int(page.get('Width')) - int(margin.get('Left')) - int(margin.get('Right'))
@@ -85,7 +92,7 @@ def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
             p = cell.find('PARALIST/P'); p.set('ParaShape', ps['cell_left'] if ci == 4 and ri else ps['cell'])
             for text in p.findall('TEXT'): text.set('CharShape', cs['table_head'] if ri == 0 else cs['table'])
     section.append(gen.wrapP(table, ps['body']))
-    distribution = '  ·  '.join(f"{standard} {sum(card.get('standard', '') == standard for card in cards)}문항"
+    distribution = '  ·  '.join(f"{official_code(standard)} {sum(card.get('standard', '') == standard for card in cards)}문항"
                                 for standard in sorted({card.get('standard', '') for card in cards}))
     append('성취기준 분포: ' + distribution, 'summary_note', 'meta')
 
@@ -116,11 +123,19 @@ def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
             section.append(p)
 
     for index, card in enumerate(cards):
-        answer = '①②③④⑤'[int(card['answer'])-1]
-        append(f"{card['no']}번  ·  정답 {answer}  ·  {card['points']}점", 'first_heading' if index == 0 else 'heading', 'heading')
-        metadata = f"{card.get('standard', '')} {card.get('standard_name', '')}".strip()
+        if card['no'] in written:
+            partial = '  ·  부분 점수 있음' if card.get('partial_credit') else ''
+            append(f"{label(card)}  ·  {card['type']}  ·  {card['points']}점{partial}", 'first_heading' if index == 0 else 'heading', 'heading')
+        else:
+            answer = '①②③④⑤'[int(card['answer'])-1]
+            append(f"{card['no']}번  ·  정답 {answer}  ·  {card['points']}점", 'first_heading' if index == 0 else 'heading', 'heading')
+        metadata = f"{official_code(card.get('standard', ''))} {card.get('standard_name', '')}".strip()
         if card.get('concepts'): metadata += f"  |  {card['concepts']}"
         if metadata: append(metadata, 'meta')
+        if card['no'] in written:
+            append('모범 답안', 'body', 'bold'); explanation(card.get('model_answer') or '')
+            append('채점 기준', 'body', 'bold'); explanation(card.get('rubric') or '')
+            append('해설', 'body', 'bold')
         explanation(card.get('explanation') or '해설이 입력되지 않았습니다.')
     gen.normalize_hml_char_tildes(section)
     # Retain the native shape mappings and explicit widths rather than drawing a table as an image.

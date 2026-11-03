@@ -56,6 +56,7 @@ FUNCTIONS = {
 }
 
 SYMBOLS = {
+    "div": "DIVIDE", "mid": "|", "rightleftharpoons": "RLHARPOONS",
     "times": "times", "cdot": "cdot", "cdotp": "cdot", "pm": "PLUSMINUS", "mp": "MINUSPLUS",
     "le": "LEQ", "leq": "LEQ", "ge": "GEQ", "geq": "GEQ", "ne": "neq",
     "neq": "neq", "approx": "APPROX", "sim": "SIM", "simeq": "SIMEQ",
@@ -74,8 +75,11 @@ SYMBOLS = {
     "leftarrow": "<-", "gets": "<-", "rightarrow": "->", "to": "->",
     "leftrightarrow": "<->", "uparrow": "uparrow", "downarrow": "downarrow",
     "mapsto": "mapsto", "sum": "sum", "prod": "prod", "int": "int",
-    "oint": "oint", "union": "UNION", "inter": "INTER",
+    "oint": "oint", "union": "UNION", "inter": "INTER", "square": "□", "Box": "□",
 }
+
+# 한글 수식의 행렬·조건식 명령. 칸은 &, 줄은 # 로 나눈다.
+ENVIRONMENTS = {"matrix": "matrix", "pmatrix": "pmatrix", "bmatrix": "bmatrix", "vmatrix": "dmatrix", "cases": "cases"}
 
 DECORATIONS = {
     "vec": "vec", "bar": "bar", "overline": "bar", "hat": "hat",
@@ -355,6 +359,10 @@ class _Parser:
             return Node("token", SYMBOLS[name])
         if name == "over":
             return Node("native", "over")
+        if name in ("displaystyle", "textstyle", "scriptstyle"):
+            return Node("token", "")
+        if name == "begin":
+            return self.environment(at)
         if name == "left":
             delimiter = self.delimiter(name, at)
             self._last_right_delimiter = None
@@ -383,6 +391,19 @@ class _Parser:
         if name == "}":
             return Node("token", "rbrace")
         raise self.fail(f"알 수 없거나 지원하지 않는 LaTeX 명령 \\{name}", at)
+
+    def environment(self, at: int) -> Node:
+        env = self.raw_group("begin").strip()
+        if env not in ENVIRONMENTS:
+            raise self.fail(f"지원하지 않는 LaTeX 환경 {env}", at)
+        end = "\\end{" + env + "}"
+        stop = self.source.find(end, self.i)
+        if stop < 0:
+            raise self.fail(f"\\begin{{{env}}}에 대응하는 \\end가 없습니다", at)
+        rows = re.split(r"\\\\", self.source[self.i:stop])
+        self.i = stop + len(end)
+        cells = [" & ".join(latex_to_hwp(cell) for cell in row.split("&")) for row in rows if row.strip()]
+        return Node("native", ENVIRONMENTS[env] + " { " + " # ".join(cells) + " }")
 
     def sequence_until_square(self) -> list[Node]:
         # Optional root index only accepts a simple balanced [] group. Braces
@@ -485,6 +506,8 @@ def latex_to_hwp(source: str) -> str:
     """
     if not isinstance(source, str):
         source = str(source)
+    # 조합은 교과서 표기 ₙCᵣ 로 쓴다.
+    source = re.sub(r"\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}", r"{}_{\1}\\mathrm{C}_{\2}", source)
     result = _serialize_nodes(_Parser(source).parse())
     if "\\" in result:
         raise EquationConversionError("내부 오류: 결과 SCRIPT에 역슬래시가 남았습니다")

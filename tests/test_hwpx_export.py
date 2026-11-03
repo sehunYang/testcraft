@@ -243,6 +243,18 @@ class HwpxExportTests(unittest.TestCase):
         self.assertEqual(stored['conversion']['status'],'ready')
         self.assertEqual({name:(folder/name).read_bytes() for name in protected},original)
 
+    def test_a_briefly_locked_file_is_not_mistaken_for_a_broken_export(self):
+        bundle,_=self.export_with_mock_converter()
+        self.store_bundle(bundle)
+        folder=core.exam_path(self.exam['id'])/'exports'/bundle['id']
+        real=Path.read_bytes;locked=[]
+        def read_once_locked(path):
+            if not locked: locked.append(path);raise PermissionError('잠깐 잠김')
+            return real(path)
+        with patch.object(Path,'read_bytes',read_once_locked), patch.object(server.time,'sleep'):
+            self.assertTrue(server._is_complete_published_export(folder,bundle))
+        self.assertEqual(len(locked),1)
+
     def test_internal_hml_download_is_blocked_for_unavailable_bundle(self):
         with patch.object(server,'hwp_conversion_available',return_value=False):
             bundle=server.export_exam(self.exam)

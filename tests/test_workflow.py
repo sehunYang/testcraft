@@ -15,7 +15,7 @@ from app import core, images, cli, server
 from test_support import cleanup_tempdir
 from PIL import Image
 
-def card(kind='단일 정답형', no=1):
+def card(kind='최선답형', no=1):
     c=core.blank_card(no)
     c.update(standard='[12역학01-01]',standard_name='운동',difficulty='하',type=kind,idea='등속 운동의 이동 거리를 계산한다.',points='100',stem='속력이 2 m/s인 물체가 3초 동안 등속 운동한다.',question='이동 거리는?',choices='① 2 m\n② 3 m\n③ 4 m\n④ 5 m\n⑤ 6 m',answer=5,explanation='이동 거리는 속력과 시간의 곱이므로 6 m이다.',concepts='속력, 이동 거리',calculation=True,checks=[{'label':'이동 거리','lhs':'2*3','rhs':'6'}],review_approved=True)
     return c
@@ -40,6 +40,11 @@ class WorkflowTests(unittest.TestCase):
     def test_four_types(self):
         for kind in core.TYPES:self.assertEqual(core.normalize(card(kind),1)['type'],kind)
         with self.assertRaises(ValueError):core.normalize(card('객관식'),1)
+    def test_former_best_answer_name(self):
+        self.assertEqual(core.normalize(card('단일 정답형'),1)['type'],'최선답형')
+        old,new=card('단일 정답형'),card('최선답형')
+        new['id']=old['id']
+        self.assertEqual(core.content_hash(old),core.content_hash(new))   # 이름만 바뀌면 승인이 유지된다
     def test_points_preserved(self):
         c=card();c['points']='4.0'
         self.assertEqual(core.normalize(c,1)['points'],'4.0')
@@ -55,8 +60,26 @@ class WorkflowTests(unittest.TestCase):
     def test_safe_sympy(self):
         self.assertTrue(core.verify_checks([{'lhs':'sqrt(3)**2','rhs':'3'}])[0]['ok'])
         self.assertFalse(core.verify_checks([{'lhs':'2+2','rhs':'5'}])[0]['ok'])
+        self.assertTrue(core.verify_checks([{'lhs':'log(9)/log(3)','rhs':'2'}])[0]['ok'])
         for bad in ["__import__('os').system('echo test')",'x.__class__','2**1000000','sqrt(x,y)']:
             with self.assertRaises((ValueError,TypeError)): core.safe_expr(bad)
+    def test_figure_constraints_compare_coordinate_pairs(self):
+        # Shapes the image model actually returned (2026-10-29): coordinate pairs were rejected as "허용되지 않는 검산식".
+        results=core.verify_checks([
+            {'label':'화살표 시작점','lhs':'(350+230,280+160/2)','rhs':'(580,360)'},
+            {'label':'바닥선','lhs':'((120,440),(880,440))','rhs':'((120,440),(880,440))'},
+            {'label':'틀린 점','lhs':'(350+230,280)','rhs':'(580,360)'},
+            {'label':'개수 불일치','lhs':'(1,2,3)','rhs':'(1,2)'},
+        ],symbols=False)
+        self.assertEqual([r['ok'] for r in results],[True,True,False,False])
+        self.assertEqual(results[2]['detail'],'(0, -80)')
+        self.assertIn('개수',results[3]['detail'])
+    def test_figure_constraints_reject_unbound_symbols_with_a_clear_reason(self):
+        result=core.verify_checks([{'label':'상자 꼭짓점','lhs':'(x,y)','rhs':'(350,280)'}],symbols=False)[0]
+        self.assertFalse(result['ok'])
+        self.assertIn('실제 SVG 좌표 숫자',result['detail'])
+        # Question checks keep symbolic identities such as m*(F/m) = F.
+        self.assertTrue(core.verify_checks([{'lhs':'m*(F/m)','rhs':'F'}])[0]['ok'])
     def test_review_gate(self):
         e=self.exam([card()]);self.assertTrue(core.validate(e)['ready'])
         e['cards'][0]['review_approved']=False
@@ -64,9 +87,9 @@ class WorkflowTests(unittest.TestCase):
     def test_calculation_gate(self):
         c=card();c['checks']=[]
         self.assertFalse(core.validate(self.exam([c]))['ready'])
-    def test_ratio_gate(self):
+    def test_combination_items_have_no_ratio_cap(self):
         c=card('합답형');c['statements']='ㄱ. 참이다.'
-        self.assertFalse(core.validate(self.exam([c]))['ready'])
+        self.assertNotIn('combination_ratio',{i['code'] for i in core.validate(self.exam([c]))['issues']})
     def test_image_stale_gate(self):
         c=card();c.update(data_kind='image',image={'approved':True,'context':core.image_context(c)})
         self.assertFalse(core.validate(self.exam([c]))['ready'])
@@ -101,6 +124,15 @@ class WorkflowTests(unittest.TestCase):
         hml=gen.build(str(core.TEMPLATE),str(folder/'25.hml'),str(folder),title='25문항',records=server.cards_to_records(cards))
         self.assertIn('25.',hml)
         self.assertEqual(hml.count('<MARKPENBEGIN'),25)
+    def test_kind_only_material_labels_are_not_printed(self):
+        # 2026-10-30: an AI-made block labelled "그림" printed a stray "그림" heading above the figure.
+        from tools import gen
+        c=card();c['materials']=[{'id':core.uid(),'kind':'text','label':label,'content':f'{label} 내용'} for label in ('그림','자료 표','<그림 2>','(가)')]
+        folder=Path(self.tmp.name)
+        root=ET.fromstring(gen.build(str(core.TEMPLATE),str(folder/'labels.hml'),str(folder),title='이름표',records=server.cards_to_records([c])).split('?>',1)[1])
+        paragraphs=[''.join(p.itertext()).strip() for p in root.iter('P')]
+        for label in ('그림','자료 표','<그림 2>'): self.assertNotIn(label,paragraphs)
+        self.assertIn('(가)',paragraphs)
     def test_path_guard(self):
         with self.assertRaises(ValueError):core.exam_path('../templates')
         with self.assertRaises(ValueError):server.asset_path(core.uid(),'../../README.md')

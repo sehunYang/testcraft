@@ -71,5 +71,22 @@ class VectorTests(unittest.TestCase):
         server.finalize_image(eid,c);e=core.save_exam(dict(id=eid,title='객체 출력 검증',subject='12역학',cards=[c],exports=[],revision=0,card_approval={'digest':core.cards_digest([c])}))
         bundle=server.export_exam(e,convert_hwpx=False);root=ET.parse(core.exam_path(eid)/'exports'/bundle['id']/'시험지_학생용.hml')
         self.assertEqual(base64.b64decode(root.find('.//BINDATA').text),server.asset_path(eid,c['image']['final_file']).read_bytes())
+    def test_embed_drops_equations_that_lived_in_the_figure_prompt(self):
+        # 2026-10-30: the figure description "높이가 $3 h$인 레일 … 구간 $S$" put equations inside the prompt
+        # region; replacing that region tripped "그림 삽입 중 수식 또는 표 구조 변경 감지" although nothing else changed.
+        import io
+        import xml.etree.ElementTree as ET
+        buf=io.BytesIO();Image.new('RGB',(40,20),'white').save(buf,'PNG');png=buf.getvalue()
+        mid='a'*16
+        hml=('<HWPML><HEAD><MAPPINGTABLE/></HEAD><BODY><SECTION>'
+             '<P><TEXT><EQUATION/></TEXT></P>'
+             f'<P><TEXT><CHAR>〔그림 프롬프트 시작 · 1번 · {mid}〕</CHAR></TEXT></P>'
+             '<P><TEXT><CHAR>높이가 </CHAR><EQUATION/><CHAR>인 레일, 구간 </CHAR><EQUATION/></TEXT></P>'
+             f'<P><TEXT><CHAR>〔그림 프롬프트 끝 · 1번 · {mid}〕</CHAR></TEXT></P>'
+             '</SECTION></BODY><TAIL/></HWPML>')
+        root=ET.fromstring(images.embed(hml,[(1,mid,png)]).split('?>',1)[1])
+        self.assertEqual(len(list(root.iter('EQUATION'))),1)     # the stem's equation stays; the prompt's two leave
+        self.assertNotIn('그림 프롬프트',''.join(root.itertext()))
+        self.assertIsNotNone(root.find('.//BINDATA'))
 
 if __name__=='__main__':unittest.main()

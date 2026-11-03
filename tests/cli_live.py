@@ -9,7 +9,7 @@ from app import core,cli,images
 if __name__=='__main__':
     folder=core.ROOT/'.runtime/live-workflow'
     c=core.blank_card()
-    c.update(standard='[12역학01-01]',standard_name='물체의 운동',difficulty='하',type='단일 정답형',points='4',idea='수평 직선 위에서 등속 운동하는 물체의 속력이 2 m/s이고 이동 시간이 3초인 상황에서 이동 거리를 묻는다. 자료 그림에는 물체, 수평면과 속도 화살표를 표시하고 정답 이동 거리는 표시하지 않는다.')
+    c.update(standard='[12역학01-01]',standard_name='물체의 운동',difficulty='하',type='최선답형',points='4',idea='수평 직선 위에서 등속 운동하는 물체의 속력이 2 m/s이고 이동 시간이 3초인 상황에서 이동 거리를 묻는다. 자료 그림에는 물체, 수평면과 속도 화살표를 표시하고 정답 이동 거리는 표시하지 않는다.')
     result=cli.execute('codex',folder/'question',cli.prompt_for(c,'question'),cli.QUESTION_SCHEMA)
     c.update(result);c=core.normalize(c,1)
     assert c['data_kind']=='image',result

@@ -9,6 +9,7 @@ import math
 import os
 import re
 import threading
+import time
 import uuid
 import zipfile
 import xml.etree.ElementTree as ET
@@ -17,15 +18,26 @@ from functools import lru_cache
 import openpyxl
 from . import runtime
 from .catalog import subject_id, infer_subject, subjects
+from . import catalog as subject_catalog
+from . import formats, maps
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = runtime.data_dir(ROOT)
 TEMPLATE = ROOT / 'templates' / '문항카드-템플릿.xlsx'
-TYPES = ['단일 정답형', '합답형', '불완전 문장형', '짝짓기형']
+TYPES = ['최선답형', '합답형', '불완전 문장형', '짝짓기형']
+SUBJECTIVE_TYPES = ['단답형', '서술형', '논술형']   # 서답형: 답지 대신 모범 답안과 채점 기준을 둔다
+FORMER_BEST_ANSWER = '단일 정답형'   # 2026-11-02 '최선답형'으로 이름을 바꿨다. 저장된 시험은 열 때 새 이름으로 읽는다
+
+def current_type(name):
+    return '최선답형' if str(name or '').replace(' ','')==FORMER_BEST_ANSWER.replace(' ','') else name
+
+def hashed_type(name):
+    # 승인 기록의 해시는 옛 이름으로 계산돼 있다. 이름만 바뀌었다고 승인을 풀지 않는다.
+    return FORMER_BEST_ANSWER if name=='최선답형' else name
 IMAGE_MODES = ('strict', 'mixed', 'flexible')
 LOCK = threading.RLock()
 COLS = {2:'no',3:'standard',4:'standard_name',5:'standard_note',6:'difficulty',7:'type',8:'answer',9:'idea',10:'stem',11:'material',12:'question',13:'statements',14:'choices',15:'points',16:'estimate',17:'discrimination',18:'original_no',19:'concepts',20:'explanation'}
-TEXT_FIELDS = ['standard','standard_name','standard_note','difficulty','type','idea','stem','material','question','statements','choices','points','concepts','explanation','review_note','image_mode','image_locked','image_creative','ai_feedback','image_text_physics','image_text_math','image_text_korean']
+TEXT_FIELDS = ['standard','standard_name','standard_note','difficulty','type','idea','stem','material','question','statements','choices','points','concepts','explanation','review_note','image_mode','image_locked','image_creative','ai_feedback','image_text_physics','image_text_math','image_text_korean','model_answer','rubric','conditions']
 AUTHORING_MODES = ('ai','manual','legacy')
 MATERIALS_REQUEST_MAX = 4000
 MATERIAL_KINDS = ('image','text','table')
@@ -79,7 +91,12 @@ def atomic(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix('.tmp')
     temp.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding='utf-8')
-    os.replace(temp, path)
+    for attempt in range(6):        # Windows에서 백신·색인이 파일을 잠깐 열면 교체가 거부된다
+        try:
+            os.replace(temp, path); return
+        except PermissionError:
+            if attempt == 5: raise
+            time.sleep(0.1 * (attempt + 1))
 
 def exam_path(eid):
     if not re.fullmatch('[a-f0-9]{16}', eid):
@@ -96,6 +113,7 @@ def read_exam(eid):
         exam=json.loads(p.read_text(encoding='utf-8'))
     exam.setdefault('subject',infer_subject(exam['cards']))
     for card in exam['cards']:
+        card['type']=current_type(card.get('type'))
         card.setdefault('image_text_none',False)
         for key in ('image_text_physics','image_text_math','image_text_korean'): card.setdefault(key,'')
         card.setdefault('calculation_override',None)
@@ -105,7 +123,7 @@ def read_exam(eid):
         card.setdefault('image_plan_version',1)
         for key,value in {'ai_requested':False,'ai_feedback':'','image_mode':'','image_locked':'','image_creative':'','image_plan_approval':None,
                           'authoring_mode':'legacy','materials_request':'','material_request_kinds':[],
-                          'material_request_image_mode':''}.items():
+                          'material_request_image_mode':'','format':''}.items():
             card.setdefault(key,value)
     if not cards_approved(exam): exam['card_approval']=None
     return exam
@@ -118,7 +136,7 @@ def save_exam(exam):
             card['material_request_kinds']=normalize_material_request_kinds(card.get('material_request_kinds',[]))
             card['material_request_image_mode']=normalize_material_request_image_mode(card.get('material_request_image_mode',''))
             validate_material_request_preferences(card['material_request_kinds'],card['material_request_image_mode'])
-        if (exam.get('card_approval') or {}).get('digest') != cards_digest(exam['cards']):
+        if (exam.get('card_approval') or {}).get('digest') != cards_digest(exam['cards'], exam.get('sets')):
             exam['card_approval']=None
         exam['updated'] = now()
         exam['revision'] = exam.get('revision', 0) + 1
@@ -127,7 +145,7 @@ def save_exam(exam):
 
 def blank_card(no=1, authoring_mode='legacy'):
     mode=normalize_authoring_mode(authoring_mode)
-    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,materials=None)
+    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, partial_credit=False, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', format='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,materials=None, set_id='')
 
 def legacy_material(card):
     """Project a pre-materials card as its single stable material block."""
@@ -247,8 +265,11 @@ def normalize_materials(card):
     return sync_material_aliases(card)
 
 def content_hash(card):
-    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override')
+    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','format','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override')
     fields = {k:v for k,v in card.items() if k not in excluded}
+    if 'type' in fields: fields['type']=hashed_type(fields['type'])
+    for key in ('set_id','model_answer','rubric','conditions','partial_credit'):   # cards saved before these fields keep their hash
+        if not fields.get(key): fields.pop(key,None)
     blocks=card.get('materials')
     if blocks is not None and not material_array_matches_legacy(card,blocks):
         fields['materials']=[{k:v for k,v in block.items() if k not in ('image','image_plan_approval','image_labels','labels_initialized','image_scene')} for block in blocks]
@@ -273,6 +294,9 @@ def image_plan_errors(card):
     errors=[]
     if card.get('image_mode') not in IMAGE_MODES: errors.append('그림 유형을 선택해 주세요.')
     mode=card.get('image_mode'); locked=card.get('image_locked','').strip(); creative=card.get('image_creative','').strip()
+    if maps.is_map(locked):      # 지도는 앱이 그리고 글씨도 명세에서 만든다
+        if mode!='strict': errors.append('지도는 strict 그림으로 만들어 주세요.')
+        return errors+maps.errors(locked)
     if mode in ('strict','mixed') and not locked: errors.append('SVG 규칙을 적어 주세요.')
     if mode in ('flexible','mixed') and not creative: errors.append('창작 허용 영역을 적어 주세요.')
     if mode=='strict' and creative: errors.append('strict의 창작 허용 영역은 빈칸이어야 합니다.')
@@ -391,10 +415,16 @@ def check_subject(subject, cards):
         if code and (code not in standards() or subject_id(code)!=subject):
             raise ValueError(f"{c['no']}번: {code}는 선택한 과목의 성취기준이 아닙니다.")
 
-def cards_digest(cards):
+def set_hash(passage_set):
+    return hashlib.sha256(json.dumps(passage_set.get('passages',[]),sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+
+def cards_digest(cards, sets=None):
+    # A shared passage is part of every question that reads it: editing it withdraws the approval.
+    passages={s['id']:set_hash(s) for s in sets or []}
     rows=[]
     for c in cards:
         row=(c['no'],content_hash(c),bool(c['review_approved']))
+        if c.get('set_id'): row+=(passages.get(c['set_id']),)
         if calculation_override_active(c):
             row+=(c['calculation_override'].get('validation_digest'),)
         rows.append(row)
@@ -406,6 +436,9 @@ def export_digest(exam):
     for card in exam['cards']:
         fields={key:card.get(key,'') for key in COLS.values() if key!='no'}
         fields['no']=card['no']; fields['data_kind']=card.get('data_kind','none')
+        if 'type' in fields: fields['type']=hashed_type(fields['type'])
+        for key in ('model_answer','rubric','conditions','partial_credit'):
+            if card.get(key): fields[key]=card[key]
         if calculation_override_active(card):
             fields['calculation_override']={k:card['calculation_override'].get(k) for k in ('content_digest','validation_digest','approved_at')}
         image=card.get('image') or {}
@@ -431,11 +464,14 @@ def export_digest(exam):
             fields['materials']=exported_materials
         exported.append(fields)
     payload={'title':exam.get('title',''),'subject':exam.get('subject',''),'cards':exported}
+    for key in ('sets','school'):                     # printed too; absent on exams saved before these existed
+        if exam.get(key): payload[key]=exam[key]
+    if exam.get('passage_size','11')!='11': payload['passage_size']=exam['passage_size']
     return hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
 def cards_approved(exam):
     approval=exam.get('card_approval')
-    return bool(approval and approval.get('digest')==cards_digest(exam['cards']))
+    return bool(approval and approval.get('digest')==cards_digest(exam['cards'], exam.get('sets')))
 
 def allocate_points(cards):
     """Largest-remainder allocation in tenths. Difficulty bands stay ordered."""
@@ -458,6 +494,133 @@ def allocate_points(cards):
         c['points']=points
     return cards
 
+SET_MAX_QUESTIONS = 5
+
+def normalize_sets(raw_sets, cards):
+    """Passage sets (지문 세트): one or two passages printed once and read by consecutive questions."""
+    raw_sets = raw_sets or []
+    if not isinstance(raw_sets, list) or len(raw_sets) > 50: raise ValueError('지문 세트 형식 오류')
+    used = {c.get('set_id') for c in cards if c.get('set_id')}
+    out = []
+    for raw in raw_sets:
+        if not isinstance(raw, dict): raise ValueError('지문 세트 형식 오류')
+        sid = str(raw.get('id') or '')
+        if not re.fullmatch('[a-f0-9]{16}', sid): raise ValueError('지문 세트 ID 오류')
+        if sid not in used: continue                                  # every question of the set was removed
+        passages = raw.get('passages')
+        if not isinstance(passages, list) or not 1 <= len(passages) <= 2: raise ValueError('지문 세트에는 지문을 1~2개 넣어 주세요.')
+        clean = []
+        for index, p in enumerate(passages):
+            if not isinstance(p, dict): raise ValueError('지문 형식 오류')
+            content = str(p.get('content') or '').replace('\r\n', '\n').strip('\n')
+            if not content.strip(): raise ValueError('지문 내용이 비어 있습니다.')
+            if len(content) > 20000: raise ValueError('지문은 2만 자 이내로 넣어 주세요.')
+            pid = str(p.get('id') or '')
+            label = str(p.get('label') or ('(가)', '(나)')[index] if len(passages) > 1 else p.get('label') or '').strip()
+            clean.append({'id': pid if re.fullmatch('[a-f0-9]{16}', pid) else uid(), 'label': label[:10], 'content': content,
+                          'source': str(p.get('source') or '').strip()[:300]})
+        out.append({'id': sid, 'passages': clean})
+    known = {s['id'] for s in out}
+    if used - known: raise ValueError('문항이 가리키는 지문 세트가 없습니다.')
+    for sid in known:
+        index = [i for i, c in enumerate(cards) if c.get('set_id') == sid]
+        if index != list(range(index[0], index[0] + len(index))): raise ValueError('같은 지문 세트의 문항은 번호가 이어지게 두어 주세요.')
+        kinds = {cards[i].get('type') in SUBJECTIVE_TYPES for i in index}
+        if len(kinds) > 1: raise ValueError('지문 세트 문항은 선택형끼리 또는 서답형끼리 묶어 주세요.')
+        if len(index) > SET_MAX_QUESTIONS: raise ValueError(f'지문 세트 하나에는 문항을 {SET_MAX_QUESTIONS}개까지 넣을 수 있습니다.')
+    return out
+
+CIRCLED = '①②③④⑤'
+
+def _choice_lines(choices):
+    """(머리글, 선지 다섯 줄). 한 줄씩 적히지 않았거나 다섯이 아니면 머리글은 None."""
+    lines = [x for x in str(choices or '').split('\n') if x.strip()]
+    body = [x for x in lines if x.strip()[0] in CIRCLED]
+    if [x.strip()[0] for x in body] != list(CIRCLED): return None, []
+    return [x for x in lines if x not in body], body
+
+def _choice_width(line):
+    text = line.strip()[1:].strip()
+    return sum(0.55 if c.isascii() else 1 for c in text)
+
+def reasoned_statements(statements):
+    """과학 〈보기〉는 "A는 B이다"처럼 판단 하나만 묻는다. "A이면 B이다"는 판단 하나로 본다. 이유를 덧붙인 보기의 기호를 돌려준다."""
+    lines = [x.strip() for x in str(statements or '').split('\n')]
+    return [x[0] for x in lines if x and re.search(r'때문|므로|로 인해|로 인하여|덕분에', x)]
+
+
+def vague_wording(*texts):
+    """과학 〈보기〉의 참거짓이 사람마다 갈리는 평가어."""
+    return sorted({x for t in texts for x in re.findall(r'적절|적당|바람직|타당|효과적|유리하|좋다|좋은|읽을 수 있', str(t or ''))})
+
+
+def choices_out_of_order(choices):
+    """선택지는 짧은 것부터. 수식·수치 선지는 값의 순서를 따르므로 보지 않는다. 한 글자 안의 차이는 허용한다."""
+    _, body = _choice_lines(choices)
+    if not body or any('$' in x or not re.search(r'[^\W\d_]', x.strip()[1:]) for x in body): return False
+    widths = [_choice_width(x) for x in body]
+    return any(a - b > 1 for a, b in zip(widths, widths[1:]))
+
+def order_choices(card):
+    """AI 초안의 선택지를 짧은 것부터 놓는다. 정답 번호와 해설 속 번호를 함께 옮긴다."""
+    if not choices_out_of_order(card.get('choices')): return card
+    head, body = _choice_lines(card['choices'])
+    order = sorted(range(5), key=lambda i: _choice_width(body[i]))     # 같은 길이는 원래 순서
+    moved = {CIRCLED[old]: CIRCLED[new] for new, old in enumerate(order)}
+    card['choices'] = '\n'.join([*head, *(CIRCLED[new] + body[old].strip()[1:] for new, old in enumerate(order))])
+    if card.get('answer') in (1, 2, 3, 4, 5): card['answer'] = order.index(card['answer'] - 1) + 1
+    card['explanation'] = ''.join(moved.get(c, c) for c in str(card.get('explanation') or ''))
+    return card
+
+def subjective_last(cards):
+    """서답형은 선택형 뒤에 번호를 따로 매겨 인쇄한다. 같은 묶음 안의 순서는 그대로 둔다."""
+    return sorted(cards, key=lambda c: (c.get('type') if isinstance(c,dict) else '') in SUBJECTIVE_TYPES)
+
+def written_order(cards, card):
+    """서답형 번호(서답형 1, 2, …). 선택형이면 0."""
+    if card.get('type') not in SUBJECTIVE_TYPES: return 0
+    written = [c['id'] for c in cards if c.get('type') in SUBJECTIVE_TYPES]
+    return written.index(card['id']) + 1
+
+def set_context(exam, card):
+    """What a passage-set question must know: the shared passage and what its siblings ask."""
+    passage_set = next((s for s in exam.get('sets', []) if s['id'] == card.get('set_id')), None)
+    if not passage_set: return ''
+    a, b = set_range(exam['cards'], passage_set['id'])
+    lines = [f'[지문 세트] 이 문항은 {a}~{b}번 지문 세트의 {card["no"]}번 문항이다. 아래 지문은 시험지에 "[{a}~{b}] 다음 글을 읽고 물음에 답하시오."와 함께 한 번만 인쇄된다.',
+             '- 지문을 stem·material에 다시 쓰지 않는다. stem은 비우거나 이 문항에만 필요한 짧은 조건만 쓰고, 발문은 "윗글", "(가)", "(나)", "㉠"처럼 지문을 가리킨다.',
+             '- 지문을 고쳐 쓰지 않는다. [[ ]]로 감싼 구절은 이미 밑줄이 그어진 곳이다.',
+             '- 새 밑줄·기호가 필요하면 passage_marks로만 지정한다. 이미 지문에 있는 기호는 다시 쓰지 않는다.',
+             '- 시험지 머리글이 이미 "다음 글을 읽고 물음에 답하시오."라고 하므로 발문에 "다음 글을 읽고"를 쓰지 않는다.',
+             '- 같은 세트의 다른 문항과 평가 요소·정답 근거가 겹치지 않게 한다.', '', '지문:']
+    for p in passage_set['passages']:
+        lines.append(f"{p['label']} {p['content']}".strip())
+        if p.get('source'): lines.append(f"(출처: {p['source']})")
+    others = [c for c in exam['cards'] if c.get('set_id') == passage_set['id'] and c['id'] != card['id']]
+    if others:
+        lines += ['', '같은 세트의 다른 문항:']
+        for c in others:
+            done = ' / 발문: ' + c['question'] if c.get('question') else ' (아직 생성 전)'
+            lines.append(f"- {c['no']}번 [{c.get('type','')}·{c.get('difficulty','')}] 평가 요소: {c.get('idea','')}{done}")
+    return '\n'.join(lines)
+
+def apply_passage_marks(passage_set, marks):
+    """Insert mark + [[text]] where a phrase occurs exactly once; return what could not be placed."""
+    skipped = []
+    for m in marks or []:
+        text, mark = str(m.get('text') or '').strip(), str(m.get('mark') or '').strip()
+        label = str(m.get('label') or '').strip()
+        candidates = [p for p in passage_set['passages'] if not label or p.get('label') == label] or passage_set['passages']
+        target = next((p for p in candidates if p['content'].count(text) == 1), None) if text and 0 < len(mark) <= 4 else None
+        if not target or mark in target['content'] or f'[[{text}]]' in target['content']:
+            skipped.append(f'{mark} {text}'.strip()); continue
+        target['content'] = target['content'].replace(text, f'{mark}[[{text}]]', 1)
+    return skipped
+
+def set_range(cards, set_id):
+    numbers = [c['no'] for c in cards if c.get('set_id') == set_id]
+    return (min(numbers), max(numbers)) if numbers else None
+
 def normalize(card, no):
     c = blank_card(no)
     for k in c:
@@ -470,13 +633,18 @@ def normalize(card, no):
         c[k] = str(c[k] or '').strip()
         if len(c[k]) > 50000:
             raise ValueError('문항 내용이 너무 깁니다.')
+    c['set_id']=str(c.get('set_id') or '')
+    if c['set_id'] and not re.fullmatch('[a-f0-9]{16}', c['set_id']): raise ValueError('지문 세트 ID 오류')
     c['authoring_mode']=normalize_authoring_mode(c.get('authoring_mode','legacy'))
     c['materials_request']=normalize_materials_request(c.get('materials_request',''))
     c['material_request_kinds']=normalize_material_request_kinds(c.get('material_request_kinds',[]))
     c['material_request_image_mode']=normalize_material_request_image_mode(c.get('material_request_image_mode',''))
     validate_material_request_preferences(c['material_request_kinds'],c['material_request_image_mode'])
-    if c['type'] and c['type'] not in TYPES:
-        raise ValueError(f"{no}번: 문항 유형은 네 가지 지정 유형만 가능합니다.")
+    c['format']=formats.normalize(c.get('format'))
+    c['type']=current_type(c['type'])
+    if c['type'] and c['type'] not in (*TYPES,*SUBJECTIVE_TYPES):
+        raise ValueError(f"{no}번: 문항 유형은 지정된 유형만 가능합니다.")
+    c['partial_credit']=bool(c['partial_credit'])
     if c['difficulty'] not in ('','하','중','상'):
         raise ValueError('난이도는 하·중·상 중 하나여야 합니다.')
     if c['data_kind'] not in ('none','image','text','table'):
@@ -491,7 +659,7 @@ def normalize(card, no):
     c['labels_initialized']=bool(c['labels_initialized'])
     if c['image_plan_version'] not in (1,2): raise ValueError('그림 계획 버전 오류')
     normalize_materials(c)
-    a = str(c['answer'] or '').strip()
+    a = '' if c['type'] in SUBJECTIVE_TYPES else str(c['answer'] or '').strip()
     c['answer'] = '①②③④⑤'.index(a) + 1 if a in '①②③④⑤' and a else (int(a) if a.isdigit() else '')
     if c['answer'] not in ('',1,2,3,4,5):
         raise ValueError('정답은 1~5여야 합니다.')
@@ -514,10 +682,14 @@ def normalize(card, no):
 @lru_cache(maxsize=1)
 def standards():
     w = openpyxl.load_workbook(TEMPLATE, data_only=True, read_only=True)
-    out = {}
+    out = {}; seen = set(); block = None; current = None
     for row in w.worksheets[1].iter_rows(min_row=3, values_only=True):
         if len(row)>4 and row[2]:
-            out[str(row[2])] = {'name':str(row[3] or ''),'note':str(row[4] or ''),'subject':subject_id(str(row[2]))}
+            code = str(row[2]); base = subject_id(code)
+            if base != block:   # a new block; a prefix seen in an earlier block belongs to its second subject
+                current = subject_catalog.SECOND[base] if base in seen and base in subject_catalog.SECOND else base
+                seen.add(base); block = base
+            out[subject_catalog.standard_key(code, current)] = {'name':str(row[3] or ''),'note':str(row[4] or ''),'subject':current,'code':code}
     w.close()
     return out
 
@@ -537,10 +709,12 @@ def import_cards(raw):
         for col,k in COLS.items():
             v = row[col-1]
             c[k] = '' if v is None or (isinstance(v,str) and v.startswith('#')) else v
-        for label,k in [('내용 영역','concepts'),('해설','explanation')]:
+        for label,k in [('내용 영역','concepts'),('해설','explanation'),('모범 답안','model_answer'),('채점 기준','rubric'),('답안 조건','conditions')]:
             if label in headers:
                 c[k] = row[headers[label]-1] or ''
-        for label,k in [('그림 유형','image_mode'),('SVG 고정 영역','image_locked'),('창작 허용 영역','image_creative'),('AI 수정 요청','ai_feedback'),('글씨 프롬프트-물리량','image_text_physics'),('글씨 프롬프트-수식','image_text_math'),('글씨 프롬프트-한글','image_text_korean'),('작성 방식','authoring_mode'),('필요한 자료','materials_request'),('요청 그림 유형','material_request_image_mode')]:
+        if '글씨 프롬프트-물리량' in headers and '글씨 프롬프트-기호·변수' not in headers:   # cards saved before 2026-10-30
+            headers['글씨 프롬프트-기호·변수']=headers['글씨 프롬프트-물리량']
+        for label,k in [('그림 유형','image_mode'),('SVG 고정 영역','image_locked'),('창작 허용 영역','image_creative'),('AI 수정 요청','ai_feedback'),('글씨 프롬프트-기호·변수','image_text_physics'),('글씨 프롬프트-수식','image_text_math'),('글씨 프롬프트-한글','image_text_korean'),('작성 방식','authoring_mode'),('필요한 자료','materials_request'),('요청 그림 유형','material_request_image_mode')]:
             if label in headers:
                 value=row[headers[label]-1]
                 if k=='authoring_mode' and not value: continue
@@ -557,6 +731,7 @@ def import_cards(raw):
                     raise ValueError('필요한 자료 종류 JSON을 확인해 주세요. image, text, table 배열이어야 합니다.') from exc
         if '글씨 객체 JSON' in headers:
             c['image_labels']=json.loads(row[headers['글씨 객체 JSON']-1] or '[]')
+        if '부분 점수' in headers: c['partial_credit']=str(row[headers['부분 점수']-1] or '').strip().lower()=='yes'
         if '글씨 없음' in headers: c['image_text_none']=str(row[headers['글씨 없음']-1] or '').strip().lower()=='yes'
         if '글씨 배치 완료' in headers: c['labels_initialized']=str(row[headers['글씨 배치 완료']-1]).lower()=='yes'
         c['image_plan_version']=int(row[headers['그림 계획 버전']-1] or 1) if '그림 계획 버전' in headers else 1
@@ -579,7 +754,8 @@ def import_cards(raw):
             if str(c[key]).strip() in ('없음.','없음','None'):
                 c[key]=''
         old_type=str(c['type']).strip()
-        canonical=next((t for t in TYPES if t.replace(' ','')==old_type.replace(' ','')),None)
+        old_type=current_type(old_type)
+        canonical=next((t for t in (*TYPES,*SUBJECTIVE_TYPES) if t.replace(' ','')==old_type.replace(' ','')),None)
         if canonical:
             c['type']=canonical
         elif old_type=='객관식':
@@ -587,7 +763,7 @@ def import_cards(raw):
             if '짝지' in question or '짝을' in question: c['type']='짝짓기형'
             elif c['statements'] and ('있는 대로' in question or '옳은 것만' in question): c['type']='합답형'
             elif '들어갈' in question or '빈칸' in question: c['type']='불완전 문장형'
-            else: c['type']='단일 정답형'
+            else: c['type']='최선답형'
             c['review_note']=f"기존 유형 '{old_type}'을 문항 구조에 따라 '{c['type']}'으로 임시 대응했습니다. 교사 확인이 필요합니다."
         if c['standard'] in catalog:
             c['standard_name'] = catalog[c['standard']]['name']
@@ -607,10 +783,11 @@ def import_cards(raw):
 def export_xlsx(cards, path):
     """Edit only card cells in the supplied OOXML package; preserve validations/styles/other sheets."""
     ns = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
-    extra = {21:('ai_requested','AI 생성 요청'),22:('image_mode','그림 유형'),23:('image_locked','SVG 고정 영역'),24:('image_creative','창작 허용 영역'),25:('ai_feedback','AI 수정 요청'),26:('image_text_physics','글씨 프롬프트-물리량'),27:('image_text_math','글씨 프롬프트-수식'),28:('image_text_korean','글씨 프롬프트-한글'),29:('image_labels','글씨 객체 JSON')}
+    extra = {21:('ai_requested','AI 생성 요청'),22:('image_mode','그림 유형'),23:('image_locked','SVG 고정 영역'),24:('image_creative','창작 허용 영역'),25:('ai_feedback','AI 수정 요청'),26:('image_text_physics','글씨 프롬프트-기호·변수'),27:('image_text_math','글씨 프롬프트-수식'),28:('image_text_korean','글씨 프롬프트-한글'),29:('image_labels','글씨 객체 JSON')}
     extra.update({30:('labels_initialized','글씨 배치 완료'),31:('image_plan_version','그림 계획 버전'),32:('data_kind','자료 종류'),33:('image_text_none','글씨 없음'),34:('materials','자료 블록 JSON'),
                   35:('authoring_mode','작성 방식'),36:('materials_request','필요한 자료'),
-                  37:('material_request_kinds','필요한 자료 종류 JSON'),38:('material_request_image_mode','요청 그림 유형')})
+                  37:('material_request_kinds','필요한 자료 종류 JSON'),38:('material_request_image_mode','요청 그림 유형'),
+                  39:('model_answer','모범 답안'),40:('rubric','채점 기준'),41:('conditions','답안 조건'),42:('partial_credit','부분 점수')})
     columns = {**COLS,**{col:pair[0] for col,pair in extra.items()}}
     ET.register_namespace('', ns)
     with zipfile.ZipFile(TEMPLATE) as z:
@@ -628,7 +805,7 @@ def export_xlsx(cards, path):
             c = cards[r-11]
             for col,k in columns.items():
                 value = c.get(k,'')
-                if k in ('ai_requested','labels_initialized','image_text_none'): value='Yes' if value else 'No'
+                if k in ('ai_requested','labels_initialized','image_text_none','partial_credit'): value='Yes' if value else 'No'
                 if k=='image_labels': value=json.dumps(value or [],ensure_ascii=False)
                 if k=='material_request_kinds': value=json.dumps(value or [],ensure_ascii=False)
                 if k=='materials':
@@ -686,20 +863,46 @@ def safe_expr(source):
                     raise ValueError('검산 숫자의 크기가 너무 큽니다.')
                 return a**b
             return {ast.Add:lambda:a+b,ast.Sub:lambda:a-b,ast.Mult:lambda:a*b,ast.Div:lambda:a/b}[type(n.op)]()
-        if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id in ('sqrt','sin','cos','tan','Abs') and len(n.args)==1 and not n.keywords:
+        if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id in ('sqrt','sin','cos','tan','Abs','log') and len(n.args)==1 and not n.keywords:
             return getattr(sp,n.func.id)(walk(n.args[0]))
         raise ValueError('허용되지 않는 검산식입니다.')
     return walk(tree.body)
 
-def verify_checks(checks):
+def check_values(source):
+    """One expression, or a coordinate tuple such as (350+230, 280+160/2), as a flat list."""
+    source=str(source)
+    if len(source)>300:
+        raise ValueError('검산식이 너무 깁니다.')
+    body=ast.parse(source, mode='eval').body
+    if not isinstance(body,(ast.Tuple,ast.List)):
+        return [safe_expr(source)]
+    flat=[]
+    def collect(n):
+        if isinstance(n,(ast.Tuple,ast.List)):
+            for item in n.elts: collect(item)
+        else:
+            flat.append(safe_expr(ast.unparse(n)))
+    collect(body)
+    if not 1<=len(flat)<=16:
+        raise ValueError('좌표 묶음은 1~16개 값만 허용합니다.')
+    return flat
+
+def verify_checks(checks, symbols=True):
+    """SymPy equality checks. Figure constraints pass symbols=False: they must use real SVG numbers."""
     import sympy as sp
     out=[]
     for check in checks:
         try:
             if not isinstance(check,dict): raise ValueError('검산 항목 형식 오류')
-            diff=sp.simplify(safe_expr(str(check['lhs']))-safe_expr(str(check['rhs'])))
-            ok=diff == 0
-            out.append({'label':str(check.get('label','검산')),'ok':bool(ok),'detail':str(diff)})
+            left,right=check_values(check['lhs']),check_values(check['rhs'])
+            if len(left)!=len(right):
+                raise ValueError('양변의 좌표 개수가 다릅니다.')
+            if not symbols and any(v.free_symbols for v in left+right):
+                raise ValueError('좌표 대신 기호가 있어 검산할 수 없습니다. 실제 SVG 좌표 숫자로 식을 써야 합니다.')
+            diffs=[sp.simplify(a-b) for a,b in zip(left,right)]
+            ok=all(d == 0 for d in diffs)
+            diff=str(diffs[0]) if len(diffs)==1 else '('+', '.join(map(str,diffs))+')'
+            out.append({'label':str(check.get('label','검산')),'ok':bool(ok),'detail':diff})
         except Exception as e:
             label=check.get('label','검산') if isinstance(check,dict) else '검산'
             out.append({'label':str(label),'ok':False,'detail':str(e)})
@@ -712,13 +915,21 @@ def validate(exam, phase='export'):
         issues.append({'code':code,'card_id':card.get('id') if card else None,'material_id':material_id,'field':field,
                        'stage':stage,'severity':'error','message':message})
     if not cards: issue('cards_required','문항을 추가해 주세요.',stage='design')
+    science=subject_catalog.GROUP_OF.get(exam.get('subject'))=='과학'   # 보기 문장 규칙은 과학에만 둔다. 다른 교과는 평가원 꼴을 따른다
     for c in cards:
-        n=c['no']
+        n=c['no']; written=c['type'] in SUBJECTIVE_TYPES
         for k,label in [('standard','성취기준'),('type','문항 유형'),('difficulty','난이도'),('idea','핵심 아이디어'),('question','발문'),('choices','선택지'),('answer','정답'),('points','배점'),('explanation','해설')]:
-            if not c.get(k): issue(f'{k}_required',f'{n}번: {label} 누락',c,k,'review')
+            if not c.get(k) and not (written and k in ('choices','answer')): issue(f'{k}_required',f'{n}번: {label} 누락',c,k,'review')
+        if written:
+            for k,label in (('model_answer','모범 답안'),('rubric','채점 기준')):
+                if not c.get(k): issue(f'{k}_required',f'{n}번: {label} 누락',c,k,'review')
         nums = re.findall('[①②③④⑤]', c['choices'])
-        if nums != list('①②③④⑤'): issue('choices_format','%s번: 선택지는 ①~⑤ 순서로 한 번씩 필요합니다.'%n,c,'choices','review')
+        if not written and nums != list('①②③④⑤'): issue('choices_format','%s번: 선택지는 ①~⑤ 순서로 한 번씩 필요합니다.'%n,c,'choices','review')
+        if not written and choices_out_of_order(c['choices']): warnings.append(f'{n}번: 선택지가 짧은 것부터 놓여 있지 않습니다. 순서를 바꾸면 정답 번호도 함께 옮겨 주세요.')
+        if c.get('set_id') and re.search(r'다음\s*(글|지문)을\s*읽고',c['question']): warnings.append(f'{n}번: 세트 머리글과 겹칩니다. 발문의 “다음 글을 읽고”를 지워 주세요.')
         if c['type']=='합답형' and not c['statements']: issue('statements_required',f'{n}번: 합답형 보기가 없습니다.',c,'statements','review')
+        if science and vague_wording(c['statements']): warnings.append(f'{n}번: 보기의 “{", ".join(vague_wording(c["statements"]))}”은 판단이 갈릴 수 있습니다. “㉠은 ~이다”처럼 참거짓이 사실로 가려지게 고쳐 주세요.')
+        if science and reasoned_statements(c['statements']): warnings.append(f'{n}번: 보기 {", ".join(reasoned_statements(c["statements"]))}에 이유가 덧붙어 있습니다. “A는 B이다”처럼 판단 하나만 묻게 고쳐 주세요.')
         if not c['review_approved']: issue('review_required',f'{n}번: 문항 검토 확인이 필요합니다.',c,'review_approved','review')
         if c['calculation']:
             input_errors=calculation_input_errors(c)
@@ -750,8 +961,8 @@ def validate(exam, phase='export'):
                         or (failed_checks and not image_override)):
                     issue('image_approval_required',f"{n}번 {block.get('label') or '그림'}: 그림과 글씨를 최종 확정해 주세요.",c,'image','image',mid)
         total+=float(c['points'] or 0)
-    if cards and sum(c['type']=='합답형' for c in cards)>len(cards)/2:
-        issue('combination_ratio','합답형 비율이 전체의 50%를 초과합니다.',stage='design')
+    kinds=[c['type'] in SUBJECTIVE_TYPES for c in cards]
+    if kinds!=sorted(kinds): issue('written_order','서답형 문항은 선택형 문항 뒤에 두어 주세요.',stage='design')
     try: check_subject(exam.get('subject') or infer_subject(cards),cards)
     except ValueError as e: issue('standard_subject_mismatch',str(e),stage='design',field='standard')
     for c in cards:

@@ -8,3 +8,16 @@ body.tutorial-open main{margin-right:432px}
 .tutorial-player video::cue{font-family:"Studio Pretendard GOV",sans-serif;background:#15243ce8;color:white}
 @media(max-width:1100px){body.tutorial-open main{margin-right:0}.tutorial-panel{inset:auto 8px 8px;width:calc(100% - 16px);height:46dvh;min-height:260px}.tutorial-player{max-width:440px;margin:auto}body.tutorial-open .content{padding-bottom:48dvh}.tutorial-head{padding:10px 14px}.tutorial-scroll{padding:12px}.tutorial-panel .tutorial-player video{max-height:24dvh}}
 @media(prefers-reduced-motion:reduce){.tutorial-ring{transition:none}}
+/* Video-synced ring: the control the playing chapter is about, on the teacher's own screen (mint, unlike the blue step guide). */
+.tutorial-sync{position:fixed;pointer-events:none;z-index:1899;border:3px solid #17b890;border-radius:10px;box-shadow:0 0 0 6px #17b89026,0 0 22px #17b89055;transition:top .2s,left .2s,width .2s,height .2s;animation:tutorial-sync-pulse 1.4s ease-in-out infinite}
+.tutorial-sync[hidden]{display:none!important}
+.tutorial-sync span{position:absolute;left:-3px;bottom:calc(100% + 6px);white-space:nowrap;padding:3px 10px;border-radius:999px;background:#0f8f70;color:#fff;font-size:12px;font-weight:700;box-shadow:0 4px 12px #0b3d3030}
+.tutorial-sync.below span{bottom:auto;top:calc(100% + 6px)}
+@keyframes tutorial-sync-pulse{50%{box-shadow:0 0 0 10px #17b89014,0 0 28px #17b89070}}
+.tutorial-sync-toggle{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:13px;color:#33445f}
+.tutorial-sync-toggle input{width:16px;height:16px;margin:0}
+.tutorial-chapters li{display:flex;gap:6px;align-items:stretch}
+.tutorial-chapters li>button:first-child{flex:1;min-width:0}
+.tutorial-chapters .tutorial-find{flex:none;width:auto;padding:0 12px;font-size:12px;font-weight:700;color:#0f8f70;background:#ecfaf5;border:1px solid #bde9da}
+.tutorial-chapters .tutorial-find[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){.tutorial-sync{transition:none;animation:none}}

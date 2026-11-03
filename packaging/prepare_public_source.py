@@ -14,7 +14,7 @@ INSTRUCTIONS=(
     '문항-문안-다듬기-지침.md','참조자료-제반사항.md',
     '과학-선화-생성-지침.md','HWPML-문항지-생성-지침.md',
     '통합-앱-사용법.md','자료-디자인-오픈소스.md',
-    '영상-제작-운영.md',
+    '영상-제작-운영.md','교과별-문항-스타일.md',
 )
 TOOLS=('gen.py','metrics.py','hwp_equation.py','수식크기_재계산.py','build_brand_assets.cjs','build_site.py','capture_site_demo.cjs',
        'media_requirements.txt','media-script.json','serve_media_studio.py','capture_media.cjs','build_media_audio.py','render_media.py','verify_media.py')
@@ -34,6 +34,9 @@ def prepare(destination):
     for name in ('browser_branding.cjs','browser_hwpx_export.cjs','browser_site.cjs','browser_tutorials.cjs','browser_media.cjs'):
         copy(ROOT/'tests'/name,destination/'tests'/name)
     for name in TOOLS:copy(ROOT/'tools'/name,destination/'tools'/name)
+    # 지도 자료를 다시 만드는 스크립트와 과거 국가 이름표. 원자료는 .runtime 에 내려받으므로 넣지 않는다.
+    for source in (ROOT/'tools/maps').iterdir():
+        if source.is_file() and source.suffix in {'.py','.json','.md'}:copy(source,destination/'tools/maps'/source.name)
     for source in (ROOT/'templates').iterdir():
         if source.is_file() and source.suffix in {'.xlsx','.hml','.md'}:
             target=destination/'templates'/source.name
@@ -52,6 +55,8 @@ def prepare(destination):
             if not following:raise ValueError('Student-level section boundary changed; review before publishing.')
             text=text[:start]+'## 1. 학생 수준\n\n공개 배포본에는 특정 학교·학급의 학생 수, 성적, 평가 이력을 포함하지 않습니다. 사용자가 제공하지 않은 집단 수준이나 목표 점수를 추정하여 사실처럼 쓰지 않습니다.\n\n'+text[start+following.start():]
         target=destination/'instructions'/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_text(text,encoding='utf-8')
+    # 평가원 기출 형식 분석(지문·문항 원문은 없다). 세부 형식 목록 app/question_formats.json 의 근거다.
+    for source in (ROOT/'instructions/기출-형식-매뉴얼').glob('*.md'):copy(source,destination/'instructions/기출-형식-매뉴얼'/source.name)
     (destination/'instructions/00-작업-흐름.md').write_text('# TestCraft 작업 흐름\n\nCodex 연결 → 설계 → 검토·배점·전체 승인 → 자료 그림 → 출력 순서로 진행합니다. 자료 그림의 실제 제작은 전체 문항카드 승인 후 진행합니다.\n\n자세한 사용 방법은 [통합-앱-사용법.md](통합-앱-사용법.md), 설치와 빌드는 저장소 README를 참고하세요.\n',encoding='utf-8')
     for name in ('package.json','package-lock.json','requirements.txt','run_studio.py','LICENSE','THIRD_PARTY_NOTICES.md'):
         if (ROOT/name).is_file():copy(ROOT/name,destination/name)

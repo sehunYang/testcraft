@@ -13,13 +13,13 @@ from PIL import Image
 from .core import ROOT
 from . import runtime
 
-ALLOWED={'svg','g','path','line','polyline','polygon','rect','circle','ellipse','text','tspan','defs','marker','title','desc'}
+ALLOWED={'svg','g','path','line','polyline','polygon','rect','circle','ellipse','text','tspan','defs','marker','title','desc','radialGradient','stop'}
 
 def validate_mode_layers(svg,mode,card=None):
     validate_svg(svg)
     root=ET.fromstring(svg)
     groups={node.get('id') for node in root.iter() if node.tag.split('}')[-1]=='g'}
-    if any(node.tag.split('}')[-1] in ('text','tspan') for node in root.iter()): raise ValueError('그림에는 글씨·물리량을 포함할 수 없습니다. 글씨 레이어로 분리하세요.')
+    if any(node.tag.split('}')[-1] in ('text','tspan') for node in root.iter()): raise ValueError('그림에는 글씨·기호를 포함할 수 없습니다. 글씨 레이어로 분리하세요.')
     if root.get('viewBox')!='0 0 1000 640': raise ValueError('글씨 레이어 정합을 위해 그림 viewBox는 0 0 1000 640이어야 합니다.')
     required={'geometry'} if mode=='strict' else {'illustration'} if mode=='flexible' else {'geometry','illustration'}
     if not required.issubset(groups): raise ValueError('SVG 고정·창작 레이어가 누락되었습니다: '+', '.join(sorted(required-groups)))
@@ -86,10 +86,11 @@ def picture(png, bin_id, idx):
     template=ET.parse(ROOT/'app/picture.xml').getroot()
     width,height=Image.open(io.BytesIO(png)).size
     ow,oh=width*75,height*75
-    dw=min(25000,round(31000*width/height)); dh=round(dw*height/width)
+    # 양식 안내: 그림은 크게, 가운데. 2단 한 단의 폭(31041) 안에서 키운다.
+    dw=min(29000,round(40000*width/height)); dh=round(dw*height/width)
     p=copy.deepcopy(template)
-    p.set('ParaShape','1')
-    p.find('TEXT').set('CharShape','1')
+    p.set('ParaShape','20')
+    p.find('TEXT').set('CharShape','26')
     so=p.find('.//SHAPEOBJECT'); so.set('InstId',str(2000000000+idx)); so.set('ZOrder',str(300+idx))
     so.find('SIZE').set('Width',str(dw)); so.find('SIZE').set('Height',str(dh))
     so.find('SHAPECOMMENT').text=f'문항 자료 그림 {idx}'
@@ -117,6 +118,8 @@ def embed(hml, assets, student=False):
     bins=ET.Element('BINDATALIST',Count=str(len(assets)))
     if assets: mapping.insert(0,bins)
     tail=root.find('TAIL'); storage=ET.SubElement(tail,'BINDATASTORAGE') if assets else None
+    # The figure-prompt paragraphs may hold equations ($3 h$ labels) or tables; they leave with the prompt.
+    removed_eq=0; removed_tables=[]
     for idx,asset in enumerate(assets,1):
         if len(asset)==2: no,png=asset; material_id=None
         else: no,material_id,png=asset
@@ -126,11 +129,16 @@ def embed(hml, assets, student=False):
         starts=[i for i,p in enumerate(ps) if start_marker in ''.join(p.itertext())]
         ends=[i for i,p in enumerate(ps) if end_marker in ''.join(p.itertext())]
         if len(starts)!=1 or len(ends)!=1 or starts[0]>=ends[0]: raise ValueError(f'{no}번 그림 영역 오류')
-        for p in ps[starts[0]:ends[0]+1]: section.remove(p)
+        for p in ps[starts[0]:ends[0]+1]:
+            removed_eq+=len(list(p.iter('EQUATION')))
+            removed_tables+=[ET.tostring(t) for t in p.iter('TABLE')]
+            section.remove(p)
         section.insert(starts[0],picture(png,idx,idx))
         ET.SubElement(bins,'BINITEM',BinData=str(idx),Format='PNG',Type='Embedding')
         ET.SubElement(storage,'BINDATA',Encoding='Base64',Id=str(idx),Size=str(len(png))).text=base64.b64encode(png).decode()
-    if before_eq!=len(list(section.iter('EQUATION'))) or before_tables!=[ET.tostring(t) for t in section.iter('TABLE')]: raise ValueError('그림 삽입 중 수식 또는 표 구조 변경 감지')
+    kept_tables=list(before_tables)
+    for t in removed_tables: kept_tables.remove(t)
+    if before_eq-removed_eq!=len(list(section.iter('EQUATION'))) or kept_tables!=[ET.tostring(t) for t in section.iter('TABLE')]: raise ValueError('그림 삽입 중 수식 또는 표 구조 변경 감지')
     if student:
         for ch in root.iter('CHAR'):
             if any(n.tag in ('MARKPENBEGIN','MARKPENEND') for n in ch):

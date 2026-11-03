@@ -14,12 +14,13 @@ import shutil
 import subprocess
 import sys
 import threading
+import time
 import traceback
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import core, cli, codex_setup, images, labels, runtime, vectors
-from .catalog import subjects, subject_name
+from . import core, cli, codex_setup, formats, images, labels, literature, maps, runtime, vectors
+from .catalog import subjects, subject_name, GROUP_OF
 from .hwpx import validate_hwpx_package
 
 TOKEN=secrets.token_urlsafe(32)
@@ -98,7 +99,7 @@ def preserve_authoring_metadata(card, raw, previous):
     """Keep new workflow fields stable when older clients omit them."""
     if previous:
         for key,default in (('authoring_mode','legacy'),('materials_request',''),('material_request_kinds',[]),
-                            ('material_request_image_mode',''),('ai_requested',False)):
+                            ('material_request_image_mode',''),('format',''),('ai_requested',False)):
             if key not in raw: card[key]=previous.get(key,default)
     elif 'ai_requested' not in raw:
         # A new manual draft is never queued implicitly; AI and legacy blank
@@ -118,8 +119,9 @@ def image_material_targets(card, material_id=None, all_when_missing=False):
     else: raise ValueError('그림 자료가 여러 개입니다. material_id를 지정해 주세요.')
     return [(core.material_projection(card,b['id'],require_image=True)[0],b['id']) for b in targets]
 
-def cards_to_records(cards):
+def cards_to_records(cards, sets=None):
     records=[]
+    by_id={s['id']:s for s in sets or []}
     for card in cards:
         c=copy.deepcopy(card)
         if c['data_kind']=='none': c['material']=''
@@ -128,6 +130,10 @@ def cards_to_records(cards):
         row=[None]*20
         for col,key in core.COLS.items(): row[col-1]=c.get(key,'')
         row.append(core.material_blocks(c))
+        first=c.get('set_id') and c['set_id'] in by_id and next(x for x in cards if x.get('set_id')==c['set_id'])['id']==c['id']
+        row.append({'range':core.set_range(cards,c['set_id']),'passages':by_id[c['set_id']]['passages']} if first else None)
+        order=core.written_order(cards,c)
+        row.append({'order':order,'kind':c['type'],'partial':c.get('partial_credit'),'conditions':[x for x in c.get('conditions','').splitlines() if x.strip()]} if order else None)
         records.append(row)
     return records
 
@@ -137,7 +143,8 @@ def export_exam(exam, *, convert_hwpx=True):
     eid=exam['id']; folder=core.exam_path(eid)
     stamp=core.uid(); out=folder/'exports'/stamp; out.mkdir(parents=True)
     from tools import gen
-    hml=gen.build(src=str(core.TEMPLATE),out=str(out/'문항지_초안.hml'),exam=str(folder),title=exam['title'],records=cards_to_records(exam['cards']))
+    hml=gen.build(src=str(core.TEMPLATE),out=str(out/'문항지_초안.hml'),exam=str(folder),title=exam['title'],records=cards_to_records(exam['cards'],exam.get('sets')),
+        school=exam.get('school',''),subject=re.sub(r'\s*\((?:중|고등)학교\)$','',subject_name(exam['subject'])) if exam.get('subject') else exam['title'],passage_size=exam.get('passage_size','11'))
     assets=[]
     for c in exam['cards']:
         for block in core.material_blocks(c):
@@ -180,16 +187,18 @@ def _is_complete_published_export(folder,bundle):
     if '정답과해설.hwpx' not in (bundle.get('files') or []):
         expected=[*EXPORT_DOCUMENTS[:2],'정답과해설.md',*EXPORT_SUPPORT_FILES]
     if not set([*expected,EXPORT_ARCHIVE]).issubset(set(bundle.get('files') or [])): return False
-    try:
+    def check():
         for name in expected:
             if name.endswith('.hwpx'): validate_hwpx_package(folder/name)
         with zipfile.ZipFile(folder/EXPORT_ARCHIVE) as archive:
             if archive.testzip() is not None or set(archive.namelist())!=set(expected): return False
             for name in expected:
                 if archive.read(name)!=(folder/name).read_bytes(): return False
+        return True
+    # 잠깐 잠긴 파일(한글·백신 검사)을 손상으로 판정하면 정상 출력본을 지운다.
+    try: return _retry_while_locked(check)
     except (OSError,ValueError,zipfile.BadZipFile,KeyError):
         return False
-    return True
 
 def _backup_export_artifacts(folder):
     token=core.uid()
@@ -200,7 +209,7 @@ def _backup_export_artifacts(folder):
             source=folder/name
             if not source.is_file(): continue
             backup=folder/f'.last-good-{token}-{index}.bak'
-            shutil.copy2(source,backup)
+            _retry_while_locked(lambda:shutil.copy2(source,backup))
             backups.append((name,backup))
     except Exception:
         for _,backup in backups: backup.unlink(missing_ok=True)
@@ -210,7 +219,7 @@ def _backup_export_artifacts(folder):
 def _restore_export_artifacts(folder,backups):
     errors=[]
     for name,backup in backups:
-        try: os.replace(backup,folder/name)
+        try: _retry_while_locked(lambda:os.replace(backup,folder/name))
         except OSError as exc: errors.append(f'{name}: {exc}')
     for name in set(EXPORT_DOCUMENTS)-{name for name,_ in backups}:
         try: (folder/name).unlink(missing_ok=True)
@@ -297,6 +306,15 @@ def _run_hwpx_conversion(folder):
     finally:
         for path in staged: path.unlink(missing_ok=True)
 
+def _retry_while_locked(action,attempts=8):
+    """한글이 끝난 직후에는 HWPX 파일을 잠깐 쥐고 있어 Windows가 접근을 거부한다. 곧 풀리므로 기다렸다 다시 한다."""
+    for attempt in range(attempts):
+        try:
+            return action()
+        except PermissionError:
+            if attempt==attempts-1: raise
+            time.sleep(0.25*(attempt+1))
+
 def _build_export_zip(folder):
     expected=[*EXPORT_DOCUMENTS,*EXPORT_SUPPORT_FILES]
     missing=[name for name in expected if not (folder/name).is_file()]
@@ -333,7 +351,7 @@ def refresh_export_bundle(folder,bundle,*,convert_hwpx=True):
     if conversion['status']=='ready':
         try:
             _write_conversion_audit(folder,conversion)
-            _build_export_zip(folder)
+            _retry_while_locked(lambda:_build_export_zip(folder))
         except Exception as exc:
             conversion=_conversion('failed',f'HWPX 묶음 ZIP을 만들지 못했습니다. HWPX 파일을 확인한 뒤 다시 시도해 주세요. {exc}')
     preserve_backups=False
@@ -547,7 +565,18 @@ def select_job_cards(exam,payload):
     if not selected: raise ValueError('작업할 문항이 없습니다. 문항 생성은 AI 생성 요청이 Yes인 문항만 처리합니다.')
     return selected
 
-def apply_question_result(card,result):
+# Han ideographs; Korean exam text has none, so a run of them means the AI answered in Chinese (seen 2026-10-30).
+HAN=re.compile(r'[㐀-䶿一-鿿]')
+
+def check_korean(result,subject_id=''):
+    if GROUP_OF.get(subject_id)=='제2외국어·한문': return   # 한문·중국어·일본어 문항은 한자를 쓴다
+    texts=[result.get(k) for k in ('stem','question','statements','choices','explanation')]
+    texts+=[m.get('content') for m in result.get('materials') or [] if isinstance(m,dict)]
+    if len(HAN.findall(' '.join(t for t in texts if isinstance(t,str))))>5:
+        raise ValueError('AI가 한국어가 아닌 언어(한자·중국어)로 작성했습니다. 결과를 적용하지 않았습니다. 다시 생성해 주세요.')
+
+def apply_question_result(card,result,subject_id=''):
+    check_korean(result,subject_id)
     original_card=copy.deepcopy(card)
     authoring_mode=card.get('authoring_mode','legacy')
     materials_request=card.get('materials_request','')
@@ -557,7 +586,9 @@ def apply_question_result(card,result):
     original_blocks=core.material_blocks(card)
     original_explicit=card.get('materials') is not None
     for key in cli.QUESTION_SCHEMA['properties']:
-        if key=='materials': continue
+        if key in ('materials','passage_marks'): continue
+        if key in ('model_answer','rubric','conditions','partial_credit'):
+            card[key]=result.get(key,False if key=='partial_credit' else ''); continue
         if key not in result: raise ValueError('CLI 결과에 필요한 필드가 없습니다: '+key)
         card[key]=result[key]
     returned=result.get('materials')
@@ -632,7 +663,11 @@ def apply_question_result(card,result):
     card['image_plan_version']=2
     for key in ('estimate','discrimination'):
         if not isinstance(card[key],(int,float)) or not 0<=card[key]<=1: raise ValueError('난도·변별도 추정값 범위 오류')
-    if not card['question'] or not card['explanation'] or re.findall('[①②③④⑤]',card['choices'])!=list('①②③④⑤'):
+    if card['type'] in core.SUBJECTIVE_TYPES:
+        card.update(choices='',statements='',answer='')
+        if not card['question'] or not card['explanation'] or not card['model_answer'] or not card['rubric']:
+            raise ValueError('발문·해설·모범 답안·채점 기준을 갖추지 못한 응답입니다.')
+    elif not card['question'] or not card['explanation'] or re.findall('[①②③④⑤]',card['choices'])!=list('①②③④⑤'):
         raise ValueError('발문·해설·5개 답지를 갖추지 못한 응답입니다.')
     resulting_kinds={block.get('kind') for block in core.material_blocks(card)}
     missing_kinds=[kind for kind in material_request_kinds if kind not in resulting_kinds]
@@ -643,6 +678,7 @@ def apply_question_result(card,result):
             projected,_=core.material_projection(card,block['id'],require_image=True)
             plan_errors=core.image_plan_errors(projected)
             if plan_errors: raise ValueError('그림 계획 오류: '+' / '.join(plan_errors))
+    core.order_choices(card)
     card['ai_requested']=False
     card['review_approved']=False
     for block in core.material_blocks(card):
@@ -716,22 +752,36 @@ def launch_job(eid, payload):
         core.atomic(folder/'job.json',job)
         stepfolder=folder/f"{card['id']}-{material_id+'-' if material_id else ''}{kind}"
         feedback=str(payload.get('feedback','')) or card.get('ai_feedback','')
+        context=core.set_context(core.read_exam(eid),card) if kind=='question' and card.get('set_id') else ''
+        marks=[]
         def execute(step):
+            if step=='image' and maps.is_map(card.get('image_locked')):
+                svg,map_labels=maps.render(card['image_locked'])
+                return {'svg':svg,'constraints':[],'map_labels':map_labels,'review_note':'지도 자료입니다. 표시한 위치와 범위가 시대·사실에 맞는지 확인해 주세요.'}
             extra=asset_path(eid,card['image']['svg']).read_text(encoding='utf-8') if step=='labels' and (card.get('image') or {}).get('svg') else ''
-            return cli.execute(provider,folder/f"{card['id']}-{material_id+'-' if material_id else ''}{step}",cli.prompt_for(card,step,feedback,subject_name(exam['subject']),extra),cli.schema_for(step),str(payload.get('model','')),cancel)
+            return cli.execute(provider,folder/f"{card['id']}-{material_id+'-' if material_id else ''}{step}",cli.prompt_for(card,step,feedback,subject_name(exam['subject']),extra,exam['subject'],context if step=='question' else ''),cli.schema_for(step),str(payload.get('model','')),cancel)
         def persist():
             with core.LOCK:
                 current=core.read_exam(eid)
                 index=next(j for j,c in enumerate(current['cards']) if c['id']==card['id'])
                 if material_id is None: current['cards'][index]=card
-                else:
+                if marks:                                         # underline the phrases this question points at
+                    passage_set=next((s for s in current.get('sets',[]) if s['id']==card.get('set_id')),None)
+                    skipped=core.apply_passage_marks(passage_set,marks) if passage_set else [m.get('text','') for m in marks]
+                    if skipped: card['review_note']=(card.get('review_note','')+'\n지문에 표시하지 못한 밑줄: '+', '.join(skipped)).strip()
+                    for c in current['cards']:
+                        if passage_set and c.get('set_id')==passage_set['id'] and c['id']!=card['id']: c['review_approved']=False
+                    marks.clear()
+                if material_id is not None:
                     current_card=current['cards'][index]
                     core.sync_material_projection(current_card,card,material_id)
                     current_card['review_approved']=bool(card.get('review_approved'))
                 core.save_exam(current)
         result=execute(kind)
         if cancel.is_set(): raise ValueError('작업을 취소했습니다.')
-        if kind=='question': card=apply_question_result(card,result)
+        if kind=='question':
+            marks.extend(result.get('passage_marks') or [] if card.get('set_id') else [])
+            card=apply_question_result(card,result,exam['subject'])
         elif kind=='plan':
             chosen=card.get('image_mode')
             if chosen and result['image_mode']!=chosen: raise ValueError('교사가 선택한 그림 유형을 변경할 수 없습니다.')
@@ -741,8 +791,10 @@ def launch_job(eid, payload):
             card['review_approved']=False;card['image_plan_approval']=None
             if card.get('image'): card['image']['approved']=False
         elif kind=='image':
-            check_results=core.verify_checks(result.get('constraints',[]))
+            check_results=core.verify_checks(result.get('constraints',[]),symbols=False)
             card['image']=make_image(eid,card,None,svg=result['svg'],notes=result.get('review_note',''),checks=check_results)
+            if 'map_labels' in result:
+                card['image_labels']=labels.normalize_labels([dict(x,id=core.uid()) for x in result['map_labels']]);card['labels_initialized']=True
             persist()  # Preserve the new background even if text creation fails.
         if kind=='image' and card.get('image_text_none') and not card.get('image_labels'):
             card['labels_initialized']=True;card['image']['approved']=False;persist()
@@ -797,6 +849,28 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' https://github.com https://release-assets.githubusercontent.com; connect-src 'self' https://github.com https://release-assets.githubusercontent.com; frame-ancestors 'none'")
         self.end_headers(); self.wfile.write(raw)
 
+    def send_media(self,f,content_type):
+        """Serve a video with byte ranges, so the help player can seek to a chapter."""
+        size=f.stat().st_size; start,end=0,size-1
+        m=re.fullmatch(r'bytes=(\d*)-(\d*)',self.headers.get('Range','').strip())
+        if m and (m.group(1) or m.group(2)):
+            if m.group(1): start=int(m.group(1)); end=min(int(m.group(2)),size-1) if m.group(2) else size-1
+            else: start=max(0,size-int(m.group(2)))
+            if start>end or start>=size:
+                self.send_response(416); self.send_header('Content-Range',f'bytes */{size}'); self.end_headers(); return
+        partial=bool(m and (m.group(1) or m.group(2)))
+        self.send_response(206 if partial else 200)
+        self.send_header('Content-Type',content_type); self.send_header('Accept-Ranges','bytes')
+        self.send_header('Content-Length',str(end-start+1)); self.send_header('X-Content-Type-Options','nosniff')
+        if partial: self.send_header('Content-Range',f'bytes {start}-{end}/{size}')
+        self.end_headers()
+        with f.open('rb') as fh:
+            fh.seek(start); left=end-start+1
+            while left>0:
+                chunk=fh.read(min(1<<20,left))
+                if not chunk: break
+                self.wfile.write(chunk); left-=len(chunk)
+
     def check_host(self):
         host=self.headers.get('Host','').split(':')[0]
         if host not in ('127.0.0.1','localhost'): raise ValueError('로컬 접속만 허용됩니다.')
@@ -834,10 +908,15 @@ class Handler(BaseHTTPRequestHandler):
                 self.send({'identity':runtime.APP_ID,'version':runtime.APP_VERSION,
                            'data_dir':str(core.DATA.resolve()),'installed':runtime.installed_mode(),
                            'codex':codex_setup.status(),'token':TOKEN,
-                           'exams':sorted(projects,key=lambda x:x['updated'],reverse=True),'types':core.TYPES,
-                           'subjects':subjects(core.standards()),'cli':{p:bool(cli.discover(p)) for p in ('codex','claude')},
+                           'exams':sorted(projects,key=lambda x:x['updated'],reverse=True),'types':[*core.TYPES,*core.SUBJECTIVE_TYPES],'subjective_types':core.SUBJECTIVE_TYPES,
+                           'subjects':subjects(core.standards()),'formats':formats.catalog(),'cli':{p:bool(cli.discover(p)) for p in ('codex','claude')},
                            'hwp_conversion_available':hwp_conversion_available(),'legacy':legacy}); return
             if p=='/api/standards': self.send(core.standards()); return
+            if p=='/api/map-options': self.send(maps.options()); return
+            if p=='/api/map-polities':
+                year=int(q.get('year',['0'])[0])
+                if not maps.YEARS[0]<=year<=maps.YEARS[1]: raise ValueError('연도 범위 밖입니다.')
+                self.send({'year':year,'polities':maps.polities(year)}); return
             if p.startswith('/label-assets/'):
                 name=p.split('/')[-1]
                 if not re.fullmatch('[a-f0-9]{64}\\.png',name): raise ValueError('글씨 파일 이름 오류')
@@ -879,11 +958,14 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
             static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
             static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
-            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json')})
-            static.update({'/tutorials/'+name+'.vtt':'tutorials/'+name+'.vtt' for name in ('01-start','02-design','03-author','04-review','05-figure','06-editor','07-export')})
+            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/map-editor.css')})
+            # Bundled help videos, captions and posters (tools/media_v2/build_help.py); names are checked, not listed.
+            if re.fullmatch(r'/tutorials/[0-9]{2}-[a-z-]+\.(mp4|vtt|jpg)',p) and (core.ROOT/'app/static'/p.lstrip('/')).is_file():
+                static[p]=p.lstrip('/')
             if p not in static: self.send({'error':'페이지 없음'},404); return
             f=core.ROOT/'app/static'/static[p]
-            content_types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json; charset=utf-8','.json':'application/json; charset=utf-8','.vtt':'text/vtt; charset=utf-8'}
+            content_types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.webmanifest':'application/manifest+json; charset=utf-8','.json':'application/json; charset=utf-8','.vtt':'text/vtt; charset=utf-8','.mp4':'video/mp4','.jpg':'image/jpeg'}
+            if f.suffix=='.mp4': self.send_media(f,content_types['.mp4']); return
             content=f.read_bytes()
             if p=='/':
                 port=getattr(getattr(self,'server',None),'server_address',('127.0.0.1',8765))[1]
@@ -910,6 +992,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(codex_setup.login_start()); return
             if path in ('/api/codex/cancel','/api/codex/login/cancel'):
                 self.send(codex_setup.login_cancel()); return
+            if path=='/api/literature/search':                   # 위키문헌, copyright-expired works only
+                self.send(literature.search(data.get('q'))); return
+            if path=='/api/literature/text':
+                self.send(literature.text(data.get('title'))); return
             if runtime.installed_mode():
                 if path=='/api/jobs' and data.get('provider','codex')!='codex':
                     self.send({'error':'설치된 앱은 ChatGPT Codex 로그인으로만 생성 작업을 진행합니다.','code':'codex_required'},403); return
@@ -919,6 +1005,8 @@ class Handler(BaseHTTPRequestHandler):
                                'code':'codex_required','codex':auth},403); return
             if path=='/api/label-preview':
                 self.send(labels.render(data.get('kind'),data.get('text'),data.get('size')));return
+            if path=='/api/map-preview':
+                self.send(maps.preview(data.get('locked')));return
             if path=='/api/math-preview':
                 from .mathtext import math_segments
                 source=data.get('text','')
@@ -976,6 +1064,9 @@ class Handler(BaseHTTPRequestHandler):
                         raise ValueError('복제할 문항 ID가 올바르지 않습니다.')
                     source_index=next((i for i,card in enumerate(exam['cards']) if card.get('id')==source_id),None)
                     if source_index is None: raise ValueError('복제할 문항을 찾을 수 없습니다.')
+                    set_id=exam['cards'][source_index].get('set_id')   # the copy joins the same passage set, right after the original
+                    if set_id and sum(c.get('set_id')==set_id for c in exam['cards'])>=core.SET_MAX_QUESTIONS:
+                        raise ValueError(f'지문 세트 하나에는 문항을 {core.SET_MAX_QUESTIONS}개까지 넣을 수 있습니다.')
                     created_paths=[]
                     try:
                         clone=duplicate_card_record(eid,exam,source_index,created_paths)
@@ -1000,7 +1091,7 @@ class Handler(BaseHTTPRequestHandler):
                         self.send({'error':'다른 화면에서 변경된 내용이 있습니다. 최신본과 내 초안을 비교해 주세요.','code':'revision_conflict','latest':exam},409); return
                     if not 1<=len(data['cards'])<=100: raise ValueError('문항 수는 1~100개여야 합니다.')
                     old={c['id']:c for c in exam['cards']}; cards=[]
-                    for i,raw in enumerate(data['cards'],1):
+                    for i,raw in enumerate(core.subjective_last(data['cards']),1):
                         c=core.normalize(raw,i); prev=old.get(c['id'])
                         preserve_authoring_metadata(c,raw,prev or {})
                         preserve_material_server_state(c,prev or {})
@@ -1017,7 +1108,16 @@ class Handler(BaseHTTPRequestHandler):
                     subject=str(data.get('subject',exam['subject']))
                     core.check_subject(subject,cards)
                     if subject!=exam['subject']: exam['card_approval']=None
-                    exam.update(cards=cards,title=title,subject=subject)
+                    sets=core.normalize_sets(data.get('sets',exam.get('sets',[])),cards)
+                    before={s['id']:core.set_hash(s) for s in exam.get('sets',[])}
+                    for c in cards:                                   # an edited passage reopens review of its questions
+                        if c['set_id'] and before.get(c['set_id'])!=next(core.set_hash(s) for s in sets if s['id']==c['set_id']):
+                            c['review_approved']=False
+                    school=str(data.get('school',exam.get('school',''))).strip()
+                    if len(school)>40: raise ValueError('학교명은 40자 이내로 입력해 주세요.')
+                    passage_size=str(data.get('passage_size',exam.get('passage_size','11')))
+                    if passage_size not in ('11','10.5','10'): raise ValueError('지문 글자 크기 오류')
+                    exam.update(cards=cards,title=title,subject=subject,sets=sets,school=school,passage_size=passage_size)
                     self.send(core.save_exam(exam)); return
                 if path=='/api/delete': self.send(delete_exam(eid,data.get('confirm_title'))); return
                 if path=='/api/vectorize':
@@ -1050,7 +1150,7 @@ class Handler(BaseHTTPRequestHandler):
                     exam=core.read_exam(eid)
                     report=core.validate(exam,'cards')
                     if not report['ready']: raise ValueError('문항카드 승인 전 확인: '+' / '.join(report['errors'][:8]))
-                    exam['card_approval']={'digest':core.cards_digest(exam['cards']),'approved_at':core.now()}
+                    exam['card_approval']={'digest':core.cards_digest(exam['cards'],exam.get('sets')),'approved_at':core.now()}
                     self.send(core.save_exam(exam)); return
                 if path=='/api/cancel':
                     event=CANCEL.get(data['job_id'])

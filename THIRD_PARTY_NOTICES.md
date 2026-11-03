@@ -13,6 +13,11 @@ TestCraft의 자체 소스는 GNU AGPL-3.0으로 배포합니다. 다른 구성 
 | SVG-Edit 발췌 코드 | MIT | app/static/vendor/svg-edit/LICENSE-MIT.txt 및 REVISION.txt |
 | Latin Modern Math | GUST Font License | app/fonts/latinmodern-math-1959/doc/GUST-FONT-LICENSE.txt |
 | Pretendard GOV | SIL OFL-1.1 | app/fonts/pretendard-gov/LICENSE.txt |
+| Natural Earth 지도 자료 | 퍼블릭 도메인 | https://www.naturalearthdata.com/ · app/map_data/출처.md |
+| Cliopatria v0.2.1 (과거 국가 영역) | CC BY 4.0 | https://github.com/Seshat-Global-History-Databank/cliopatria · app/map_data/출처.md |
+| Wikidata 표제어 (과거 국가 한국어 이름) | CC0 | https://www.wikidata.org/ |
+| PaleoMAP PaleoCoastlines v7.2 · PALEOMAP 판 모형 v19o_r1c (Kocsis & Scotese) | CC BY 4.0 | https://doi.org/10.5281/zenodo.7994000 · app/map_data/출처.md |
+| 통계청 SGIS 행정동 경계 (vuski/admdongkor 가공, 시·군·구 경계) | 공공누리 제1유형 / CC BY 4.0 | https://sgis.kostat.go.kr · https://github.com/vuski/admdongkor · app/map_data/출처.md |
 
 Python 의존성의 정확한 버전은 `packaging/requirements-windows.lock`, Node 의존성은 `package-lock.json`, 원본 실행 환경의 URL·체크섬은 `packaging/runtime-inputs.json`에 기록합니다. 해당 버전의 소스 배포본은 PyPI의 각 패키지 버전 페이지와 각 공식 저장소에서 받을 수 있습니다. 설치된 각 Python 패키지의 `.dist-info`와 `notices/python`에도 라이선스와 메타데이터를 보존합니다.
 

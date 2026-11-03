@@ -23,7 +23,11 @@ def fake_execute(provider,folder,prompt,schema,model,cancel):
         return dict(image_mode=card.get('image_mode') or 'strict',image_locked='floor: 수평선과 상자 및 오른쪽 화살표',image_creative='',image_text_physics='상자 오른쪽 위 v_0',image_text_math='',image_text_korean='바닥 아래 수평면')
     if card['idea']=='테스트 실패': raise ValueError('검증용 실패')
     card.update(stem='실험 상황이다.',question='옳은 것은?',choices='① A\n② B\n③ C\n④ D\n⑤ E',answer=1,explanation='A가 옳다.',data_kind='none',material='',estimate=.5,discrimination=.3,calculation=False,checks=[],image_mode='',image_locked='',image_creative='')
-    return {key:card[key] for key in cli.QUESTION_SCHEMA['properties']}
+    # A passage-set question asks once for ㉠ on a phrase of the shared passage.
+    marks=[{'label':'','text':'잎새에 이는 바람','mark':'㉠'}] if '[지문 세트]' in prompt and '㉠[[' not in prompt else []
+    if marks: card.update(question='㉠에 대한 이해로 적절한 것은?')
+    if card.get('type') in core.SUBJECTIVE_TYPES: card.update(answer=0,choices='',question='계산 과정을 서술하시오.',model_answer='모범 답안',rubric='요소별 기준')
+    return {**{key:card[key] for key in cli.QUESTION_SCHEMA['properties'] if key!='passage_marks'},'passage_marks':marks}
 
 if __name__=='__main__':
     with tempfile.TemporaryDirectory(prefix='browser-fixture-',dir=core.ROOT/'.runtime') as tmp:

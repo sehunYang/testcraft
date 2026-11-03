@@ -1,0 +1,6350 @@
+{
+"(Anglo-Saxon England)": [
+"앵글로색슨 잉글랜드",
+"x"
+],
+"(Batavian Republic)": [
+"바타비아 공화국",
+"x"
+],
+"(Bourbon Kingdom of France)": [
+"부르봉 왕정 프랑스",
+"x"
+],
+"(British Empire)": [
+"대영 제국",
+"t"
+],
+"(Brythonic Kingdoms)": [
+"브리튼족 왕국",
+"x"
+],
+"(Carolingian Empire)": [
+"카롤루스 왕조",
+"t"
+],
+"(Chenla)": [
+"진랍",
+"t"
+],
+"(Commonwealth of Nations)": [
+"영연방",
+"t"
+],
+"(Delhi Sultanate)": [
+"델리 술탄 왕조",
+"t"
+],
+"(Duchies of Poland)": [
+"폴란드 제후국",
+"x"
+],
+"(Dutch Republic)": [
+"네덜란드 공화국",
+"x"
+],
+"(Eighteen Kingdoms)": [
+"십팔국",
+"x"
+],
+"(First French Empire)": [
+"프랑스 제1제국",
+"t"
+],
+"(Five Dynasties and Ten Kingdoms)": [
+"5대 10국",
+"t"
+],
+"(French Consulate)": [
+"프랑스 통령 정부",
+"t"
+],
+"(French Directory)": [
+"프랑스 총재 정부",
+"t"
+],
+"(French First Republic)": [
+"프랑스 제1 공화정",
+"t"
+],
+"(French Fourth Republic)": [
+"프랑스 제4 공화정",
+"t"
+],
+"(French Second Republic)": [
+"프랑스 제2공화국",
+"t"
+],
+"(French Third Republic)": [
+"프랑스 제3 공화정",
+"t"
+],
+"(Habsburg Monarchy)": [
+"합스부르크 군주국",
+"x"
+],
+"(Holy Roman Empire)": [
+"신성 로마 제국",
+"t"
+],
+"(Kalmar Union)": [
+"칼마르 동맹",
+"x"
+],
+"(Kingdom of Bohemia)": [
+"보헤미아 왕국",
+"x"
+],
+"(Kingdom of Denmark)": [
+"덴마크 왕국",
+"x"
+],
+"(Kingdom of England)": [
+"잉글랜드 왕국",
+"t"
+],
+"(Kingdom of France)": [
+"프랑스 왕국",
+"t"
+],
+"(Kingdom of Poland)": [
+"폴란드 왕국",
+"t"
+],
+"(Kingdom of the Franks)": [
+"프랑크 왕국",
+"t"
+],
+"(Macedonian Empire)": [
+"마케도니아 왕국",
+"t"
+],
+"(Mahajanapadas)": [
+"16대국",
+"t"
+],
+"(Merovingian Empire)": [
+"메로베우스 왕조",
+"t"
+],
+"(Netherlands)": [
+"네덜란드",
+"t"
+],
+"(Phoenician Empire)": [
+"페니키아",
+"t"
+],
+"(Polish-Lithuania Kingdom)": [
+"폴란드·리투아니아 연합 왕국",
+"x"
+],
+"(Portuguese Empire)": [
+"포르투갈 제국",
+"x"
+],
+"(Russian Federation)": [
+"러시아",
+"t"
+],
+"(Second French Empire)": [
+"프랑스 제2제국",
+"t"
+],
+"(Spanish Empire)": [
+"에스파냐 제국",
+"t"
+],
+"(Spring and Autumn States)": [
+"춘추 시대",
+"t"
+],
+"(Taifas of Iberia)": [
+"이베리아 타이파",
+"x"
+],
+"(Vichy France)": [
+"비시 정부",
+"t"
+],
+"(Warring States China)": [
+"전국 시대",
+"t"
+],
+"Abbasid Caliphate": [
+"아바스 왕조",
+"t"
+],
+"Abbasid Caliphate/Buyid Dynasty": [
+"아바스·부와이 왕조",
+"t"
+],
+"Achaean League": [
+"아카이아 동맹",
+"x"
+],
+"Achaemenid Empire": [
+"아케메네스 왕조 페르시아",
+"t"
+],
+"Adal Sultanate": [
+"아달 술탄국",
+"x"
+],
+"Aetolian League": [
+"아이톨리아 동맹",
+"x"
+],
+"Afghanistan": [
+"아프가니스탄",
+"t"
+],
+"Afsharid Iran": [
+"아프샤르 왕조",
+"x"
+],
+"Aghlabid Dynasty": [
+"아글라브 왕조",
+"x"
+],
+"Ahi Republic": [
+"아히 공화국",
+"x"
+],
+"Ahmadnagar Sultanate": [
+"아마드나가르 술탄국",
+"x"
+],
+"Akkadian Empire": [
+"아카드 제국",
+"x"
+],
+"Alans": [
+"알란족",
+"x"
+],
+"Albania": [
+"알바니아 왕국",
+"x"
+],
+"Albanian Principalities": [
+"알바니아 제후국",
+"x"
+],
+"Almohad Caliphate": [
+"무와히드 왕조",
+"t"
+],
+"Almoravid Dynasty": [
+"무라비트 왕조",
+"t"
+],
+"Alodia": [
+"알로디아 왕국",
+"x"
+],
+"Ambrosian Republic": [
+"암브로시아 공화국",
+"x"
+],
+"Angevin Empire": [
+"앙주 제국",
+"x"
+],
+"Angevins": [
+"앙주 가문",
+"x"
+],
+"Angles": [
+"앵글족",
+"t"
+],
+"Anglo-Saxon England": [
+"앵글로색슨 잉글랜드",
+"x"
+],
+"Ankhwennefer": [
+"앙크웬네페르",
+"x"
+],
+"Anti-Kuomintang Coalition": [
+"반장제스 연합",
+"x"
+],
+"Antigonid Dynasty": [
+"안티고노스 왕조",
+"t"
+],
+"Antigonid Macedonia": [
+"안티고노스 왕조 마케도니아",
+"t"
+],
+"Antigua and Barbuda": [
+"앤티가 바부다",
+"x"
+],
+"Anurādhapura": [
+"아누라다푸라 왕국",
+"x"
+],
+"Aq Qoyunlu": [
+"아크코윤루",
+"x"
+],
+"Aquitaine": [
+"아키텐",
+"x"
+],
+"Arab Federation": [
+"아랍 연방",
+"x"
+],
+"Arab Republic of Egypt": [
+"이집트",
+"t"
+],
+"Arab Socialist Ba'ath Party": [
+"아랍 사회주의 바트당",
+"x"
+],
+"Argentine Confederation": [
+"아르헨티나 연합",
+"x"
+],
+"Argentine Republic": [
+"아르헨티나",
+"t"
+],
+"Armenia": [
+"아르메니아 제1 공화국",
+"x"
+],
+"Armenian Kingdom of Cilicia": [
+"킬리키아 아르메니아 왕국",
+"x"
+],
+"Ashanti Empire": [
+"아샨티 왕국",
+"x"
+],
+"Ashikaga Shogunate": [
+"무로마치 막부",
+"t"
+],
+"Asir": [
+"아시르 토후국",
+"x"
+],
+"Assyria": [
+"아시리아",
+"t"
+],
+"Assyrian Egypt": [
+"아시리아령 이집트",
+"x"
+],
+"Astrakhan Khanate": [
+"아스트라한 칸국",
+"x"
+],
+"Asuka Japan": [
+"아스카 시대",
+"t"
+],
+"Athenian Coalition": [
+"아테네 연합",
+"x"
+],
+"Atropatene": [
+"아트로파테네",
+"x"
+],
+"Austria-Hungary": [
+"오스트리아·헝가리 제국",
+"t"
+],
+"Austrian Empire": [
+"오스트리아 제국",
+"t"
+],
+"Ava Kingdom": [
+"아바 왕국",
+"x"
+],
+"Avar Khaganate": [
+"아바르 칸국",
+"x"
+],
+"Ayutthaya Kingdom": [
+"아유타야 왕조",
+"t"
+],
+"Ayyubid Sultanate": [
+"아이유브 왕조",
+"t"
+],
+"Azerbaijan Democratic Republic": [
+"아제르바이잔 민주 공화국",
+"x"
+],
+"Aztec Triple Alliance": [
+"아스테카 제국",
+"t"
+],
+"Ba'athist Syria": [
+"바트당 시리아",
+"x"
+],
+"Babylonia": [
+"바빌로니아",
+"t"
+],
+"Baekje": [
+"백제",
+"t"
+],
+"Bagratid Armenia": [
+"바그라투니 아르메니아 왕국",
+"x"
+],
+"Bahmani Sultanate": [
+"바흐마니 술탄국",
+"x"
+],
+"Bahrain": [
+"바레인 토후국",
+"x"
+],
+"Bahrani Dynasty": [
+"바흐라니 왕조",
+"x"
+],
+"Balasagan": [
+"발라사간",
+"x"
+],
+"Balhae": [
+"발해",
+"t"
+],
+"Bali": [
+"발리",
+"x"
+],
+"Balinese Kingdom": [
+"발리 왕국",
+"x"
+],
+"Bamana Empire": [
+"바마나 왕국",
+"x"
+],
+"Banate of Bosnia": [
+"보스니아 반국",
+"x"
+],
+"Barbados": [
+"바베이도스",
+"x"
+],
+"Barghawata Conference": [
+"바르가와타 연맹",
+"x"
+],
+"Batavian Republic": [
+"바타비아 공화국(동인도)",
+"x"
+],
+"Bavarians": [
+"바이에른족",
+"x"
+],
+"Belgian Congo": [
+"벨기에령 콩고",
+"t"
+],
+"Belize": [
+"벨리즈",
+"x"
+],
+"Berar Sultanate": [
+"베라르 술탄국",
+"x"
+],
+"Bessarabia": [
+"베사라비아",
+"x"
+],
+"Beylik of Aydin": [
+"아이든 베이국",
+"x"
+],
+"Beylik of Dulkadir": [
+"둘카디르 후국",
+"x"
+],
+"Beylik of Hamid": [
+"하미드 베이국",
+"x"
+],
+"Beylik of Isfendiyar": [
+"이스펜디야르 후국",
+"x"
+],
+"Beylik of Karaman": [
+"카라만 후국",
+"x"
+],
+"Beylik of Karasi": [
+"카라시 베이국",
+"x"
+],
+"Beylik of Menteshe": [
+"멘테셰 베이국",
+"x"
+],
+"Beylik of Saruhan": [
+"사루한 베이국",
+"x"
+],
+"Beylik of Sinop": [
+"시노프 후국",
+"x"
+],
+"Beylik of Teke": [
+"테케 베이국",
+"x"
+],
+"Beylik of Tunis": [
+"튀니스 베이국",
+"x"
+],
+"Bidar Sultanate": [
+"비다르 술탄국",
+"x"
+],
+"Bijapur Sultanate": [
+"비자푸르 술탄국",
+"x"
+],
+"Blambangan Kingdom": [
+"블람방안 왕국",
+"x"
+],
+"Blue Horde": [
+"청장 칸국",
+"x"
+],
+"Bolivia": [
+"볼리비아",
+"t"
+],
+"Bornu Empire": [
+"보르누 제국",
+"x"
+],
+"Bosnia and Herzegovina": [
+"보스니아 헤르체고비나",
+"t"
+],
+"Bourbon Kingdom of France": [
+"부르봉 왕정 프랑스",
+"x"
+],
+"Brandenburg-Prussia": [
+"브란덴부르크·프로이센",
+"x"
+],
+"Brazilian Republic": [
+"브라질 공화국",
+"x"
+],
+"Breton Kingdoms": [
+"브르타뉴 소왕국",
+"x"
+],
+"British Africa": [
+"영국령 아프리카",
+"x"
+],
+"British Cape Colony": [
+"영국령 케이프 식민지",
+"x"
+],
+"British Ceylon": [
+"영국령 실론",
+"x"
+],
+"British Colonial Empire": [
+"영국 식민 제국",
+"x"
+],
+"British East Africa": [
+"영국령 동아프리카",
+"x"
+],
+"British Empire": [
+"대영 제국",
+"t"
+],
+"British Gold Coast": [
+"영국령 골드코스트",
+"x"
+],
+"British Overseas Territories": [
+"영국 해외 영토",
+"x"
+],
+"British Raj": [
+"영국령 인도 제국",
+"t"
+],
+"Brythons": [
+"브리튼족",
+"x"
+],
+"Burgundian Kingdom": [
+"부르군트 왕국",
+"t"
+],
+"Burgundians": [
+"부르군트족",
+"t"
+],
+"Burkina Faso": [
+"부르키나파소",
+"x"
+],
+"Burma": [
+"버마",
+"t"
+],
+"Buyid Dynasty": [
+"부와이 왕조",
+"t"
+],
+"Byeonhan": [
+"변한",
+"t"
+],
+"Byzantine Empire": [
+"비잔티움 제국",
+"t"
+],
+"Cai": [
+"채",
+"x"
+],
+"California Republic": [
+"캘리포니아 공화국",
+"x"
+],
+"Caliphate of Córdoba": [
+"후우마이야 왕조",
+"t"
+],
+"Cambodia": [
+"캄보디아 왕국",
+"x"
+],
+"Canada": [
+"캐나다",
+"t"
+],
+"Cao": [
+"조(曹)",
+"x"
+],
+"Cao Cao": [
+"조조",
+"x"
+],
+"Cao Wei": [
+"위",
+"t"
+],
+"Capetian House of Anjou": [
+"카페앙주 가문",
+"x"
+],
+"Carantania": [
+"카란타니아",
+"x"
+],
+"Carnatic Sultanate": [
+"카르나티크 술탄국",
+"x"
+],
+"Carolingian Empire": [
+"카롤루스 왕조",
+"t"
+],
+"Carthage": [
+"카르타고",
+"t"
+],
+"Catalan Company": [
+"카탈루냐 용병단",
+"x"
+],
+"Catalonia": [
+"카탈루냐 공화국",
+"x"
+],
+"Caucasian Albania": [
+"캅카스 알바니아",
+"x"
+],
+"Caucasian Iberia": [
+"캅카스 이베리아",
+"x"
+],
+"Caucasian Imamate": [
+"캅카스 이맘국",
+"x"
+],
+"Central African Republic": [
+"중앙아프리카 공화국",
+"t"
+],
+"Centralist Mexico": [
+"멕시코 중앙집권 공화국",
+"x"
+],
+"Ceylon": [
+"실론 왕국",
+"x"
+],
+"Chagatai Khanate": [
+"차가타이 칸국",
+"t"
+],
+"Chalukya Dynasty": [
+"찰루키아 왕조",
+"x"
+],
+"Chandela Kingdom": [
+"찬델라 왕조",
+"x"
+],
+"Chandra Dynasty": [
+"찬드라 왕조",
+"x"
+],
+"Chang-shan": [
+"상산",
+"x"
+],
+"Chauhan Dynasty": [
+"차우한 왕조",
+"x"
+],
+"Chaulukya Dynasty": [
+"차울루키아 왕조",
+"x"
+],
+"Chechen Republic": [
+"체첸 공화국",
+"x"
+],
+"Chen": [
+"진(陳, 춘추)",
+"x"
+],
+"Chen Dynasty": [
+"진(陳)",
+"t"
+],
+"Cheng Han": [
+"성한",
+"x"
+],
+"Chenla": [
+"진랍 왕국",
+"t"
+],
+"Chiangmai": [
+"치앙마이 왕국",
+"x"
+],
+"Chimor": [
+"치모르",
+"x"
+],
+"Chimu Empire": [
+"치무 왕국",
+"x"
+],
+"Chinese Communists": [
+"중국 공산당(초기)",
+"t"
+],
+"Chobanids": [
+"추판 왕조",
+"x"
+],
+"Chola Empire": [
+"촐라 왕조",
+"t"
+],
+"Chu": [
+"초",
+"t"
+],
+"Chámpa": [
+"참파",
+"t"
+],
+"Chüzan": [
+"주잔",
+"x"
+],
+"Cimmerian Bosporus": [
+"보스포루스 왕국",
+"x"
+],
+"Cisalpine Republic": [
+"치살피나 공화국",
+"x"
+],
+"Cispadane Republic": [
+"치스파다나 공화국",
+"x"
+],
+"Classic Veracruz Culture": [
+"베라크루스 문화",
+"x"
+],
+"Colchis": [
+"콜키스",
+"x"
+],
+"Commonwealth of Australia": [
+"오스트레일리아",
+"t"
+],
+"Commonwealth of Dominica": [
+"도미니카 연방",
+"x"
+],
+"Commonwealth of England": [
+"잉글랜드 공화국",
+"x"
+],
+"Commonwealth of The Bahamas": [
+"바하마",
+"x"
+],
+"Commune of the Zealots": [
+"젤로트 코뮌",
+"x"
+],
+"Communist Cuba": [
+"쿠바",
+"t"
+],
+"Communist Laos": [
+"라오스",
+"t"
+],
+"Communist Party of China": [
+"중국 공산당",
+"t"
+],
+"Comtat Venaissin": [
+"콩타브네생",
+"x"
+],
+"Confederate States of America": [
+"남부 연합",
+"t"
+],
+"Confederation of the Rhine": [
+"라인 동맹",
+"t"
+],
+"Cornwall": [
+"콘월 왕국",
+"x"
+],
+"Corsican Republic": [
+"코르시카 공화국",
+"x"
+],
+"County of Ampuria": [
+"암푸리아스 백국",
+"x"
+],
+"County of Anjou": [
+"앙주 백국",
+"x"
+],
+"County of Aragon": [
+"아라곤 백국",
+"x"
+],
+"County of Armagnac": [
+"아르마냐크 백국",
+"x"
+],
+"County of Artois": [
+"아르투아 백국",
+"x"
+],
+"County of Auvergne": [
+"오베르뉴 백국",
+"x"
+],
+"County of Barcelona": [
+"바르셀로나 백국",
+"x"
+],
+"County of Berga": [
+"베르가 백국",
+"x"
+],
+"County of Besalú": [
+"베살루 백국",
+"x"
+],
+"County of Blôis": [
+"블루아 백국",
+"x"
+],
+"County of Boulogne": [
+"불로뉴 백국",
+"x"
+],
+"County of Brabant": [
+"브라반트 백국",
+"x"
+],
+"County of Béarn": [
+"베아른 백국",
+"x"
+],
+"County of Champagne": [
+"샹파뉴 백국",
+"x"
+],
+"County of Edessa": [
+"에데사 백국",
+"x"
+],
+"County of Flanders": [
+"플랑드르 백국",
+"t"
+],
+"County of Foix": [
+"푸아 백국",
+"x"
+],
+"County of Holland": [
+"홀란트 백국",
+"x"
+],
+"County of Maine": [
+"멘 백국",
+"x"
+],
+"County of Nevers": [
+"느베르 백국",
+"x"
+],
+"County of Osona": [
+"오소나 백국",
+"x"
+],
+"County of Pallars": [
+"파야르스 백국",
+"x"
+],
+"County of Pallars Jussà": [
+"파야르스주사 백국",
+"x"
+],
+"County of Pallars Sobirà": [
+"파야르스소비라 백국",
+"x"
+],
+"County of Poitou": [
+"푸아투 백국",
+"x"
+],
+"County of Portugal": [
+"포르투갈 백국",
+"x"
+],
+"County of Périgord": [
+"페리고르 백국",
+"x"
+],
+"County of Ribagorza": [
+"리바고르사 백국",
+"x"
+],
+"County of Rosellón": [
+"루시용 백국",
+"x"
+],
+"County of Rouergue": [
+"루에르그 백국",
+"x"
+],
+"County of Savoy": [
+"사보이아 백국",
+"x"
+],
+"County of Toulouse": [
+"툴루즈 백국",
+"x"
+],
+"County of Touraine": [
+"투렌 백국",
+"x"
+],
+"County of Tripoli": [
+"트리폴리 백국",
+"x"
+],
+"County of Urgell": [
+"우르헬 백국",
+"x"
+],
+"County of Vermandois": [
+"베르망두아 백국",
+"x"
+],
+"County of Vexin": [
+"벡생 백국",
+"x"
+],
+"Cretan State": [
+"크레타 자치국",
+"x"
+],
+"Crimean Khanate": [
+"크림 칸국",
+"x"
+],
+"Crown of Aragon": [
+"아라곤 연합 왕국",
+"x"
+],
+"Crown of Castile": [
+"카스티야 연합 왕국",
+"x"
+],
+"Cuban Communists": [
+"쿠바 혁명군",
+"x"
+],
+"Cuban Nationalists": [
+"쿠바 독립군",
+"x"
+],
+"Cuman-Kipchak Confederation": [
+"쿠만·킵차크 연맹",
+"x"
+],
+"Cundinamarca": [
+"쿤디나마르카",
+"x"
+],
+"Cuzco": [
+"쿠스코 왕국",
+"x"
+],
+"Cyprus Condominium": [
+"키프로스 공동 통치령",
+"x"
+],
+"Cyrenaica": [
+"키레나이카",
+"x"
+],
+"Czech Republic": [
+"체코",
+"t"
+],
+"Czechoslovakia": [
+"체코슬로바키아",
+"t"
+],
+"Dabuyid Dynasty": [
+"다부이 왕조",
+"x"
+],
+"Dai": [
+"대",
+"x"
+],
+"Danelaw": [
+"데인로",
+"x"
+],
+"Danish Gold Coast": [
+"덴마크령 골드코스트",
+"x"
+],
+"Danish India": [
+"덴마크령 인도",
+"x"
+],
+"Danish Magnates": [
+"덴마크 영주령",
+"x"
+],
+"Danishmendids": [
+"다니슈멘드 왕조",
+"x"
+],
+"Dauphiné": [
+"도피네",
+"x"
+],
+"Demak Sultanate": [
+"드막 술탄국",
+"x"
+],
+"Democratic People's Republic of Korea": [
+"조선민주주의인민공화국",
+"t"
+],
+"Democratic Republic of Vietnam": [
+"베트남 민주 공화국",
+"t"
+],
+"Democratic Republic of the Congo": [
+"콩고 민주 공화국",
+"t"
+],
+"Denmark": [
+"덴마크",
+"t"
+],
+"Denmark-England": [
+"덴마크·잉글랜드",
+"x"
+],
+"Denmark-Norway": [
+"덴마크·노르웨이",
+"x"
+],
+"Despotate of Arta": [
+"아르타 전제공국",
+"x"
+],
+"Despotate of Dobruja": [
+"도브루자 전제공국",
+"x"
+],
+"Despotate of Epirus": [
+"에페이로스 전제공국",
+"x"
+],
+"Despotate of Vidin": [
+"비딘 전제공국",
+"x"
+],
+"Domain of Rhodes": [
+"로도스 영주령",
+"x"
+],
+"Dominican Republic": [
+"도미니카 공화국",
+"x"
+],
+"Don Cossacks": [
+"돈 카자크",
+"x"
+],
+"Dong-okjeo": [
+"옥저",
+"t"
+],
+"Dongye": [
+"동예",
+"t"
+],
+"Duchies of Poland": [
+"폴란드 제후국",
+"x"
+],
+"Duchy of Anhalt": [
+"안할트 공국",
+"x"
+],
+"Duchy of Aquitaine": [
+"아키텐 공국",
+"x"
+],
+"Duchy of Athens": [
+"아테네 공국",
+"x"
+],
+"Duchy of Bavaria": [
+"바이에른 공국",
+"x"
+],
+"Duchy of Benevento": [
+"베네벤토 공국",
+"x"
+],
+"Duchy of Bohemia": [
+"보헤미아 공국",
+"x"
+],
+"Duchy of Brittany": [
+"브르타뉴 공국",
+"x"
+],
+"Duchy of Brunswick": [
+"브라운슈바이크 공국",
+"x"
+],
+"Duchy of Burgundy": [
+"부르고뉴 공국",
+"x"
+],
+"Duchy of Bytom": [
+"비토무 공국",
+"x"
+],
+"Duchy of Courland": [
+"쿠를란트 공국",
+"x"
+],
+"Duchy of Croatia": [
+"크로아티아 공국",
+"x"
+],
+"Duchy of Gascony": [
+"가스코뉴 공국",
+"x"
+],
+"Duchy of Greater Poland": [
+"대폴란드 공국",
+"x"
+],
+"Duchy of Głogów": [
+"그워구프 공국",
+"x"
+],
+"Duchy of Holstein": [
+"홀슈타인 공국",
+"x"
+],
+"Duchy of Jawor": [
+"야보르 공국",
+"x"
+],
+"Duchy of Kalisz": [
+"칼리시 공국",
+"x"
+],
+"Duchy of Kuyavia": [
+"쿠야비아 공국",
+"x"
+],
+"Duchy of Legnica": [
+"레그니차 공국",
+"x"
+],
+"Duchy of Lorraine": [
+"로렌 공국",
+"x"
+],
+"Duchy of Luxembourg": [
+"룩셈부르크 공국",
+"x"
+],
+"Duchy of Masovia": [
+"마조프셰 공국",
+"x"
+],
+"Duchy of Mecklenburg": [
+"메클렌부르크 공국",
+"x"
+],
+"Duchy of Milan": [
+"밀라노 공국",
+"x"
+],
+"Duchy of Modena and Reggio": [
+"모데나 레조 공국",
+"x"
+],
+"Duchy of Naples": [
+"나폴리 공국",
+"x"
+],
+"Duchy of Nassau": [
+"나사우 공국",
+"x"
+],
+"Duchy of Normandy": [
+"노르망디 공국",
+"t"
+],
+"Duchy of Oldenburg": [
+"올덴부르크 공국",
+"x"
+],
+"Duchy of Opole": [
+"오폴레 공국",
+"x"
+],
+"Duchy of Parma and Piacenza": [
+"파르마 피아첸차 공국",
+"x"
+],
+"Duchy of Prussia": [
+"프로이센 공국",
+"t"
+],
+"Duchy of Racibórz": [
+"라치부시 공국",
+"x"
+],
+"Duchy of Saint Sava": [
+"성 사바 공국",
+"x"
+],
+"Duchy of Sandomierz": [
+"산도미에시 공국",
+"x"
+],
+"Duchy of Silesia": [
+"슐레지엔 공국",
+"x"
+],
+"Duchy of Spoleto": [
+"스폴레토 공국",
+"x"
+],
+"Duchy of Styria": [
+"슈타이어마르크 공국",
+"x"
+],
+"Duchy of Thuringia": [
+"튀링겐 공국",
+"x"
+],
+"Duchy of Tuscia": [
+"투스키아 공국",
+"x"
+],
+"Duchy of Warsaw": [
+"바르샤바 공국",
+"t"
+],
+"Duchy of Wrocław": [
+"브로츠와프 공국",
+"x"
+],
+"Duchy of the Archipelago": [
+"낙소스 공국",
+"x"
+],
+"Duchy of Łęczyca": [
+"웽치차 공국",
+"x"
+],
+"Dumnonia": [
+"둠노니아 왕국",
+"x"
+],
+"Durrani Dynasty": [
+"두라니 왕조",
+"x"
+],
+"Durrani Empire": [
+"두라니 제국",
+"x"
+],
+"Dutch Cape Colony": [
+"네덜란드령 케이프 식민지",
+"x"
+],
+"Dutch Ceylon": [
+"네덜란드령 실론",
+"x"
+],
+"Dutch East Indies": [
+"네덜란드령 동인도",
+"t"
+],
+"Dutch Gold Coast": [
+"네덜란드령 골드코스트",
+"x"
+],
+"Dutch Republic": [
+"네덜란드 공화국",
+"x"
+],
+"Dzungar Khanate": [
+"준가르",
+"t"
+],
+"Dál Riata": [
+"달리아타 왕국",
+"x"
+],
+"Earldom of Desmond": [
+"데즈먼드 백국",
+"x"
+],
+"Earldom of Ulster": [
+"얼스터 백국",
+"x"
+],
+"Early Balinese Kingdoms": [
+"초기 발리 왕국",
+"x"
+],
+"Early Cheras": [
+"체라 왕조",
+"x"
+],
+"Early Cholas": [
+"촐라 왕조(초기)",
+"x"
+],
+"Early Dynastic Period of Egypt": [
+"이집트 초기 왕조",
+"x"
+],
+"Early Lý Dynasty": [
+"전리 왕조",
+"x"
+],
+"Early Pandyas": [
+"판디아 왕조(초기)",
+"x"
+],
+"East Franks": [
+"동프랑크 왕국",
+"t"
+],
+"East Timor": [
+"동티모르",
+"t"
+],
+"East Turkestan": [
+"동투르키스탄",
+"x"
+],
+"East Turkestan Republic": [
+"동투르키스탄 공화국",
+"x"
+],
+"Eastern Chagatai Khanate": [
+"동차가타이 칸국",
+"x"
+],
+"Eastern Ganga Kingdom": [
+"동강가 왕조",
+"x"
+],
+"Eastern Göktürks": [
+"동돌궐",
+"t"
+],
+"Eastern Hungarian Kingdom": [
+"동헝가리 왕국",
+"x"
+],
+"Eastern Kara-Khanids": [
+"동카라한 왕조",
+"x"
+],
+"Eastern Kushans": [
+"동쿠샨",
+"x"
+],
+"Eastern Moghulistan": [
+"동모굴리스탄",
+"x"
+],
+"Eastern Roman Empire": [
+"비잔티움 제국",
+"t"
+],
+"Eastern Wei": [
+"동위",
+"t"
+],
+"Eastern Wu": [
+"오",
+"t"
+],
+"Elam": [
+"엘람",
+"x"
+],
+"Electorate of Baden": [
+"바덴 선제후국",
+"x"
+],
+"Electorate of Brandenburg": [
+"브란덴부르크 선제후국",
+"x"
+],
+"Electorate of Hanover": [
+"하노버 선제후국",
+"x"
+],
+"Electorate of Hesse": [
+"헤센 선제후국",
+"x"
+],
+"Electorate of Salzburg": [
+"잘츠부르크 선제후국",
+"x"
+],
+"Electorate of Saxony": [
+"작센 선제후국",
+"x"
+],
+"Electorate of Trier": [
+"트리어 선제후국",
+"x"
+],
+"Electorate of Württemberg": [
+"뷔르템베르크 선제후국",
+"x"
+],
+"Emirate of Afghanistan": [
+"아프가니스탄 토후국",
+"x"
+],
+"Emirate of Bukhara": [
+"부하라 토후국",
+"x"
+],
+"Emirate of Crete": [
+"크레타 토후국",
+"x"
+],
+"Emirate of Córdoba": [
+"코르도바 토후국",
+"x"
+],
+"Emirate of Diriyah": [
+"디리야 토후국",
+"x"
+],
+"Emirate of Granada": [
+"나스르 왕조",
+"t"
+],
+"Emirate of Jabal Shammar": [
+"자발 샴마르 토후국",
+"x"
+],
+"Emirate of Nejd": [
+"네지드 토후국",
+"x"
+],
+"Emirate of Nekor": [
+"네코르 토후국",
+"x"
+],
+"Emirate of Sicily": [
+"시칠리아 토후국",
+"x"
+],
+"Empire of Brazil": [
+"브라질 제국",
+"x"
+],
+"Empire of China": [
+"중화 제국",
+"x"
+],
+"Empire of Haiti": [
+"아이티 제국",
+"x"
+],
+"Empire of Japan": [
+"일본 제국",
+"t"
+],
+"Empire of Kanem": [
+"카넴 제국",
+"x"
+],
+"Empire of Thessalonica": [
+"테살로니카 제국",
+"x"
+],
+"Empire of Trebizond": [
+"트레비존드 제국",
+"x"
+],
+"English Colonial Empire": [
+"잉글랜드 식민 제국",
+"x"
+],
+"Equatorial Guinea": [
+"적도기니",
+"t"
+],
+"Eshrefids": [
+"에시레프 후국",
+"x"
+],
+"Estado Novo": [
+"이스타두 노부",
+"x"
+],
+"Estonia": [
+"에스토니아 공화국",
+"x"
+],
+"Eswatini": [
+"에스와티니",
+"t"
+],
+"Ethiopia": [
+"에티오피아",
+"t"
+],
+"Ethiopian Empire": [
+"에티오피아 제국",
+"t"
+],
+"Etruscans": [
+"에트루리아인",
+"t"
+],
+"Fatimid Caliphate": [
+"파티마 왕조",
+"t"
+],
+"Federal League": [
+"연방 동맹",
+"x"
+],
+"Federal Republic of Germany": [
+"서독",
+"t"
+],
+"Federal Republic of Nigeria": [
+"나이지리아",
+"t"
+],
+"Federal Republic of Somalia": [
+"소말리아",
+"t"
+],
+"Federated Republic of Brazil": [
+"브라질 연방 공화국",
+"x"
+],
+"Federated Republic of Germany": [
+"독일",
+"t"
+],
+"Federated Republic of Mexico": [
+"멕시코 연방 공화국",
+"x"
+],
+"Federation of Malaya": [
+"말라야 연방",
+"x"
+],
+"Fifteenth Dynasty of Egypt": [
+"이집트 제15왕조",
+"x"
+],
+"Fihrids": [
+"피흐르 왕조",
+"x"
+],
+"First Bulgarian Empire": [
+"불가리아 제1제국",
+"x"
+],
+"First French Empire": [
+"프랑스 제1제국",
+"t"
+],
+"First French colonial empire": [
+"제1차 프랑스 식민 제국",
+"x"
+],
+"First Hellenic Republic": [
+"그리스 제1공화국",
+"x"
+],
+"First Mexican Empire": [
+"멕시코 제1제국",
+"x"
+],
+"First Sealand Dynasty": [
+"제1 해국 왕조",
+"x"
+],
+"First Spanish Republic": [
+"에스파냐 제1공화국",
+"x"
+],
+"First Toungoo Empire": [
+"퉁구 왕조",
+"t"
+],
+"Former Jin": [
+"진(오대)",
+"x"
+],
+"Former Liang": [
+"전량",
+"x"
+],
+"Former Qin": [
+"전진",
+"t"
+],
+"Former Shu": [
+"전촉",
+"x"
+],
+"Former Yan": [
+"전연",
+"x"
+],
+"Former Yugoslav Republic of Macedonia": [
+"북마케도니아",
+"t"
+],
+"Former Zhao": [
+"전조",
+"x"
+],
+"Four Oirats": [
+"오이라트",
+"t"
+],
+"France Antarctique": [
+"프랑스 앙타르크티크",
+"x"
+],
+"Francoist Spain": [
+"프랑코 정권",
+"t"
+],
+"Free City of Bremen": [
+"브레멘 자유시",
+"x"
+],
+"Free City of Danzig": [
+"단치히 자유시",
+"x"
+],
+"Free City of Frankfurt": [
+"프랑크푸르트 자유시",
+"x"
+],
+"Free City of Hamburg": [
+"함부르크 자유시",
+"x"
+],
+"Free City of Krakow": [
+"크라쿠프 자유시",
+"x"
+],
+"Free City of Lübeck": [
+"뤼베크 자유시",
+"x"
+],
+"Free County of Burgundy": [
+"부르고뉴 자유 백국",
+"x"
+],
+"Free French": [
+"자유 프랑스",
+"x"
+],
+"Free Orange State": [
+"오렌지 자유국",
+"t"
+],
+"Freetown Colony": [
+"프리타운 식민지",
+"x"
+],
+"French Africa": [
+"프랑스령 아프리카",
+"x"
+],
+"French Algeria": [
+"프랑스령 알제리",
+"x"
+],
+"French Colony of Guiana": [
+"프랑스령 기아나",
+"x"
+],
+"French Consulate": [
+"프랑스 통령 정부",
+"t"
+],
+"French Directory": [
+"프랑스 총재 정부",
+"t"
+],
+"French Fifth Republic": [
+"프랑스 제5 공화정",
+"t"
+],
+"French First Republic": [
+"프랑스 제1공화국",
+"t"
+],
+"French Fourth Republic": [
+"프랑스 제4공화국",
+"x"
+],
+"French India": [
+"프랑스령 인도",
+"x"
+],
+"French Indochina": [
+"프랑스령 인도차이나",
+"t"
+],
+"French Louisiana": [
+"프랑스령 루이지애나",
+"x"
+],
+"French Mandate for Syria and Lebanon": [
+"시리아·레바논 프랑스 위임 통치령",
+"x"
+],
+"French Second Republic": [
+"프랑스 제2공화국",
+"t"
+],
+"French Third Republic": [
+"프랑스 제3공화국",
+"t"
+],
+"Frisia": [
+"프리슬란트",
+"x"
+],
+"Frisia Kingdom": [
+"프리지아 왕국",
+"x"
+],
+"Frisians": [
+"프리슬란트인",
+"x"
+],
+"Funan": [
+"부남",
+"t"
+],
+"Funj Sultanate": [
+"푼지 술탄국",
+"x"
+],
+"Gabon": [
+"가봉",
+"t"
+],
+"Gahadavala Dynasty": [
+"가하다발라 왕조",
+"x"
+],
+"Galatia": [
+"갈라티아",
+"x"
+],
+"Galicia-Volhynia": [
+"갈리치아·볼히니아 왕국",
+"x"
+],
+"Gallic Empire": [
+"갈리아 제국",
+"x"
+],
+"Galuh Kingdom": [
+"갈루 왕국",
+"x"
+],
+"Ganzhou Kingdom": [
+"감주 위구르",
+"x"
+],
+"Gao Kaidao": [
+"고개도",
+"x"
+],
+"Gauda Kingdom": [
+"가우다 왕국",
+"x"
+],
+"Gaza/Hamas": [
+"가자 지구",
+"x"
+],
+"Georgia": [
+"조지아",
+"t"
+],
+"German Africa": [
+"독일령 아프리카",
+"x"
+],
+"German Confederation": [
+"독일 연방",
+"t"
+],
+"German Democratic Republic": [
+"동독",
+"t"
+],
+"German Empire": [
+"독일 제국",
+"t"
+],
+"Germiyanids": [
+"게르미얀 베이국",
+"x"
+],
+"Ghana": [
+"가나",
+"t"
+],
+"Ghana Empire": [
+"가나 왕국",
+"t"
+],
+"Ghassanids": [
+"가산 왕국",
+"x"
+],
+"Ghaznavid Empire": [
+"가즈니 왕조",
+"t"
+],
+"Ghurid Dynasty": [
+"고르 왕조",
+"t"
+],
+"Giudicato of Arborea": [
+"아르보레아 판관국",
+"x"
+],
+"Giudicato of Cagliari": [
+"칼리아리 판관국",
+"x"
+],
+"Giudicato of Gallura": [
+"갈루라 판관국",
+"x"
+],
+"Giudicato of Logudoro": [
+"로구도로 판관국",
+"x"
+],
+"Goguryeo": [
+"고구려",
+"t"
+],
+"Gojoseon": [
+"고조선",
+"t"
+],
+"Golconda Sultanate": [
+"골콘다 술탄국",
+"x"
+],
+"Golden Horde": [
+"킵차크 칸국",
+"t"
+],
+"Gorkha Kingdom": [
+"고르카 왕국",
+"x"
+],
+"Goryeo": [
+"고려",
+"t"
+],
+"Gothia": [
+"고티아",
+"x"
+],
+"Goths": [
+"고트족",
+"t"
+],
+"Gran Colombia": [
+"그란콜롬비아",
+"t"
+],
+"Granadine Confederation": [
+"그라나다 연합",
+"x"
+],
+"Grand Duchy of Baden": [
+"바덴 대공국",
+"x"
+],
+"Grand Duchy of Berg": [
+"베르크 대공국",
+"x"
+],
+"Grand Duchy of Hesse": [
+"헤센 대공국",
+"x"
+],
+"Grand Duchy of Kraków": [
+"크라쿠프 대공국",
+"x"
+],
+"Grand Duchy of Lithuania": [
+"리투아니아 대공국",
+"t"
+],
+"Grand Duchy of Saxe-Weimar-Eisenach": [
+"작센바이마르아이제나흐 대공국",
+"x"
+],
+"Grand Duchy of Tuscany": [
+"토스카나 대공국",
+"x"
+],
+"Grand Duchy of Würzburg": [
+"뷔르츠부르크 대공국",
+"x"
+],
+"Grand Principality of Moscow": [
+"모스크바 대공국",
+"t"
+],
+"Grand Principality of Serbia": [
+"세르비아 대공국",
+"x"
+],
+"Great Jin": [
+"금",
+"t"
+],
+"Great Mongol State": [
+"복드 칸국",
+"x"
+],
+"Great Moravia": [
+"대모라바 왕국",
+"x"
+],
+"Great Principality of Duklja": [
+"두클랴 대공국",
+"x"
+],
+"Great Seljuk Empire": [
+"셀주크 튀르크",
+"t"
+],
+"Great Yuan": [
+"대완",
+"t"
+],
+"Greco-Bactrian Kingdom": [
+"그리스·박트리아 왕국",
+"x"
+],
+"Greek City-States": [
+"그리스 폴리스",
+"t"
+],
+"Greek Colonies": [
+"그리스 식민 도시",
+"t"
+],
+"Greek Dark Ages": [
+"그리스 암흑시대",
+"t"
+],
+"Greek junta": [
+"그리스 군사 정권",
+"x"
+],
+"Greenland": [
+"그린란드",
+"x"
+],
+"Grenada": [
+"그레나다",
+"x"
+],
+"Guatemala": [
+"과테말라",
+"x"
+],
+"Guayaquil Junta": [
+"과야킬 평의회",
+"x"
+],
+"Guinea": [
+"기니",
+"x"
+],
+"Gupta Empire": [
+"굽타 왕조",
+"t"
+],
+"Gurjara-Pratihara Dynasty": [
+"구르자라·프라티하라 왕조",
+"x"
+],
+"Gutian Dynasty": [
+"구티 왕조",
+"x"
+],
+"Guyana": [
+"가이아나",
+"x"
+],
+"Göktürk Khaganate": [
+"돌궐",
+"t"
+],
+"Habsburg Monarchy": [
+"합스부르크 군주국",
+"x"
+],
+"Hadhramaut": [
+"하드라마우트 왕국",
+"x"
+],
+"Hafsid Dynasty": [
+"하프스 왕조",
+"x"
+],
+"Haiti": [
+"아이티(혁명기)",
+"x"
+],
+"Halych-Volhynia occupation": [
+"할리치·볼히니아 공국",
+"x"
+],
+"Hamdanid Emirates": [
+"함단 왕조",
+"x"
+],
+"Hammadid Dynasty": [
+"함마드 왕조",
+"x"
+],
+"Han": [
+"한(韓)",
+"t"
+],
+"Han Dynasty": [
+"한",
+"t"
+],
+"Hanthawaddy Kingdom": [
+"한타와디 왕국",
+"x"
+],
+"Haripuñjaya": [
+"하리푼차이",
+"x"
+],
+"Harsha's Empire": [
+"바르다나 왕조",
+"t"
+],
+"Hashemite Arab Federation": [
+"하심 아랍 연방",
+"x"
+],
+"Haudenosaunee": [
+"이로쿼이 연맹",
+"x"
+],
+"Heian Japan": [
+"헤이안 시대",
+"t"
+],
+"Helvetic Republic": [
+"헬베티아 공화국",
+"x"
+],
+"Henan": [
+"하남",
+"x"
+],
+"Himyarite Kingdom": [
+"힘야르 왕국",
+"x"
+],
+"Hittites": [
+"히타이트",
+"t"
+],
+"Hokuzan": [
+"호쿠잔",
+"x"
+],
+"Holy Roman Empire": [
+"신성 로마 제국",
+"t"
+],
+"Holy Roman Empire Minor States": [
+"신성 로마 제국 군소 영방",
+"x"
+],
+"Honduras": [
+"온두라스",
+"x"
+],
+"Hotaki Dynasty": [
+"호타크 왕조",
+"x"
+],
+"House of Anjou-Sicily": [
+"앙주 시칠리아 왕가",
+"x"
+],
+"House of Ascania": [
+"아스카니아 왕가",
+"x"
+],
+"House of Bourbon": [
+"부르봉 가문",
+"x"
+],
+"House of Habsburg": [
+"합스부르크 가문",
+"t"
+],
+"House of Hohenstaufen": [
+"호엔슈타우펜 왕가",
+"x"
+],
+"House of Jagiellon": [
+"야기에우워 왕조",
+"x"
+],
+"House of Khalifa": [
+"할리파 왕조",
+"x"
+],
+"House of Luxembourg": [
+"룩셈부르크 가문",
+"x"
+],
+"House of Oldenburg": [
+"올덴부르크 왕가",
+"x"
+],
+"House of Savoy": [
+"사보이아 가문",
+"x"
+],
+"House of Tocco": [
+"토코 가문",
+"x"
+],
+"House of Valois-Anjou": [
+"발루아앙주 가문",
+"x"
+],
+"House of Wittelsbach": [
+"비텔스바흐 왕가",
+"x"
+],
+"Hoysala Kingdom": [
+"호이살라 왕조",
+"x"
+],
+"Hubaekje": [
+"후백제",
+"t"
+],
+"Huguenots": [
+"위그노",
+"t"
+],
+"Hungarian Nationalists": [
+"헝가리 민족주의자",
+"x"
+],
+"Hungarian People's Republic": [
+"헝가리 인민 공화국",
+"x"
+],
+"Hungarian Republic": [
+"헝가리 공화국",
+"x"
+],
+"Hungary": [
+"헝가리",
+"t"
+],
+"Hunnic Empire": [
+"훈 제국",
+"x"
+],
+"Huns": [
+"훈족",
+"t"
+],
+"Hussain Shahi Dynasty": [
+"후세인 샤히 왕조",
+"x"
+],
+"Hwicce": [
+"휘체 왕국",
+"x"
+],
+"Hyderabad State": [
+"하이데라바드 번왕국",
+"x"
+],
+"Hyksos": [
+"힉소스",
+"t"
+],
+"Hán": [
+"한(십팔국)",
+"x"
+],
+"Iberian Union": [
+"이베리아 연합",
+"x"
+],
+"Icelandic Commonwealth": [
+"아이슬란드 자유국",
+"x"
+],
+"Idrisids": [
+"이드리스 왕조",
+"x"
+],
+"Ifat Sultanate": [
+"이파트 술탄국",
+"x"
+],
+"Ilkhanate": [
+"일 칸국",
+"t"
+],
+"Illyrian Kingdom": [
+"일리리아 왕국",
+"x"
+],
+"Imamate of Oman": [
+"오만 이맘국",
+"x"
+],
+"Imamate of Yemen": [
+"예멘 이맘국",
+"x"
+],
+"Inca Empire": [
+"잉카 제국",
+"t"
+],
+"Independent State of Croatia": [
+"크로아티아 독립국",
+"x"
+],
+"Indo-Greeks": [
+"인도·그리스 왕국",
+"x"
+],
+"Indo-Parthians": [
+"인도·파르티아 왕국",
+"x"
+],
+"Indo-Sasanian Empire": [
+"인도·사산 왕조",
+"x"
+],
+"Indo-Scythians": [
+"인도·스키타이 왕국",
+"x"
+],
+"Indus Valley Civilization": [
+"인더스 문명",
+"t"
+],
+"Injuids": [
+"인주 왕조",
+"x"
+],
+"Iraqi Republic": [
+"이라크 공화국",
+"x"
+],
+"Irish Catholic Confederation": [
+"아일랜드 가톨릭 동맹",
+"x"
+],
+"Irish Free State": [
+"아일랜드 자유국",
+"t"
+],
+"Islamic Republic of Iran": [
+"이란",
+"t"
+],
+"Islamic Republic of Pakistan": [
+"파키스탄",
+"t"
+],
+"Isle of Man": [
+"맨섬",
+"x"
+],
+"Italian Africa": [
+"이탈리아령 아프리카",
+"x"
+],
+"Italian City-States": [
+"이탈리아 동맹시",
+"x"
+],
+"Italian Nationalists": [
+"이탈리아 민족주의자",
+"x"
+],
+"Italian Republic": [
+"이탈리아 공화국",
+"x"
+],
+"Itza Mayans": [
+"이차 마야",
+"x"
+],
+"Jaemtland": [
+"옘틀란드",
+"x"
+],
+"Jaffna kingdom": [
+"자프나 왕국",
+"x"
+],
+"Jalayirid Sultanate": [
+"잘라이르 왕조",
+"x"
+],
+"Jamaica": [
+"자메이카",
+"x"
+],
+"Janapada of Anga": [
+"앙가",
+"x"
+],
+"Janapada of Avanti": [
+"아반티",
+"x"
+],
+"Janapada of Aśmaka": [
+"아슈마카",
+"x"
+],
+"Janapada of Cedī": [
+"체디",
+"x"
+],
+"Janapada of Gandhāra": [
+"간다라",
+"t"
+],
+"Janapada of Kamboja": [
+"캄보자",
+"x"
+],
+"Janapada of Kosala": [
+"코살라",
+"x"
+],
+"Janapada of Kuru": [
+"쿠루",
+"x"
+],
+"Janapada of Kāśī": [
+"카시",
+"x"
+],
+"Janapada of Magadha": [
+"마가다",
+"t"
+],
+"Janapada of Malla": [
+"말라",
+"x"
+],
+"Janapada of Matsya": [
+"마츠야",
+"x"
+],
+"Janapada of Pañcāla": [
+"판찰라",
+"x"
+],
+"Janapada of Surasena": [
+"슈라세나",
+"x"
+],
+"Janapada of Vajji": [
+"밧지",
+"x"
+],
+"Janapada of Vatsa": [
+"밧사",
+"x"
+],
+"Japan": [
+"일본",
+"t"
+],
+"Jaunpur Sultanate": [
+"자운푸르 술탄국",
+"x"
+],
+"Jesuit Reducciones": [
+"예수회 레둑시온",
+"x"
+],
+"Jiaodong": [
+"교동",
+"x"
+],
+"Jibei": [
+"제북",
+"x"
+],
+"Jin": [
+"진(晉)",
+"t"
+],
+"Jingnan": [
+"형남",
+"x"
+],
+"Jinhan": [
+"진한",
+"t"
+],
+"Jiujiang": [
+"구강",
+"x"
+],
+"Joseon": [
+"조선",
+"t"
+],
+"Judea": [
+"유대",
+"x"
+],
+"Kadamba Empire": [
+"카담바 왕조",
+"x"
+],
+"Kahuripan": [
+"카후리판 왕국",
+"x"
+],
+"Kakatiya Dynasty": [
+"카카티야 왕조",
+"x"
+],
+"Kalabhra Dynasty": [
+"칼라브라 왕조",
+"x"
+],
+"Kalinga": [
+"칼링가",
+"t"
+],
+"Kalmar Union": [
+"칼마르 동맹",
+"x"
+],
+"Kalmyk Khanate": [
+"칼미크 칸국",
+"x"
+],
+"Kamakura Shogunate": [
+"가마쿠라 막부",
+"t"
+],
+"Kamarupa Kingdom": [
+"카마루파 왕국",
+"x"
+],
+"Kamerun": [
+"독일령 카메룬",
+"x"
+],
+"Kampili Kingdom": [
+"캄필리 왕국",
+"x"
+],
+"Kannauj-Varman Dynasty": [
+"카나우지 바르만 왕조",
+"x"
+],
+"Kanva Dynasty": [
+"칸바 왕조",
+"x"
+],
+"Kapisa": [
+"카피사",
+"x"
+],
+"Kara-Khanids": [
+"카라한 왕조",
+"t"
+],
+"Kara-Khitans": [
+"서요",
+"t"
+],
+"Karamanli Dynasty": [
+"카라만리 왕조",
+"x"
+],
+"Karkota Dynasty": [
+"카르코타 왕조",
+"x"
+],
+"Kartids": [
+"카르트 왕조",
+"x"
+],
+"Kashmir": [
+"카슈미르",
+"x"
+],
+"Kashmir and Jammu": [
+"잠무 카슈미르 토후국",
+"x"
+],
+"Kashmiri Sultanate": [
+"카슈미르 술탄국",
+"x"
+],
+"Kastamonu": [
+"카스타모누 후국",
+"x"
+],
+"Kathmandu": [
+"카트만두 왕국",
+"x"
+],
+"Kazakh Khanate": [
+"카자흐 칸국",
+"x"
+],
+"Kazakhstan": [
+"카자흐스탄",
+"t"
+],
+"Kedah-Perlis District": [
+"크다·프를리스",
+"x"
+],
+"Kediri Kingdom": [
+"크디리 왕국",
+"x"
+],
+"Kelantan": [
+"클란탄 술탄국",
+"x"
+],
+"Kenmu Restoration": [
+"겐무 신정",
+"x"
+],
+"Khadga Dynasty": [
+"카드가 왕조",
+"x"
+],
+"Khalji Dynasty": [
+"할지 왕조",
+"x"
+],
+"Khanate of Bukhara": [
+"부하라 칸국",
+"x"
+],
+"Khanate of Kazan": [
+"카잔 칸국",
+"x"
+],
+"Khanate of Khiva": [
+"히바 칸국",
+"x"
+],
+"Khanate of Kokand": [
+"코칸트 칸국",
+"x"
+],
+"Khanate of Sibir": [
+"시비르 칸국",
+"x"
+],
+"Khanates of the Caucasus": [
+"캅카스 칸국들",
+"x"
+],
+"Kharijites": [
+"하와리즈파",
+"t"
+],
+"Khazaria": [
+"하자르 칸국",
+"x"
+],
+"Khedivate of Egypt": [
+"이집트 케디브국",
+"x"
+],
+"Khmer Empire": [
+"앙코르 왕조",
+"t"
+],
+"Khmer Rouge": [
+"크메르 루주",
+"t"
+],
+"Khoshut Khanate": [
+"호쇼트 칸국",
+"x"
+],
+"Khwarezmid Dynasty": [
+"호라즘 왕조(초기)",
+"x"
+],
+"Khwarezmid Empire": [
+"호라즘 왕조",
+"t"
+],
+"Kidarites": [
+"키다라 왕조",
+"x"
+],
+"Kievan Rus'": [
+"키예프 공국",
+"t"
+],
+"Kimek-Kipchak confederation": [
+"키메크·킵차크 연맹",
+"x"
+],
+"Kingdom of Adiabene": [
+"아디아베네 왕국",
+"x"
+],
+"Kingdom of Afghanistan": [
+"아프가니스탄 왕국",
+"x"
+],
+"Kingdom of Africa": [
+"아프리카 왕국",
+"x"
+],
+"Kingdom of Alamannia": [
+"알라만니아 왕국",
+"x"
+],
+"Kingdom of Alba": [
+"알바 왕국",
+"x"
+],
+"Kingdom of Aragon": [
+"아라곤 왕국",
+"t"
+],
+"Kingdom of Arles": [
+"아를 왕국",
+"x"
+],
+"Kingdom of Armenia": [
+"아르메니아 왕국",
+"x"
+],
+"Kingdom of Asturias": [
+"아스투리아스 왕국",
+"x"
+],
+"Kingdom of Axum": [
+"악숨 왕국",
+"t"
+],
+"Kingdom of Bahrain": [
+"바레인",
+"t"
+],
+"Kingdom of Bavaria": [
+"바이에른 왕국",
+"x"
+],
+"Kingdom of Belgium": [
+"벨기에",
+"t"
+],
+"Kingdom of Bernicia": [
+"버니시아 왕국",
+"x"
+],
+"Kingdom of Bhutan": [
+"부탄",
+"t"
+],
+"Kingdom of Bithynia": [
+"비티니아 왕국",
+"x"
+],
+"Kingdom of Bohemia": [
+"보헤미아 왕국",
+"x"
+],
+"Kingdom of Bosnia": [
+"보스니아 왕국",
+"x"
+],
+"Kingdom of Brittany": [
+"브르타뉴 왕국",
+"x"
+],
+"Kingdom of Brycheiniog": [
+"브러헤이니오그 왕국",
+"x"
+],
+"Kingdom of Bulgaria": [
+"불가리아 왕국",
+"x"
+],
+"Kingdom of Bulungan": [
+"불룽안 왕국",
+"x"
+],
+"Kingdom of Cambodia": [
+"캄보디아",
+"t"
+],
+"Kingdom of Cappadocia": [
+"카파도키아 왕국",
+"x"
+],
+"Kingdom of Castile": [
+"카스티야 왕국",
+"t"
+],
+"Kingdom of Champasak": [
+"참파삭 왕국",
+"x"
+],
+"Kingdom of Commagene": [
+"콤마게네 왕국",
+"x"
+],
+"Kingdom of Croatia": [
+"크로아티아 왕국",
+"x"
+],
+"Kingdom of Cyprus": [
+"키프로스 왕국",
+"x"
+],
+"Kingdom of Dali": [
+"대리",
+"t"
+],
+"Kingdom of Dambadeniya": [
+"담바데니야 왕국",
+"x"
+],
+"Kingdom of Deira": [
+"데이라 왕국",
+"x"
+],
+"Kingdom of Denmark": [
+"덴마크 왕국",
+"x"
+],
+"Kingdom of Duklja": [
+"두클랴 왕국",
+"x"
+],
+"Kingdom of Dunoting": [
+"더노팅 왕국",
+"x"
+],
+"Kingdom of East Anglia": [
+"이스트앵글리아 왕국",
+"x"
+],
+"Kingdom of Egypt": [
+"이집트 왕국",
+"x"
+],
+"Kingdom of England": [
+"잉글랜드 왕국",
+"t"
+],
+"Kingdom of Essex": [
+"에식스 왕국",
+"x"
+],
+"Kingdom of Etruria": [
+"에트루리아 왕국",
+"x"
+],
+"Kingdom of Fiji": [
+"피지 왕국",
+"x"
+],
+"Kingdom of France": [
+"프랑스 왕국",
+"t"
+],
+"Kingdom of Galicia": [
+"갈리시아 왕국",
+"x"
+],
+"Kingdom of Georgia": [
+"조지아 왕국",
+"x"
+],
+"Kingdom of Germany": [
+"독일 왕국",
+"x"
+],
+"Kingdom of Gordyene": [
+"고르디에네 왕국",
+"x"
+],
+"Kingdom of Great Britain": [
+"영국",
+"t"
+],
+"Kingdom of Greece": [
+"그리스 왕국",
+"x"
+],
+"Kingdom of Gwent": [
+"그웬트 왕국",
+"x"
+],
+"Kingdom of Gwynedd": [
+"귀네드 왕국",
+"x"
+],
+"Kingdom of Hanover": [
+"하노버 왕국",
+"x"
+],
+"Kingdom of Hawaï'i": [
+"하와이 왕국",
+"x"
+],
+"Kingdom of Hejaz": [
+"헤자즈 왕국",
+"x"
+],
+"Kingdom of Hejaz and Nejd": [
+"헤자즈·네지드 왕국",
+"x"
+],
+"Kingdom of Hungary": [
+"헝가리 왕국",
+"t"
+],
+"Kingdom of Iceland": [
+"아이슬란드 왕국",
+"x"
+],
+"Kingdom of Imereti": [
+"이메레티 왕국",
+"x"
+],
+"Kingdom of Iraq": [
+"이라크 왕국",
+"x"
+],
+"Kingdom of Israel": [
+"이스라엘 왕국",
+"t"
+],
+"Kingdom of Italy": [
+"이탈리아 왕국",
+"t"
+],
+"Kingdom of Janggala": [
+"장갈라 왕국",
+"x"
+],
+"Kingdom of Jerusalem": [
+"예루살렘 왕국",
+"t"
+],
+"Kingdom of Jordan": [
+"요르단",
+"t"
+],
+"Kingdom of Judah": [
+"유다 왕국",
+"t"
+],
+"Kingdom of Kakheti": [
+"카헤티 왕국",
+"x"
+],
+"Kingdom of Kartli": [
+"카르틀리 왕국",
+"x"
+],
+"Kingdom of Kent": [
+"켄트 왕국",
+"x"
+],
+"Kingdom of Khotan": [
+"호탄 왕국",
+"x"
+],
+"Kingdom of Kongo": [
+"콩고 왕국",
+"x"
+],
+"Kingdom of Kush": [
+"쿠시 왕국",
+"t"
+],
+"Kingdom of Laos": [
+"라오스 왕국",
+"x"
+],
+"Kingdom of Lazica": [
+"라지카 왕국(후기)",
+"x"
+],
+"Kingdom of León": [
+"레온 왕국",
+"x"
+],
+"Kingdom of Libya": [
+"리비아 왕국",
+"x"
+],
+"Kingdom of Lindsey": [
+"린지 왕국",
+"x"
+],
+"Kingdom of Lithuania": [
+"리투아니아 왕국",
+"x"
+],
+"Kingdom of Lower Burgundy": [
+"하부르군트 왕국",
+"x"
+],
+"Kingdom of Luang Phrabang": [
+"루앙프라방 왕국",
+"x"
+],
+"Kingdom of Lunda": [
+"룬다 왕국",
+"x"
+],
+"Kingdom of Lysimachus": [
+"리시마코스 왕국",
+"x"
+],
+"Kingdom of Majorca": [
+"마요르카 왕국",
+"x"
+],
+"Kingdom of Mann": [
+"맨 왕국",
+"x"
+],
+"Kingdom of Mercia": [
+"머시아 왕국",
+"x"
+],
+"Kingdom of Monaco": [
+"모나코 왕국",
+"x"
+],
+"Kingdom of Morgannwg": [
+"모르가누그 왕국",
+"x"
+],
+"Kingdom of Mrauk U": [
+"므라우우 왕국",
+"x"
+],
+"Kingdom of Mysore": [
+"마이소르 왕국",
+"x"
+],
+"Kingdom of Naples": [
+"나폴리 왕국",
+"x"
+],
+"Kingdom of Naples (Napoleonic)": [
+"나폴리 왕국(나폴레옹 시대)",
+"x"
+],
+"Kingdom of Navarre": [
+"나바라 왕국",
+"x"
+],
+"Kingdom of Neustria": [
+"네우스트리아 왕국",
+"x"
+],
+"Kingdom of Northumbria": [
+"노섬브리아 왕국",
+"x"
+],
+"Kingdom of Norway": [
+"노르웨이",
+"t"
+],
+"Kingdom of Numidia": [
+"누미디아 왕국",
+"x"
+],
+"Kingdom of Osroene": [
+"오스로에네 왕국",
+"x"
+],
+"Kingdom of Pajana": [
+"파장 왕국",
+"x"
+],
+"Kingdom of Pamplona": [
+"팜플로나 왕국",
+"x"
+],
+"Kingdom of Pergamon": [
+"페르가몬 왕국",
+"x"
+],
+"Kingdom of Pinya": [
+"핀야 왕국",
+"x"
+],
+"Kingdom of Poland": [
+"폴란드 왕국",
+"t"
+],
+"Kingdom of Polonnaruwa": [
+"폴론나루와 왕국",
+"x"
+],
+"Kingdom of Pontus": [
+"폰투스 왕국",
+"x"
+],
+"Kingdom of Portugal": [
+"포르투갈 왕국",
+"x"
+],
+"Kingdom of Powys": [
+"포이스 왕국",
+"x"
+],
+"Kingdom of Powys Fadog": [
+"포이스 바도그 왕국",
+"x"
+],
+"Kingdom of Powys Wenwynwyn": [
+"포이스 웬윈윈 왕국",
+"x"
+],
+"Kingdom of Prussia": [
+"프로이센 왕국",
+"t"
+],
+"Kingdom of Rheged": [
+"레게드 왕국",
+"x"
+],
+"Kingdom of Romania": [
+"루마니아 왕국",
+"x"
+],
+"Kingdom of Sarawak": [
+"사라왁 왕국",
+"x"
+],
+"Kingdom of Sardinia": [
+"사르데냐 왕국",
+"t"
+],
+"Kingdom of Saudi Arabia": [
+"사우디아라비아",
+"t"
+],
+"Kingdom of Saxony": [
+"작센 왕국",
+"x"
+],
+"Kingdom of Scotland": [
+"스코틀랜드 왕국",
+"t"
+],
+"Kingdom of Seisyllwg": [
+"세이실루그 왕국",
+"x"
+],
+"Kingdom of Serbia": [
+"세르비아 왕국",
+"x"
+],
+"Kingdom of Sicily": [
+"시칠리아 왕국",
+"x"
+],
+"Kingdom of Singapura": [
+"싱가푸라 왕국",
+"x"
+],
+"Kingdom of Sobrarbe": [
+"소브라르베 왕국",
+"x"
+],
+"Kingdom of Soissons": [
+"수아송 왕국",
+"x"
+],
+"Kingdom of Sophene": [
+"소페네 왕국",
+"x"
+],
+"Kingdom of Spain": [
+"에스파냐",
+"t"
+],
+"Kingdom of Sussex": [
+"서식스 왕국",
+"x"
+],
+"Kingdom of Sweden": [
+"스웨덴",
+"t"
+],
+"Kingdom of Syrmia": [
+"시르미아 왕국",
+"x"
+],
+"Kingdom of Thailand": [
+"태국",
+"t"
+],
+"Kingdom of Thessalonica": [
+"테살로니카 왕국",
+"x"
+],
+"Kingdom of Thuringia": [
+"튀링겐 왕국",
+"x"
+],
+"Kingdom of Urartu": [
+"우라르투 왕국",
+"x"
+],
+"Kingdom of Vaspurakan": [
+"바스푸라칸 왕국",
+"x"
+],
+"Kingdom of Wessex": [
+"웨식스 왕국",
+"x"
+],
+"Kingdom of Westphalia": [
+"베스트팔렌 왕국",
+"x"
+],
+"Kingdom of Württemberg": [
+"뷔르템베르크 왕국",
+"x"
+],
+"Kingdom of the Franks": [
+"프랑크 왕국",
+"t"
+],
+"Kingdom of the Gepids": [
+"게피드 왕국",
+"x"
+],
+"Kingdom of the Iberians": [
+"타오클라르제티 왕국",
+"x"
+],
+"Kingdom of the Isles": [
+"제도 왕국",
+"x"
+],
+"Kingdom of the Suebi": [
+"수에비 왕국",
+"x"
+],
+"Kingdom of the Two Sicilies": [
+"양시칠리아 왕국",
+"t"
+],
+"Konbaung Dynasty": [
+"꼰바웅 왕조",
+"t"
+],
+"Korean Empire": [
+"대한 제국",
+"t"
+],
+"Korean Jin": [
+"진국",
+"t"
+],
+"Kosovo": [
+"코소보",
+"t"
+],
+"Kuomintang": [
+"중국 국민당",
+"t"
+],
+"Kushan Empire": [
+"쿠샨 왕조",
+"t"
+],
+"Kutai Kingdom": [
+"쿠타이 왕국",
+"x"
+],
+"Kuwait": [
+"쿠웨이트",
+"t"
+],
+"Kyrgyzstan": [
+"키르기스스탄",
+"t"
+],
+"Lakhmid Kingdom": [
+"라흠 왕국",
+"x"
+],
+"Lan Na": [
+"란나",
+"x"
+],
+"Lan Na Kingdom": [
+"란나 왕국",
+"x"
+],
+"Lan Xang": [
+"란쌍 왕국",
+"x"
+],
+"Land Chenla": [
+"육진랍",
+"x"
+],
+"Laomedon": [
+"라오메돈",
+"x"
+],
+"Late Pallava Empire": [
+"팔라바 왕조",
+"x"
+],
+"Later Han": [
+"후한(오대)",
+"t"
+],
+"Later Jin": [
+"후진",
+"t"
+],
+"Later Jin Dynasty": [
+"후금",
+"t"
+],
+"Later Liang": [
+"후량(後涼)",
+"x"
+],
+"Later Liang Dynasty": [
+"후량",
+"t"
+],
+"Later Mayan City-States": [
+"후기 마야 도시 국가",
+"x"
+],
+"Later Qin": [
+"후진(後秦)",
+"x"
+],
+"Later Shu": [
+"후촉",
+"x"
+],
+"Later Tang": [
+"후당",
+"t"
+],
+"Later Western Liang": [
+"서량(西梁)",
+"x"
+],
+"Later Yan": [
+"후연",
+"x"
+],
+"Later Zhao": [
+"후조",
+"x"
+],
+"Later Zhou": [
+"후주",
+"t"
+],
+"Latin Empire": [
+"라틴 제국",
+"t"
+],
+"Lavo Kingdom": [
+"라보 왕국",
+"x"
+],
+"Lazica": [
+"라지카 왕국",
+"x"
+],
+"Lebanon": [
+"레바논",
+"t"
+],
+"Lesotho": [
+"레소토",
+"t"
+],
+"Li Zicheng": [
+"이자성",
+"t"
+],
+"Liang Dynasty": [
+"양",
+"t"
+],
+"Liao Dynasty": [
+"요",
+"t"
+],
+"Liaodong": [
+"요동",
+"x"
+],
+"Libyan Arab Republic": [
+"리비아 아랍 공화국",
+"x"
+],
+"Ligurian Republic": [
+"리구리아 공화국",
+"x"
+],
+"Linjiang": [
+"임강",
+"x"
+],
+"Liu Song Dynasty": [
+"송(남조)",
+"t"
+],
+"Livonian Brothers of the Sword": [
+"리보니아 검의 형제 기사단",
+"x"
+],
+"Livonian Conference": [
+"리보니아 연맹",
+"x"
+],
+"Lodi Dynasty": [
+"로디 왕조",
+"x"
+],
+"Lohara Dynasty": [
+"로하라 왕조",
+"x"
+],
+"Lombards": [
+"롬바르드족",
+"t"
+],
+"Los Altos": [
+"로스알토스 공화국",
+"x"
+],
+"Lower Burgundy": [
+"하부르고뉴 왕국",
+"x"
+],
+"Lower Egypt": [
+"하이집트",
+"x"
+],
+"Lu": [
+"노",
+"t"
+],
+"Luxembourg": [
+"룩셈부르크",
+"x"
+],
+"Lydia": [
+"리디아",
+"t"
+],
+"Lê Dynasty": [
+"레 왕조",
+"t"
+],
+"Macedonian Empire": [
+"마케도니아 왕국",
+"t"
+],
+"Madagascar": [
+"마다가스카르",
+"t"
+],
+"Maderistas": [
+"마데로파",
+"x"
+],
+"Magadha - Haryanka dynasty": [
+"하리얀카 왕조",
+"x"
+],
+"Magadha - Shaishunaga dynasty": [
+"시슈나가 왕조",
+"x"
+],
+"Magna Frisia": [
+"프리슬란트 왕국",
+"x"
+],
+"Magyars": [
+"마자르족",
+"t"
+],
+"Mahajanapadas": [
+"십육대국",
+"x"
+],
+"Mahameghavahana Dynasty": [
+"마하메가바하나 왕조",
+"x"
+],
+"Mahan": [
+"마한",
+"t"
+],
+"Mahdids": [
+"마흐디 왕조",
+"x"
+],
+"Mahdist State": [
+"마흐디국",
+"x"
+],
+"Maitraka Dynasty": [
+"마이트라카 왕조",
+"x"
+],
+"Majapahit": [
+"마자파힛 왕국",
+"t"
+],
+"Majeerteen Sultanate": [
+"마지르틴 술탄국",
+"x"
+],
+"Makuria": [
+"마쿠리아 왕국",
+"x"
+],
+"Makuria Kingdom": [
+"마쿠리아 왕국(후기)",
+"x"
+],
+"Malawi": [
+"말라위",
+"t"
+],
+"Malaya": [
+"말라야",
+"x"
+],
+"Malaysia": [
+"말레이시아",
+"t"
+],
+"Mali Empire": [
+"말리 왕국",
+"t"
+],
+"Mali Federation": [
+"말리",
+"x"
+],
+"Malta": [
+"몰타",
+"t"
+],
+"Mamertines": [
+"마메르티니",
+"x"
+],
+"Mamluk Dynasty": [
+"노예 왕조",
+"t"
+],
+"Mamluk Sultanate": [
+"맘루크 왕조",
+"t"
+],
+"Maratha Empire": [
+"마라타 왕국",
+"t"
+],
+"Margraviate of Brandenburg": [
+"브란덴부르크 변경백국",
+"x"
+],
+"Margraviate of Moravia": [
+"모라바 변경백국",
+"x"
+],
+"Marinid Sultanate": [
+"마린 왕조",
+"x"
+],
+"Massina Empire": [
+"마시나 제국",
+"x"
+],
+"Mataram Kingdom": [
+"마타람 왕국",
+"x"
+],
+"Mataram Sultanate": [
+"마타람 술탄국",
+"x"
+],
+"Maukhari Dynasty": [
+"마우카리 왕조",
+"x"
+],
+"Mauretania": [
+"마우레타니아 왕국",
+"x"
+],
+"Mauritania": [
+"모리타니",
+"x"
+],
+"Mauritius": [
+"모리셔스",
+"t"
+],
+"Maurya Empire": [
+"마우리아 왕조",
+"t"
+],
+"Mayan City-States": [
+"마야 도시 국가",
+"t"
+],
+"Maynila": [
+"마이닐라 왕국",
+"x"
+],
+"Median Kingdom": [
+"메디아 왕국",
+"t"
+],
+"Merina Kingdom": [
+"메리나 왕국",
+"x"
+],
+"Merovingian Empire": [
+"메로베우스 왕조",
+"t"
+],
+"Mexican Monarchists": [
+"멕시코 왕당파",
+"x"
+],
+"Mexicans": [
+"멕시코 독립군",
+"x"
+],
+"Mexico": [
+"멕시코",
+"t"
+],
+"Michoacán": [
+"타라스코 왕국",
+"x"
+],
+"Micronesia": [
+"미크로네시아",
+"t"
+],
+"Middle Franks": [
+"중프랑크 왕국",
+"t"
+],
+"Middle Kingdom of Egypt": [
+"이집트 중왕국",
+"t"
+],
+"Min": [
+"민",
+"x"
+],
+"Minaeans": [
+"마인 왕국",
+"x"
+],
+"Ming Dynasty": [
+"명",
+"t"
+],
+"Minoan civilization": [
+"크레타 문명",
+"t"
+],
+"Minyue": [
+"민월",
+"x"
+],
+"Mitanni": [
+"미탄니",
+"x"
+],
+"Moghulistan": [
+"모굴리스탄",
+"x"
+],
+"Molossians": [
+"몰로소이족",
+"x"
+],
+"Mongol Empire": [
+"몽골 제국",
+"t"
+],
+"Mongol Khanate": [
+"타타르",
+"t"
+],
+"Mongolia": [
+"몽골",
+"t"
+],
+"Mongolian People's Republic": [
+"몽골 인민 공화국",
+"t"
+],
+"Montenegro": [
+"몬테네그로",
+"t"
+],
+"Morocco": [
+"모로코",
+"t"
+],
+"Mosquito Kingdom": [
+"모스키토 왕국",
+"x"
+],
+"Mozambique": [
+"모잠비크",
+"t"
+],
+"Mughal Empire": [
+"무굴 제국",
+"t"
+],
+"Muhammad Ali dynasty": [
+"무함마드 알리 왕조",
+"t"
+],
+"Mujahideen": [
+"무자헤딘",
+"x"
+],
+"Muzaffarids": [
+"무자파르 왕조",
+"x"
+],
+"Mycenaean Greece": [
+"미케네 문명",
+"t"
+],
+"Myinsaing Kingdom": [
+"민사잉 왕국",
+"x"
+],
+"Nabataeans": [
+"나바테아 왕국",
+"x"
+],
+"Nabhani Dynasty": [
+"나브한 왕조",
+"x"
+],
+"Najahid Dynasty": [
+"나자흐 왕조",
+"x"
+],
+"Nalyvaiko Uprising": [
+"날리바이코 봉기",
+"x"
+],
+"Namayan": [
+"나마얀",
+"x"
+],
+"Namibia": [
+"나미비아",
+"t"
+],
+"Nanda Empire": [
+"난다 왕조",
+"x"
+],
+"Nanyue": [
+"남월",
+"t"
+],
+"Nanzan": [
+"난잔",
+"x"
+],
+"Nanzhao": [
+"남조",
+"t"
+],
+"Napoleonic Batavia Republic": [
+"바타비아 공화국(케이프)",
+"x"
+],
+"Nara Japan": [
+"나라 시대",
+"t"
+],
+"Natalia Republic": [
+"나탈리아 공화국",
+"x"
+],
+"Nawab of Awadh": [
+"아와드 태수국",
+"x"
+],
+"Nawabs of Bengal": [
+"벵골 태수국",
+"t"
+],
+"Nayaks of Madurai": [
+"마두라이 나야크 왕조",
+"x"
+],
+"Nayaks of Thanjavur": [
+"탄자부르 나야크 왕조",
+"x"
+],
+"Nazi Germany": [
+"나치 독일",
+"t"
+],
+"Negeri Sembilan": [
+"느그리슴빌란",
+"x"
+],
+"Negroponte": [
+"네그로폰테",
+"x"
+],
+"Neo-Assyrian Empire": [
+"신아시리아",
+"x"
+],
+"Neo-Babylonian Empire": [
+"신바빌로니아",
+"t"
+],
+"Neo-Hittite states": [
+"신히타이트",
+"x"
+],
+"Nepal": [
+"네팔",
+"t"
+],
+"Netherlands": [
+"네덜란드",
+"t"
+],
+"Netherlands Antilles": [
+"네덜란드령 안틸레스",
+"x"
+],
+"New Caledonia": [
+"누벨칼레도니",
+"x"
+],
+"New France": [
+"누벨프랑스",
+"x"
+],
+"New Granada": [
+"누에바그라나다",
+"x"
+],
+"New Hebrides": [
+"뉴헤브리디스",
+"x"
+],
+"New Kingdom of Egypt": [
+"이집트 신왕국",
+"t"
+],
+"New Netherland": [
+"뉴네덜란드",
+"x"
+],
+"New Sweden": [
+"뉴스웨덴",
+"x"
+],
+"New Zealand": [
+"뉴질랜드",
+"t"
+],
+"Nguyễn dynasty": [
+"응우옌 왕조",
+"t"
+],
+"Nguyễn lords": [
+"응우옌씨 정권",
+"x"
+],
+"Ngô Dynasty": [
+"응오 왕조",
+"x"
+],
+"Nicaean Empire": [
+"니케아 제국",
+"x"
+],
+"Nieuwe Republiek": [
+"신공화국",
+"x"
+],
+"Nitra": [
+"니트라",
+"x"
+],
+"Nizhny Novgorod": [
+"니즈니노브고로드 공국",
+"x"
+],
+"Nobatia": [
+"노바티아 왕국",
+"x"
+],
+"Nogai Horde": [
+"노가이 칸국",
+"x"
+],
+"Norman England": [
+"노르만 왕조",
+"t"
+],
+"Norman Italy": [
+"노르만 이탈리아",
+"x"
+],
+"Norse": [
+"노르드인",
+"x"
+],
+"Norse Greenland": [
+"노르드인 그린란드",
+"x"
+],
+"North German Confederation": [
+"북독일 연방",
+"t"
+],
+"North Sea Empire": [
+"북해 제국",
+"x"
+],
+"North Yemen": [
+"북예멘",
+"t"
+],
+"Northern Fujiwara": [
+"오슈 후지와라씨",
+"x"
+],
+"Northern Han": [
+"북한(北漢)",
+"x"
+],
+"Northern Liang": [
+"북량",
+"x"
+],
+"Northern Qi": [
+"북제",
+"t"
+],
+"Northern Song": [
+"북송",
+"t"
+],
+"Northern Wei": [
+"북위",
+"t"
+],
+"Northern Yan": [
+"북연",
+"x"
+],
+"Northern Yuan": [
+"북원",
+"t"
+],
+"Northern Zhou": [
+"북주",
+"t"
+],
+"Norway-Denmark": [
+"노르웨이·덴마크",
+"x"
+],
+"Novgorod Republic": [
+"노브고로드 공화국",
+"x"
+],
+"Obotrites": [
+"오보트리트족",
+"x"
+],
+"Odrysian Kingdom": [
+"오드리사이 왕국",
+"x"
+],
+"Oghuz Turks": [
+"오구즈족",
+"x"
+],
+"Oirat Confederation": [
+"오이라트 연합",
+"x"
+],
+"Old Great Bulgaria": [
+"대불가리아",
+"x"
+],
+"Old Kingdom of Egypt": [
+"이집트 고왕국",
+"t"
+],
+"Old Kingdom of Norway": [
+"노르웨이 왕국",
+"x"
+],
+"Olmec Civilization": [
+"올메카 문명",
+"t"
+],
+"Omani Slave Coast": [
+"오만령 동아프리카",
+"x"
+],
+"Oriental Republic of Uruguay": [
+"우루과이",
+"x"
+],
+"Ostrogothic Kingdom": [
+"동고트 왕국",
+"t"
+],
+"Ostrogoths": [
+"동고트족",
+"t"
+],
+"Ottoman Empire": [
+"오스만 제국",
+"t"
+],
+"Ottoman Tripolitania": [
+"오스만령 트리폴리타니아",
+"x"
+],
+"Oyo Empire": [
+"오요 제국",
+"x"
+],
+"Pagan Kingdom": [
+"파간 왕조",
+"t"
+],
+"Pahang Sultanate": [
+"파항 술탄국",
+"x"
+],
+"Pahlavi Dynasty": [
+"팔레비 왕조",
+"t"
+],
+"Pala Empire": [
+"팔라 왕조",
+"x"
+],
+"Palau": [
+"팔라우",
+"t"
+],
+"Palestinians": [
+"팔레스타인",
+"t"
+],
+"Palmyrene Empire": [
+"팔미라 제국",
+"x"
+],
+"Pandya Dynasty": [
+"판디아 왕조",
+"x"
+],
+"Pandya Empire": [
+"판디아 왕조(후기)",
+"x"
+],
+"Panthay Rebellion": [
+"두문수 정권",
+"x"
+],
+"Papal States": [
+"교황령",
+"t"
+],
+"Paphlagonia": [
+"파플라고니아",
+"x"
+],
+"Papua New Guinea": [
+"파푸아뉴기니",
+"t"
+],
+"Paraguay": [
+"파라과이",
+"t"
+],
+"Paramara Dynasty": [
+"파라마라 왕조",
+"x"
+],
+"Parthian Empire": [
+"파르티아",
+"t"
+],
+"Patani Kingdom": [
+"파타니 왕국",
+"x"
+],
+"Patriarchate of Aquileia": [
+"아퀼레이아 총대주교령",
+"x"
+],
+"Peloponnesian League": [
+"펠로폰네소스 동맹",
+"t"
+],
+"People's Democratic Republic of Algeria": [
+"알제리",
+"t"
+],
+"People's Democratic Republic of Yemen": [
+"남예멘",
+"x"
+],
+"People's Republic of Angola": [
+"앙골라",
+"t"
+],
+"People's Republic of Bangladesh": [
+"방글라데시",
+"t"
+],
+"People's Republic of Bulgaria": [
+"불가리아 인민 공화국",
+"x"
+],
+"People's Republic of China": [
+"중화 인민 공화국",
+"t"
+],
+"People's Republic of Kampuchea": [
+"캄푸치아 인민 공화국",
+"x"
+],
+"People's Republic of Zanzibar": [
+"잔지바르 인민 공화국",
+"x"
+],
+"People's Socialist Republic of Albania": [
+"알바니아 인민 사회주의 공화국",
+"x"
+],
+"Perdiccas": [
+"페르디카스",
+"x"
+],
+"Peru-Bolivian Confederation": [
+"페루·볼리비아 연합",
+"x"
+],
+"Phayao Kingdom": [
+"파야오 왕국",
+"x"
+],
+"Philistia": [
+"필리스티아",
+"x"
+],
+"Phoenicia": [
+"페니키아",
+"t"
+],
+"Phoenician Colonies": [
+"페니키아 식민지",
+"t"
+],
+"Phrygia": [
+"프리기아",
+"x"
+],
+"Poles": [
+"폴란드인",
+"x"
+],
+"Polish Armed Forces": [
+"폴란드군",
+"x"
+],
+"Polish-Lithuanian Commonwealth": [
+"폴란드·리투아니아 연방",
+"x"
+],
+"Polyperchon": [
+"폴리페르콘",
+"x"
+],
+"Pomerania": [
+"포메라니아 공국",
+"x"
+],
+"Pontianak Kadriyah Sultanate": [
+"폰티아낙 술탄국",
+"x"
+],
+"Portugal": [
+"포르투갈",
+"t"
+],
+"Portuguese Africa": [
+"포르투갈령 아프리카",
+"x"
+],
+"Portuguese Ceylon": [
+"포르투갈령 실론",
+"x"
+],
+"Portuguese Colonies": [
+"포르투갈 식민지",
+"x"
+],
+"Portuguese Empire": [
+"포르투갈 제국",
+"x"
+],
+"Portuguese Republic": [
+"포르투갈 제1공화국",
+"x"
+],
+"Principality of Abkhazia": [
+"아브하지야 공국",
+"x"
+],
+"Principality of Achaea": [
+"아카이아 공국",
+"x"
+],
+"Principality of Andorra": [
+"안도라",
+"x"
+],
+"Principality of Antioch": [
+"안티오키아 공국",
+"x"
+],
+"Principality of Beloozero": [
+"벨로오제로 공국",
+"x"
+],
+"Principality of Bulgaria": [
+"불가리아 공국",
+"x"
+],
+"Principality of Capua": [
+"카푸아 공국",
+"x"
+],
+"Principality of Chernigov": [
+"체르니고프 공국",
+"x"
+],
+"Principality of Drutsk": [
+"드루츠크 공국",
+"x"
+],
+"Principality of Galicia-Volhynia": [
+"갈리치아·볼히니아 공국",
+"x"
+],
+"Principality of Guria": [
+"구리아 공국",
+"x"
+],
+"Principality of Halych": [
+"할리치 공국",
+"x"
+],
+"Principality of Hohenzollern-Sigmaringen": [
+"호엔촐레른지크마링겐 공국",
+"x"
+],
+"Principality of Hungary": [
+"헝가리 대공국",
+"x"
+],
+"Principality of Iberia": [
+"이베리아 공국",
+"x"
+],
+"Principality of Jersika": [
+"예르시카 공국",
+"x"
+],
+"Principality of Kiev": [
+"키예프 공국(분열기)",
+"t"
+],
+"Principality of Koknese": [
+"코크네세 공국",
+"x"
+],
+"Principality of Lichtenberg": [
+"리히텐베르크 공국",
+"x"
+],
+"Principality of Liechtenstein": [
+"리히텐슈타인 공국",
+"x"
+],
+"Principality of Lippe": [
+"리페 공국",
+"x"
+],
+"Principality of Mingrelia": [
+"밍그렐리아 공국",
+"x"
+],
+"Principality of Minsk": [
+"민스크 공국",
+"x"
+],
+"Principality of Moldavia": [
+"몰다비아 공국",
+"x"
+],
+"Principality of Monaco": [
+"모나코",
+"x"
+],
+"Principality of Nitra": [
+"니트라 공국",
+"x"
+],
+"Principality of Orange": [
+"오랑주 공국",
+"x"
+],
+"Principality of Peremyshl": [
+"페레미실 공국",
+"x"
+],
+"Principality of Pereyaslavl": [
+"페레야슬라블 공국",
+"x"
+],
+"Principality of Pinsk": [
+"핀스크 공국",
+"x"
+],
+"Principality of Polotsky": [
+"폴로츠크 공국",
+"x"
+],
+"Principality of Regensberg": [
+"레겐스부르크 공국",
+"x"
+],
+"Principality of Reuss-Gera": [
+"로이스게라 공국",
+"x"
+],
+"Principality of Rostov-Suzdal": [
+"로스토프·수즈달 공국",
+"x"
+],
+"Principality of Ryazan": [
+"랴잔 공국",
+"x"
+],
+"Principality of Salerno": [
+"살레르노 공국",
+"x"
+],
+"Principality of Schwarzburg-Sonderhausen": [
+"슈바르츠부르크존더스하우젠 공국",
+"x"
+],
+"Principality of Serbia": [
+"세르비아 공국",
+"x"
+],
+"Principality of Smolensk": [
+"스몰렌스크 공국",
+"x"
+],
+"Principality of Svaneti": [
+"스바네티 공국",
+"x"
+],
+"Principality of Terebovlia": [
+"테레보블랴 공국",
+"x"
+],
+"Principality of Theodoro": [
+"테오도로 공국",
+"x"
+],
+"Principality of Transylvania": [
+"트란실바니아 공국",
+"x"
+],
+"Principality of Turov": [
+"투로프 공국",
+"x"
+],
+"Principality of Turov and Pinsk": [
+"투로프 핀스크 공국",
+"x"
+],
+"Principality of Upper Hungary": [
+"상헝가리 공국",
+"x"
+],
+"Principality of Valona": [
+"발로나 공국",
+"x"
+],
+"Principality of Valona and Kanina": [
+"발로나 카니나 공국",
+"x"
+],
+"Principality of Vitebsk": [
+"비텝스크 공국",
+"x"
+],
+"Principality of Vladimir-Suzdal": [
+"블라디미르·수즈달 공국",
+"x"
+],
+"Principality of Volhynia": [
+"볼히니아 공국",
+"x"
+],
+"Principality of Waldeck and Pyrmont": [
+"발데크피르몬트 공국",
+"x"
+],
+"Principality of Wallachia": [
+"왈라키아 공국",
+"x"
+],
+"Pro-Habsburg Spain": [
+"에스파냐 합스부르크파",
+"x"
+],
+"Pro-Swedish Poland": [
+"친스웨덴 폴란드",
+"x"
+],
+"Prome Kingdom": [
+"프롬 왕국",
+"x"
+],
+"Protectorate of the Western Regions": [
+"서역 도호부",
+"t"
+],
+"Provisional Priamurye Government": [
+"프리아무르 임시 정부",
+"x"
+],
+"Pskov Republic": [
+"프스코프 공화국",
+"x"
+],
+"Ptolemaic Kingdom": [
+"프톨레마이오스 왕조",
+"t"
+],
+"Puebloans - Aztec Regional System": [
+"푸에블로(애즈텍 권역)",
+"x"
+],
+"Puebloans - Chaco Regional System": [
+"푸에블로(차코 권역)",
+"x"
+],
+"Pyu City-States": [
+"쀼 도시 국가",
+"x"
+],
+"Qajar Dynasty": [
+"카자르 왕조",
+"t"
+],
+"Qara Qoyunlu": [
+"카라코윤루",
+"x"
+],
+"Qarlugs": [
+"카를루크",
+"t"
+],
+"Qarmatians": [
+"카르마트파",
+"x"
+],
+"Qasim Khanate": [
+"카심 칸국",
+"x"
+],
+"Qasimids": [
+"카심 왕조",
+"x"
+],
+"Qataban": [
+"카타반 왕국",
+"x"
+],
+"Qatar": [
+"카타르 토후국",
+"x"
+],
+"Qatar Dynasty": [
+"알사니 왕조",
+"x"
+],
+"Qatar Protectorate": [
+"카타르 보호령",
+"x"
+],
+"Qi": [
+"제",
+"t"
+],
+"Qi Kingdom": [
+"기",
+"x"
+],
+"Qin": [
+"진(전국)",
+"t"
+],
+"Qin Dynasty": [
+"진(秦)",
+"t"
+],
+"Qing Dynasty": [
+"청",
+"t"
+],
+"Qocho Kingdom": [
+"고창 위구르 왕국",
+"x"
+],
+"Rajahnate of Cebu": [
+"세부 왕국",
+"x"
+],
+"Ramadanid Emirate": [
+"라마잔 토후국",
+"x"
+],
+"Rashidun Caliphate": [
+"정통 칼리프 시대",
+"t"
+],
+"Rashtrakuta Dynasty": [
+"라슈트라쿠타 왕조",
+"x"
+],
+"Rasulid Dynasty": [
+"라술 왕조",
+"x"
+],
+"Rattanakosin Kingdom": [
+"짜끄리 왕조",
+"t"
+],
+"Regency of Algiers": [
+"알제 섭정령",
+"x"
+],
+"Republic of Afghanistan": [
+"아프가니스탄 공화국",
+"x"
+],
+"Republic of Albania": [
+"알바니아",
+"t"
+],
+"Republic of Amalfi": [
+"아말피 공화국",
+"x"
+],
+"Republic of Armenia": [
+"아르메니아",
+"t"
+],
+"Republic of Austria": [
+"오스트리아 제1공화국",
+"x"
+],
+"Republic of Azerbaijan": [
+"아제르바이잔",
+"t"
+],
+"Republic of Baden": [
+"바덴 공화국",
+"x"
+],
+"Republic of Baja California": [
+"바하칼리포르니아 공화국",
+"x"
+],
+"Republic of Belarus": [
+"벨라루스",
+"t"
+],
+"Republic of Benin": [
+"베냉",
+"x"
+],
+"Republic of Botswana": [
+"보츠와나",
+"t"
+],
+"Republic of Brazil": [
+"브라질",
+"t"
+],
+"Republic of Bulgaria": [
+"불가리아",
+"t"
+],
+"Republic of Burundi": [
+"부룬디",
+"t"
+],
+"Republic of Cabo Verde": [
+"카보베르데",
+"x"
+],
+"Republic of Cameroon": [
+"카메룬",
+"t"
+],
+"Republic of Chad": [
+"차드",
+"t"
+],
+"Republic of Chile": [
+"칠레",
+"t"
+],
+"Republic of China": [
+"중화민국",
+"t"
+],
+"Republic of Colombia": [
+"콜롬비아",
+"x"
+],
+"Republic of Costa Rica": [
+"코스타리카",
+"x"
+],
+"Republic of Croatia": [
+"크로아티아",
+"t"
+],
+"Republic of Cuba": [
+"쿠바 공화국",
+"x"
+],
+"Republic of Cyprus": [
+"키프로스",
+"t"
+],
+"Republic of Côte d'Ivoire": [
+"코트디부아르",
+"x"
+],
+"Republic of Djibouti": [
+"지부티",
+"t"
+],
+"Republic of Ecuador": [
+"에콰도르",
+"x"
+],
+"Republic of Egypt": [
+"이집트 공화국",
+"x"
+],
+"Republic of El Salvador": [
+"엘살바도르",
+"x"
+],
+"Republic of Estonia": [
+"에스토니아",
+"t"
+],
+"Republic of Fiji": [
+"피지",
+"t"
+],
+"Republic of Finland": [
+"핀란드",
+"t"
+],
+"Republic of Florence": [
+"피렌체 공화국",
+"t"
+],
+"Republic of Genoa": [
+"제노바 공화국",
+"t"
+],
+"Republic of Guinea-Bissau": [
+"기니비사우",
+"x"
+],
+"Republic of Haiti": [
+"아이티",
+"t"
+],
+"Republic of Hawai'i": [
+"하와이 공화국",
+"x"
+],
+"Republic of Iceland": [
+"아이슬란드",
+"x"
+],
+"Republic of India": [
+"인도",
+"t"
+],
+"Republic of Indonesia": [
+"인도네시아",
+"t"
+],
+"Republic of Iraq": [
+"이라크",
+"t"
+],
+"Republic of Italy": [
+"이탈리아",
+"t"
+],
+"Republic of Kenya": [
+"케냐",
+"t"
+],
+"Republic of Korea": [
+"대한민국",
+"t"
+],
+"Republic of Latvia": [
+"라트비아",
+"t"
+],
+"Republic of Liberia": [
+"라이베리아",
+"t"
+],
+"Republic of Lithuania": [
+"리투아니아",
+"t"
+],
+"Republic of Moldova": [
+"몰도바",
+"t"
+],
+"Republic of New Granada": [
+"누에바그라나다 공화국",
+"x"
+],
+"Republic of Nicaragua": [
+"니카라과",
+"x"
+],
+"Republic of Panama": [
+"파나마",
+"t"
+],
+"Republic of Peru": [
+"페루",
+"t"
+],
+"Republic of Pisa": [
+"피사 공화국",
+"x"
+],
+"Republic of Poland": [
+"폴란드",
+"t"
+],
+"Republic of Ragusa": [
+"라구사 공화국",
+"x"
+],
+"Republic of Rwanda": [
+"르완다",
+"t"
+],
+"Republic of San Marino": [
+"산마리노 공화국",
+"x"
+],
+"Republic of Senegal": [
+"세네갈",
+"x"
+],
+"Republic of Serbia": [
+"세르비아",
+"t"
+],
+"Republic of Singapore": [
+"싱가포르",
+"t"
+],
+"Republic of Slovenia": [
+"슬로베니아",
+"t"
+],
+"Republic of Sudan": [
+"수단",
+"t"
+],
+"Republic of Suriname": [
+"수리남",
+"x"
+],
+"Republic of Syria": [
+"시리아 아랍 공화국",
+"x"
+],
+"Republic of Tajikistan": [
+"타지키스탄",
+"t"
+],
+"Republic of Texas": [
+"텍사스 공화국",
+"x"
+],
+"Republic of The Gambia": [
+"감비아",
+"x"
+],
+"Republic of Trinidad and Tobago": [
+"트리니다드 토바고",
+"x"
+],
+"Republic of Tunisia": [
+"튀니지",
+"t"
+],
+"Republic of Turkey": [
+"튀르키예",
+"t"
+],
+"Republic of Uganda": [
+"우간다",
+"t"
+],
+"Republic of Uryankhay": [
+"우랑하이 공화국",
+"x"
+],
+"Republic of Uzbekistan": [
+"우즈베키스탄",
+"t"
+],
+"Republic of Venezuela": [
+"베네수엘라 제1공화국",
+"x"
+],
+"Republic of Venice": [
+"베네치아 공화국",
+"t"
+],
+"Republic of Vietnam": [
+"베트남 공화국",
+"t"
+],
+"Republic of Yemen": [
+"예멘",
+"t"
+],
+"Republic of Zimbabwe": [
+"짐바브웨",
+"t"
+],
+"Republic of the Congo": [
+"콩고 공화국",
+"t"
+],
+"Republic of the Niger": [
+"니제르",
+"x"
+],
+"Republic of the Philippines": [
+"필리핀",
+"t"
+],
+"Republic of the Rif": [
+"리프 공화국",
+"x"
+],
+"Republic of the Rio Grande": [
+"리오그란데 공화국",
+"x"
+],
+"Republics of the Soviet Union": [
+"소비에트 공화국",
+"x"
+],
+"Revolutionary Roman Republic": [
+"로마 공화국",
+"x"
+],
+"Rhodes": [
+"로도스",
+"t"
+],
+"Rhodesia": [
+"로디지아",
+"x"
+],
+"Riau-Lingga Sultanate": [
+"리아우·링가 술탄국",
+"x"
+],
+"Riograndense Republic": [
+"리우그란덴스 공화국",
+"x"
+],
+"Ripuarian Franks": [
+"리푸아리 프랑크족",
+"x"
+],
+"Roman Empire": [
+"로마 제국",
+"t"
+],
+"Roman Kingdom": [
+"로마 왕정",
+"t"
+],
+"Roman Republic": [
+"로마 공화정",
+"t"
+],
+"Romania": [
+"루마니아",
+"t"
+],
+"Rouran Khaganate": [
+"유연",
+"t"
+],
+"Rugiland": [
+"루기 왕국",
+"x"
+],
+"Rus'": [
+"루스",
+"t"
+],
+"Russian Empire": [
+"러시아 제국",
+"t"
+],
+"Russian Federation": [
+"러시아",
+"t"
+],
+"Russian Republic": [
+"러시아 공화국",
+"x"
+],
+"Russian-occupied territories": [
+"러시아 점령지",
+"x"
+],
+"Rustamid dynasty": [
+"루스탐 왕조",
+"x"
+],
+"Ryazan": [
+"랴잔 대공국",
+"x"
+],
+"Ryukyu Kingdom": [
+"류큐 왕국",
+"t"
+],
+"Río de la Plata": [
+"리오데라플라타 연합주",
+"x"
+],
+"Saadi Sultanate": [
+"사아드 왕조",
+"x"
+],
+"Sabaeans": [
+"사바 왕국",
+"x"
+],
+"Sacred Band of Thebes": [
+"테베 신성대",
+"x"
+],
+"Safavid Dynasty": [
+"사파비 왕조",
+"t"
+],
+"Saffarid Dynasty": [
+"사파르 왕조",
+"x"
+],
+"Sagaing Kingdom": [
+"사가잉 왕국",
+"x"
+],
+"Sai": [
+"새",
+"x"
+],
+"Saint Kitts": [
+"세인트키츠 네비스",
+"x"
+],
+"Saint Lucia": [
+"세인트루시아",
+"x"
+],
+"Saint Vincent": [
+"세인트빈센트 그레나딘",
+"x"
+],
+"Sajid Dynasty": [
+"사지 왕조",
+"x"
+],
+"Salian Franks": [
+"살리 프랑크족",
+"x"
+],
+"Samanid Empire": [
+"사만 왕조",
+"t"
+],
+"Samo's Empire": [
+"사모 왕국",
+"x"
+],
+"Samtskhe-Saatabago": [
+"삼츠헤사타바고",
+"x"
+],
+"Samudera Pasai Sultanate": [
+"사무드라파사이 술탄국",
+"x"
+],
+"Sarbadars": [
+"사르바다르",
+"x"
+],
+"Sasanian Empire": [
+"사산 왕조 페르시아",
+"t"
+],
+"Satavahana Dynasty": [
+"사타바하나 왕조",
+"t"
+],
+"Saxe-Altenburg": [
+"작센알텐부르크 공국",
+"x"
+],
+"Saxe-Coburg and Gotha": [
+"작센코부르크고타 공국",
+"x"
+],
+"Saxe-Meiningen": [
+"작센마이닝겐 공국",
+"x"
+],
+"Saxons": [
+"색슨족",
+"t"
+],
+"Sayyid Dynasty": [
+"사이이드 왕조",
+"x"
+],
+"Scandinavian minor kingdoms": [
+"스칸디나비아 소왕국",
+"x"
+],
+"Scythia": [
+"스키타이",
+"t"
+],
+"Second Athenian League": [
+"제2차 아테네 동맹",
+"x"
+],
+"Second Bulgarian Empire": [
+"불가리아 제2제국",
+"x"
+],
+"Second French Empire": [
+"프랑스 제2제국",
+"t"
+],
+"Second Mexican Empire": [
+"멕시코 제2제국",
+"x"
+],
+"Second Polish Republic": [
+"폴란드 제2공화국",
+"x"
+],
+"Second Republic of Austria": [
+"오스트리아",
+"t"
+],
+"Second Spanish Republic": [
+"에스파냐 제2공화국",
+"x"
+],
+"Second Syrian Republic": [
+"시리아 공화국",
+"x"
+],
+"Seleucid Empire": [
+"셀레우코스 왕조",
+"t"
+],
+"Seljuk Dynasty": [
+"셀주크 왕조",
+"x"
+],
+"Sena Dynasty": [
+"세나 왕조",
+"x"
+],
+"Septinsular Republic": [
+"에프타니소스 공화국",
+"x"
+],
+"Serbia": [
+"세르비아(1918)",
+"x"
+],
+"Serbia-Montenegro": [
+"세르비아 몬테네그로",
+"t"
+],
+"Serbian Despots": [
+"세르비아 전제공국",
+"x"
+],
+"Serbian Empire": [
+"세르비아 제국",
+"x"
+],
+"Serbs": [
+"세르비아인",
+"x"
+],
+"Seventeenth Dynasty of Egypt": [
+"이집트 제17왕조",
+"x"
+],
+"Seychelles": [
+"세이셸",
+"t"
+],
+"Shan States": [
+"샨 토후국",
+"x"
+],
+"Shang Dynasty": [
+"상",
+"t"
+],
+"Shaybanids": [
+"샤이반 왕조",
+"x"
+],
+"Shirvan": [
+"시르반 샤 왕조",
+"x"
+],
+"Shu Han": [
+"촉",
+"t"
+],
+"Shunga Empire": [
+"슝가 왕조",
+"x"
+],
+"Shunten Dynasty": [
+"슌텐 왕조",
+"x"
+],
+"Sierra Leone": [
+"시에라리온",
+"x"
+],
+"Sikh Confederacy": [
+"시크 연맹",
+"x"
+],
+"Sikh Empire": [
+"시크 왕국",
+"x"
+],
+"Sikhs": [
+"시크교도",
+"x"
+],
+"Silla": [
+"신라",
+"t"
+],
+"Sind-Habbari Dynasty": [
+"합바리 왕조",
+"x"
+],
+"Sind-Samma Dynasty": [
+"삼마 왕조",
+"x"
+],
+"Singhasari": [
+"싱아사리 왕국",
+"x"
+],
+"Sixteenth Dynasty of Egypt": [
+"이집트 제16왕조",
+"x"
+],
+"Sloboda Ukraine": [
+"슬로보다 우크라이나",
+"x"
+],
+"Slovakia": [
+"슬로바키아",
+"t"
+],
+"Small Horde": [
+"소노가이 칸국",
+"x"
+],
+"Socialist Federal Republic of Yugoslavia": [
+"유고슬라비아",
+"t"
+],
+"Socialist Republic of Romania": [
+"루마니아 사회주의 공화국",
+"x"
+],
+"Socialist Republic of Vietnam": [
+"베트남",
+"t"
+],
+"Sokoto Caliphate": [
+"소코토 칼리프국",
+"x"
+],
+"Solomon Islands": [
+"솔로몬 제도",
+"t"
+],
+"Song": [
+"송(춘추)",
+"x"
+],
+"Songhai Empire": [
+"송가이 왕국",
+"t"
+],
+"Sosso Empire": [
+"소소 왕국",
+"x"
+],
+"South Africa": [
+"남아프리카 공화국",
+"t"
+],
+"South African Republic": [
+"트란스발 공화국",
+"t"
+],
+"South Sudan": [
+"남수단",
+"t"
+],
+"Southern Chu": [
+"초(십국)",
+"x"
+],
+"Southern Han": [
+"남한(南漢)",
+"x"
+],
+"Southern Liang": [
+"남량",
+"x"
+],
+"Southern Ming": [
+"남명",
+"x"
+],
+"Southern Qi": [
+"제(남조)",
+"t"
+],
+"Southern Song": [
+"남송",
+"t"
+],
+"Southern Tang": [
+"남당",
+"x"
+],
+"Southern Wu": [
+"오(십국)",
+"x"
+],
+"Southern Xiongnu": [
+"남흉노",
+"t"
+],
+"Southern Yan": [
+"남연",
+"x"
+],
+"Sovereign Principality of the United Netherlands": [
+"연합 네덜란드 공국",
+"x"
+],
+"Spanish Empire": [
+"에스파냐 제국",
+"t"
+],
+"Spanish Nationalists": [
+"에스파냐 국민파",
+"x"
+],
+"Sri Lanka": [
+"스리랑카",
+"t"
+],
+"Srivijaya": [
+"스리위자야",
+"t"
+],
+"State of Buenos Aires": [
+"부에노스아이레스국",
+"x"
+],
+"State of Eritrea": [
+"에리트레아",
+"t"
+],
+"State of Israel": [
+"이스라엘",
+"t"
+],
+"State of Kuwait": [
+"쿠웨이트국",
+"x"
+],
+"State of Libya": [
+"리비아",
+"t"
+],
+"State of Qatar": [
+"카타르",
+"t"
+],
+"Strathclyde": [
+"스트래스클라이드 왕국",
+"x"
+],
+"Sui Dynasty": [
+"수",
+"t"
+],
+"Sukhothai Kingdom": [
+"수코타이 왕조",
+"t"
+],
+"Sulayhid Dynasty": [
+"술라이흐 왕조",
+"x"
+],
+"Sultan of Yogyakarta": [
+"욕야카르타 술탄국",
+"x"
+],
+"Sultanate of Aceh": [
+"아체 술탄국",
+"x"
+],
+"Sultanate of Banjar": [
+"반자르 술탄국",
+"x"
+],
+"Sultanate of Banten": [
+"반튼 술탄국",
+"x"
+],
+"Sultanate of Bengal": [
+"벵골 술탄국",
+"x"
+],
+"Sultanate of Bima": [
+"비마 술탄국",
+"x"
+],
+"Sultanate of Bone": [
+"보네 술탄국",
+"x"
+],
+"Sultanate of Brunei": [
+"브루나이 술탄국",
+"x"
+],
+"Sultanate of Cirebon": [
+"치르본 술탄국",
+"x"
+],
+"Sultanate of Darfur": [
+"다르푸르 술탄국",
+"x"
+],
+"Sultanate of Gowa": [
+"고와 술탄국",
+"x"
+],
+"Sultanate of Harar": [
+"하라르 술탄국",
+"x"
+],
+"Sultanate of Hobyo": [
+"호비오 술탄국",
+"x"
+],
+"Sultanate of Jambi": [
+"잠비 술탄국",
+"x"
+],
+"Sultanate of Johor": [
+"조호르 술탄국",
+"x"
+],
+"Sultanate of Kedah": [
+"크다 술탄국",
+"x"
+],
+"Sultanate of Kutai Kartanegara": [
+"쿠타이카르타느가라 술탄국",
+"x"
+],
+"Sultanate of Maguindanao": [
+"마긴다나오 술탄국",
+"x"
+],
+"Sultanate of Malacca": [
+"말라카 왕국",
+"t"
+],
+"Sultanate of Mempawah": [
+"멤파와 술탄국",
+"x"
+],
+"Sultanate of Muscat and Oman": [
+"무스카트 오만 술탄국",
+"x"
+],
+"Sultanate of Oman": [
+"오만",
+"t"
+],
+"Sultanate of Palembang": [
+"팔렘방 술탄국",
+"x"
+],
+"Sultanate of Perak": [
+"페락 술탄국",
+"x"
+],
+"Sultanate of Rum": [
+"룸 술탄국",
+"x"
+],
+"Sultanate of Sambaliung": [
+"삼발리웅 술탄국",
+"x"
+],
+"Sultanate of Sambas": [
+"삼바스 술탄국",
+"x"
+],
+"Sultanate of Selangor": [
+"슬랑오르 술탄국",
+"x"
+],
+"Sultanate of Sukadana": [
+"수카다나 술탄국",
+"x"
+],
+"Sultanate of Sulu": [
+"술루 술탄국",
+"x"
+],
+"Sultanate of Terengganu": [
+"트렝가누 술탄국",
+"x"
+],
+"Sultanate of Zanzibar": [
+"잔지바르 술탄국",
+"x"
+],
+"Sumerian City-States": [
+"수메르 도시 국가",
+"t"
+],
+"Sunda Kingdom": [
+"순다 왕국",
+"x"
+],
+"Sur Empire": [
+"수르 왕조",
+"x"
+],
+"Surakarta Sunanate": [
+"수라카르타 수난국",
+"x"
+],
+"Swaziland": [
+"스와질란드",
+"x"
+],
+"Swedish Empire": [
+"스웨덴 제국",
+"x"
+],
+"Swiss Confederation": [
+"스위스",
+"t"
+],
+"Syria": [
+"시리아",
+"t"
+],
+"São Tomé and Príncipe": [
+"상투메 프린시페",
+"x"
+],
+"Tabal Kingdom": [
+"타발 왕국",
+"x"
+],
+"Taebong": [
+"태봉",
+"t"
+],
+"Tahirid Sultanate": [
+"타히르 왕조",
+"x"
+],
+"Taifa of Albarracín": [
+"알바라신 타이파",
+"x"
+],
+"Taifa of Algeciras": [
+"알헤시라스 타이파",
+"x"
+],
+"Taifa of Almería": [
+"알메리아 타이파",
+"x"
+],
+"Taifa of Alpuente": [
+"알푸엔테 타이파",
+"x"
+],
+"Taifa of Arcos": [
+"아르코스 타이파",
+"x"
+],
+"Taifa of Badajoz": [
+"바다호스 타이파",
+"x"
+],
+"Taifa of Carmona": [
+"카르모나 타이파",
+"x"
+],
+"Taifa of Ceuta": [
+"세우타 타이파",
+"x"
+],
+"Taifa of Córdoba": [
+"코르도바 타이파",
+"x"
+],
+"Taifa of Dénia": [
+"데니아 타이파",
+"x"
+],
+"Taifa of Granada": [
+"그라나다 타이파",
+"x"
+],
+"Taifa of Morón": [
+"모론 타이파",
+"x"
+],
+"Taifa of Murcia": [
+"무르시아 타이파",
+"x"
+],
+"Taifa of Niebla": [
+"니에블라 타이파",
+"x"
+],
+"Taifa of Ronda": [
+"론다 타이파",
+"x"
+],
+"Taifa of Saltés and Huelva": [
+"살테스·우엘바 타이파",
+"x"
+],
+"Taifa of Santa Maria do Algarve": [
+"산타마리아두알가르브 타이파",
+"x"
+],
+"Taifa of Seville": [
+"세비야 타이파",
+"x"
+],
+"Taifa of Silves": [
+"실베스 타이파",
+"x"
+],
+"Taifa of Tejada": [
+"테하다 타이파",
+"x"
+],
+"Taifa of Toledo": [
+"톨레도 타이파",
+"x"
+],
+"Taifa of Tortosa": [
+"토르토사 타이파",
+"x"
+],
+"Taifa of Valencia": [
+"발렌시아 타이파",
+"x"
+],
+"Taifa of Zaragoza": [
+"사라고사 타이파",
+"x"
+],
+"Taiping Heavenly Kingdom": [
+"태평천국",
+"t"
+],
+"Takrur": [
+"타크루르 왕국",
+"x"
+],
+"Taliban": [
+"탈레반",
+"t"
+],
+"Talpur Dynasty": [
+"탈푸르 왕조",
+"x"
+],
+"Tamna": [
+"탐라",
+"t"
+],
+"Tang Dynasty": [
+"당",
+"t"
+],
+"Tangier International Zone": [
+"탕헤르 국제 관리 지역",
+"x"
+],
+"Tanzania": [
+"탄자니아",
+"t"
+],
+"Tarumanagara": [
+"타루마나가라",
+"x"
+],
+"Teng": [
+"등",
+"x"
+],
+"Tenochtitlan": [
+"테노치티틀란",
+"t"
+],
+"Teotihuacan": [
+"테오티우아칸",
+"t"
+],
+"Teutonic Order": [
+"튜턴 기사단",
+"x"
+],
+"Texcoco": [
+"테츠코코",
+"x"
+],
+"Thanjavur Maratha Kingdom": [
+"탄자부르 마라타 왕국",
+"x"
+],
+"Thebans": [
+"테베",
+"t"
+],
+"Thessaly": [
+"테살리아",
+"x"
+],
+"Third Hellenic Republic": [
+"그리스",
+"t"
+],
+"Thirtieth Dynasty of Egypt": [
+"이집트 제30왕조",
+"x"
+],
+"Thonburi Kingdom": [
+"톤부리 왕조",
+"x"
+],
+"Thracian Kingdom": [
+"트라키아 왕국",
+"x"
+],
+"Thuringian states": [
+"튀링겐족",
+"x"
+],
+"Tibet": [
+"티베트",
+"t"
+],
+"Tibetan Empire": [
+"토번",
+"t"
+],
+"Tibetans": [
+"티베트족",
+"x"
+],
+"Timurid Empire": [
+"티무르 왕조",
+"t"
+],
+"Togo": [
+"토고",
+"x"
+],
+"Tokugawa Shogunate": [
+"에도 막부",
+"t"
+],
+"Toltec": [
+"톨텍",
+"t"
+],
+"Tondo": [
+"톤도 왕국",
+"x"
+],
+"Trucial States": [
+"휴전 토후국",
+"x"
+],
+"Trưng sisters": [
+"쯩 자매",
+"t"
+],
+"Trịnh lords": [
+"찐씨 정권",
+"x"
+],
+"Tsardom of Russia": [
+"러시아 차르국",
+"x"
+],
+"Tughlaq Dynasty": [
+"투글루크 왕조",
+"x"
+],
+"Tulunids": [
+"툴룬 왕조",
+"x"
+],
+"Turk Shahis": [
+"투르크 샤히 왕조",
+"x"
+],
+"Turkish Republic of Northern Cyprus": [
+"북키프로스",
+"x"
+],
+"Turkmenistan": [
+"투르크메니스탄",
+"t"
+],
+"Turks": [
+"돌궐",
+"t"
+],
+"Tuyuhun": [
+"토욕혼",
+"t"
+],
+"Tver": [
+"트베리 공국",
+"x"
+],
+"Twenty-second Dynasty of Egypt": [
+"이집트 제22왕조",
+"x"
+],
+"Twenty-sixth Dynasty of Egypt": [
+"이집트 제26왕조",
+"x"
+],
+"Twenty-third Dynasty of Egypt": [
+"이집트 제23왕조",
+"x"
+],
+"Tây Sơn dynasty": [
+"떠이선 왕조",
+"t"
+],
+"Tümed": [
+"투메드",
+"x"
+],
+"Türgesh": [
+"돌기시",
+"x"
+],
+"Ukraine": [
+"우크라이나",
+"t"
+],
+"Ukrainian People's Republic": [
+"우크라이나 인민 공화국",
+"x"
+],
+"Umayyad Caliphate": [
+"우마이야 왕조",
+"t"
+],
+"Unified Silla": [
+"통일 신라",
+"t"
+],
+"Union of Myanmar": [
+"미얀마",
+"t"
+],
+"Union of Soviet Socialist Republics": [
+"소련",
+"t"
+],
+"Union of Utrecht": [
+"위트레흐트 동맹",
+"t"
+],
+"Unitary State of Brazil": [
+"브라질 단일 국가",
+"x"
+],
+"United Arab Emirates": [
+"아랍에미리트",
+"t"
+],
+"United Arab Republic": [
+"아랍 연합 공화국",
+"t"
+],
+"United Kingdoms of Sweden and Norway": [
+"스웨덴·노르웨이 연합 왕국",
+"x"
+],
+"United Principalities of Moldavia and Wallachia": [
+"몰다비아·왈라키아 연합 공국",
+"x"
+],
+"United Provinces of Central America": [
+"중앙아메리카 연방",
+"x"
+],
+"United States of America": [
+"미국",
+"t"
+],
+"United States of Colombia": [
+"콜롬비아 합중국",
+"x"
+],
+"Upper Burgundy": [
+"상부르고뉴 왕국",
+"x"
+],
+"Upper Burgundy and Italy": [
+"상부르군트 왕국",
+"x"
+],
+"Upper Egypt": [
+"상이집트",
+"t"
+],
+"Utpala Dynasty": [
+"우트팔라 왕조",
+"x"
+],
+"Uyghur Khaganate": [
+"위구르",
+"t"
+],
+"Uyunid Emirate": [
+"우유니 토후국",
+"x"
+],
+"Vakataka Kingdom": [
+"바카타카 왕국",
+"x"
+],
+"Vandal Kingdom": [
+"반달 왕국",
+"t"
+],
+"Vandals": [
+"반달족",
+"t"
+],
+"Vanuatu": [
+"바누아투",
+"t"
+],
+"Venezuela": [
+"베네수엘라",
+"t"
+],
+"Vermont Republic": [
+"버몬트 공화국",
+"x"
+],
+"Vichy France": [
+"비시 정부",
+"t"
+],
+"Vientiane": [
+"비엔티안 왕국",
+"x"
+],
+"Vijayanagara Empire": [
+"비자야나가르 왕국",
+"t"
+],
+"Viking settlements": [
+"바이킹 정착지",
+"x"
+],
+"Visigothic Kingdom": [
+"서고트 왕국",
+"t"
+],
+"Visigoths": [
+"서고트족",
+"t"
+],
+"Volga Bulgaria": [
+"볼가 불가리아",
+"x"
+],
+"Wadai Empire": [
+"와다이 제국",
+"x"
+],
+"Warring States Japan": [
+"전국 시대(일본)",
+"t"
+],
+"Water Chenla": [
+"수진랍",
+"x"
+],
+"Wattasid dynasty": [
+"와타스 왕조",
+"x"
+],
+"Wei": [
+"위(전국)",
+"t"
+],
+"Weimar Republic": [
+"바이마르 공화국",
+"t"
+],
+"West Franks": [
+"서프랑크 왕국",
+"t"
+],
+"Western Chalukya Empire": [
+"서찰루키아 왕조",
+"x"
+],
+"Western Chu": [
+"서초",
+"x"
+],
+"Western Göktürks": [
+"서돌궐",
+"t"
+],
+"Western Jin": [
+"서진",
+"t"
+],
+"Western Karakhanid Khanate": [
+"서카라한 왕조",
+"x"
+],
+"Western Kushans": [
+"서쿠샨",
+"x"
+],
+"Western Liang": [
+"서량(西涼)",
+"x"
+],
+"Western Moghulistan": [
+"서모굴리스탄",
+"x"
+],
+"Western Qin": [
+"서진(西秦)",
+"x"
+],
+"Western Roman Empire": [
+"서로마 제국",
+"t"
+],
+"Western Satraps": [
+"서사트라프",
+"x"
+],
+"Western Wei": [
+"서위",
+"t"
+],
+"Western Xia": [
+"서하",
+"t"
+],
+"Western Yan": [
+"서연",
+"x"
+],
+"Wey": [
+"위(衛)",
+"x"
+],
+"White Horde": [
+"백장 칸국",
+"x"
+],
+"White Huns": [
+"에프탈",
+"t"
+],
+"Wihtgar": [
+"와이트 왕국",
+"x"
+],
+"Wu": [
+"오(춘추)",
+"t"
+],
+"Wusun": [
+"오손",
+"t"
+],
+"Wuyue": [
+"오월",
+"x"
+],
+"Xia": [
+"하(16국)",
+"x"
+],
+"Xianbei": [
+"선비",
+"t"
+],
+"Xin Dynasty": [
+"신",
+"t"
+],
+"Xiongnu": [
+"흉노",
+"t"
+],
+"Xionites": [
+"키온족",
+"x"
+],
+"Xu": [
+"서",
+"x"
+],
+"Yadava Dynasty": [
+"야다바 왕조",
+"x"
+],
+"Yan": [
+"연",
+"t"
+],
+"Yan Kingdom": [
+"연(오대)",
+"x"
+],
+"Yarubid dynasty": [
+"야루바 왕조",
+"x"
+],
+"Yaudheya Republic": [
+"야우데야 공화국",
+"x"
+],
+"Yenisei Kyrgyz": [
+"키르기스",
+"t"
+],
+"Yin": [
+"은(십팔국)",
+"x"
+],
+"Yong": [
+"옹",
+"x"
+],
+"Yuan Dynasty": [
+"원",
+"t"
+],
+"Yue": [
+"월",
+"t"
+],
+"Yuezhi": [
+"월지",
+"t"
+],
+"Yugoslav Partisans": [
+"유고슬라비아 파르티잔",
+"x"
+],
+"Yugoslavia": [
+"유고슬라비아 왕국",
+"x"
+],
+"Zagwe dynasty": [
+"자그웨 왕조",
+"x"
+],
+"Zaire": [
+"자이르",
+"t"
+],
+"Zambia": [
+"잠비아",
+"t"
+],
+"Zand Dynasty": [
+"잔드 왕조",
+"x"
+],
+"Zaporozhian Cossacks": [
+"자포리자 카자크",
+"x"
+],
+"Zapotec Civilization": [
+"사포텍 문명",
+"x"
+],
+"Zaydi Alid dynasties": [
+"자이드파 알리 왕조",
+"x"
+],
+"Zayyanid dynasty": [
+"자이얀 왕조",
+"x"
+],
+"Zengid dynasty": [
+"장기 왕조",
+"x"
+],
+"Zhai": [
+"적",
+"x"
+],
+"Zhao": [
+"조",
+"t"
+],
+"Zheng": [
+"정",
+"x"
+],
+"Zhongshan": [
+"중산",
+"x"
+],
+"Zhou Dynasty": [
+"주",
+"t"
+],
+"Zhu": [
+"주(邾)",
+"x"
+],
+"Zimbabwe Rhodesia": [
+"짐바브웨 로디지아",
+"x"
+],
+"Zirid dynasty": [
+"지리 왕조",
+"x"
+],
+"Ziyadid dynasty": [
+"지야드 왕조",
+"x"
+],
+"Ziyarid dynasty": [
+"지야르 왕조",
+"x"
+],
+"Zululand": [
+"줄루 왕국",
+"x"
+],
+"Zurayid dynasty": [
+"주라이 왕조",
+"x"
+],
+"Âu Lạc": [
+"어우락",
+"x"
+],
+"Éire": [
+"아일랜드",
+"t"
+],
+"Đại Việt": [
+"대월",
+"t"
+]
+}

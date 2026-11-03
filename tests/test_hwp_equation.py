@@ -13,6 +13,11 @@ from tools import gen
 
 
 class HwpEquationConversionTests(unittest.TestCase):
+    def test_matrix_cases_display_style_and_blank_box(self):
+        self.assertEqual(latex_to_hwp(r'\begin{pmatrix}x&y\\1&-2\end{pmatrix}'),'pmatrix { x & y # 1 & - 2 }')
+        self.assertEqual(latex_to_hwp(r'\begin{cases}x\\y\end{cases}'),'cases { x # y }')
+        self.assertEqual(latex_to_hwp(r'\displaystyle x'),'x')
+        self.assertEqual(latex_to_hwp(r'\square'),'□')
     def test_consecutive_variables_get_individual_grouped_subscripts(self):
         self.assertEqual(latex_to_hwp(r"P_0 V_0"),
                          "{ P _ { 0 } } { V _ { 0 } }")

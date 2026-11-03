@@ -23,7 +23,7 @@ class AuthoringTests(unittest.TestCase):
         return core.save_exam({'id':core.uid(),'title':'테스트','subject':'12역학','cards':cards,'exports':[],'revision':0})
     def result(self):
         c=card();c.update(estimate=.5,discrimination=.3)
-        return {k:c[k] for k in cli.QUESTION_SCHEMA['properties']}
+        return {**{k:c[k] for k in cli.QUESTION_SCHEMA['properties'] if k!='passage_marks'},'passage_marks':[]}
     def wait_job(self,job):
         deadline=time.monotonic()+10
         while job['exam_id'] in server.ACTIVE and time.monotonic()<deadline: time.sleep(.02)
@@ -72,6 +72,14 @@ class AuthoringTests(unittest.TestCase):
     def test_teacher_mode_is_preserved(self):
         c=card();c['image_mode']='strict';result=self.result();result.update(data_kind='image',image_mode='mixed',image_locked='도형',image_creative='외형')
         with self.assertRaisesRegex(ValueError,'변경'):server.apply_question_result(c,result)
+    def test_result_written_in_chinese_is_rejected_without_touching_the_card(self):
+        # 2026-10-30: a Korean idea came back with the stem, choices and explanation in Chinese.
+        c=card();before=copy.deepcopy(c);result=self.result()
+        result.update(stem='如图，质量分别为 $2m$、$3m$ 的物体 $A$、$B$ 均可视为质点。',question='区间 $S$ 的长度为多少？')
+        with self.assertRaisesRegex(ValueError,'한국어'):server.apply_question_result(c,result)
+        self.assertEqual(c,before)
+        ok=self.result();ok['explanation']='운동량 보존 법칙(運動量)에 따라 같다.'   # a stray hanja gloss is still Korean
+        server.apply_question_result(card(),ok)
     def test_authoring_metadata_is_independent_of_approval_and_digest(self):
         c=card();exam=self.exam([c])
         exam['card_approval']={'digest':core.cards_digest(exam['cards']),'approved_at':core.now()}

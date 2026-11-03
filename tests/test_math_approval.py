@@ -84,6 +84,7 @@ class ApprovalOverrideApiTests(unittest.TestCase):
         fields = {key:item.get(key,'') for key in core.COLS.values() if key!='no'}
         fields['no'] = item['no']
         fields['data_kind'] = item['data_kind']
+        fields['type'] = '단일 정답형'   # 기존 출력의 해시는 옛 이름으로 계산돼 있다
         image = item['image']
         fields['final_image'] = {'final_sha256':image.get('final_sha256'),
                                  'current_digest':core.image_final_digest(item),

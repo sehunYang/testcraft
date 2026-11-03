@@ -15,7 +15,7 @@ const path=require('node:path');
    const ideas=['일정한 힘을 받는 물체의 가속도와 질량의 관계','위치–시간 그래프에서 속도를 비교하는 문항','운동량 보존을 이용해 충돌 후 운동을 추론','마찰이 있는 빗면에서 역학적 에너지 변화를 분석','두 물체의 열평형 과정을 자료로 해석','상태 변화에서 열과 일, 내부 에너지의 관계'];
    state.exam={id:'dddddddddddddddd',title:'역학과 에너지 · 출제 예시',subject:'12역학',revision:1,updated:'2026-10-23T09:00:00',exports:[],card_approval:null,cards:ideas.map((idea,i)=>Object.assign(authoringBlankCard('demo00000000000'+i,i+1),{
     standard:['[12역학01-01]','[12역학01-01]','[12역학01-03]','[12역학01-04]','[12역학02-01]','[12역학02-03]'][i],
-    difficulty:['하','중','중','상','하','상'][i],type:['단일 정답형','단일 정답형','합답형','합답형','불완전 문장형','짝짓기형'][i],idea,points:[12,16,16,22,12,22][i],answer:[2,4,1,3,5,2][i],
+    difficulty:['하','중','중','상','하','상'][i],type:['최선답형','최선답형','합답형','합답형','불완전 문장형','짝짓기형'][i],idea,points:[12,16,16,22,12,22][i],answer:[2,4,1,3,5,2][i],
     stem:'그림과 같이 마찰이 없는 수평면에 놓인 질량이 $m$인 물체에 일정한 힘 $F$가 수평 방향으로 작용한다.',
     question:'물체의 가속도 크기로 옳은 것은?',choices:'① $F/(2m)$\n② $F/m$\n③ $2F/m$\n④ $m/F$\n⑤ $2m/F$',explanation:'뉴턴 운동 법칙에 따라 $F=ma$이므로 가속도의 크기는 $a=F/m$이다.',review_approved:i!==5,ai_requested:i===5,authoring_mode:'ai',data_kind:'none'
    }))};
