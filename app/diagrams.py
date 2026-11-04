@@ -56,10 +56,22 @@ def render(locked):
     spec = spec_of(locked)
     parts, labels = [f'<rect x="0" y="0" width="{W}" height="{H}" fill="white"/>'], []
     RENDER[spec['type']](spec, parts, labels)
+    if spec['type'] not in _phys.RENDER: labels = [_grow(x) for x in labels]      # 물리 도식은 자리를 잡을 때 이미 키웠다
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}"><g id="geometry">{"".join(parts)}</g></svg>', labels
 
 
 # ---------------------------------------------------------------- 공통 그리기
+TEXT_SCALE = 1.25     # 시험지에 들어가면 그림 글씨가 본문보다 너무 작다. 가운데를 지키며 키운다(2026-11-04).
+
+
+def _grow(label, k=TEXT_SCALE):
+    from .diagrams_physics import _width
+    old = label['size']; new = round(old * k)
+    wide = (lambda s: _width(label['text'], s)) if label.get('kind') == 'physics' else (lambda s: _text_width(label['text'], s))
+    x = label['x'] - (wide(new) - wide(old)) / 2; y = label['y'] - (new - old) / 2
+    return {**label, 'size': new, 'x': round(max(6, min(W - wide(new) - 6, x)), 1), 'y': round(max(6, min(H - new - 6, y)), 1)}
+
+
 def _p(d, fill='none', stroke=LINE, width=2.5, dash=''):
     extra = f' stroke-dasharray="{dash}"' if dash else ''
     return f'<path d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{width}" stroke-linejoin="round" stroke-linecap="round"{extra}/>'

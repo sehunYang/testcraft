@@ -23,9 +23,13 @@ def _width(text, size):
     return _text_width(t.replace('{', '').replace('}', '').replace('_', '').replace('^', ''), size)
 
 
-def _lab(text, x, y, size=26):
+TEXT = 1.4       # 시험지에서 본문 글씨와 비슷하게 보이도록(2026-11-04)
+
+
+def _lab(text, x, y, size=26, scaled=False):
     """글씨 하나. $가 있으면 수식 글씨(physics), 없으면 한글 글씨."""
     text = str(text)
+    if not scaled: size = round(size * TEXT)
     if '$' not in text: return _label(text, x, y, size=size)
     wide = _width(text, size)
     return {'kind': 'physics', 'text': text, 'x': round(max(8, min(W - wide - 8, x - wide / 2)), 1),
@@ -34,10 +38,11 @@ def _lab(text, x, y, size=26):
 
 def _lab_side(text, x, y, side, size=26, gap=10):
     """기준점의 한쪽(left/right/up/down)에 붙여 놓는다."""
+    size = round(size * TEXT)
     wide = _width(text, size)
     dx = {'left': -(wide / 2 + gap), 'right': wide / 2 + gap}.get(side, 0)
     dy = {'up': -(size / 2 + gap), 'down': size / 2 + gap}.get(side, 0)
-    return _lab(text, x + dx, y + dy, size)
+    return _lab(text, x + dx, y + dy, size, scaled=True)
 
 
 class Fit:
@@ -190,6 +195,16 @@ def _mechanics(spec, parts, labels, box=FRAME):
     u = spec.get('scale', 1.6 if flat else 1.0)
     bw = box[2] - box[0]
     pad = spec.get('pad') or ((bw * .14, 90, bw * .14, 90) if flat else (min(110, bw * .13), 64, min(110, bw * .13), 66))
+    if not spec.get('pad'):          # 높이 치수 글씨가 칸 밖으로 밀려 화살표에 겹치지 않게 여백을 넓힌다
+        xs_min, xs_max = min(xs), max(xs)
+        need = {'left': 0, 'right': 0}
+        for hgt in spec.get('heights', []):
+            if not hgt.get('label'): continue
+            w_ = _width(hgt['label'], round(26 * TEXT)) + 30
+            side = hgt.get('side', 'left')
+            if side == 'left' and hgt['x'] - xs_min < (xs_max - xs_min) * .05: need['left'] = max(need['left'], w_)
+            if side == 'right' and xs_max - hgt['x'] < (xs_max - xs_min) * .05: need['right'] = max(need['right'], w_)
+        pad = (max(pad[0], need['left']), pad[1], max(pad[2], need['right']), pad[3])
     P = Fit(world, box, pad=pad)
     anchors = {}
     # 바닥·빗면·탁자
@@ -211,8 +226,8 @@ def _mechanics(spec, parts, labels, box=FRAME):
             y = P((0, spec['datum']))[1]
             parts.append(_line((px[0][0] - 10, y), (px[-1][0] + 10, y), width=1.6, dash='6 5'))
         if spec.get('ground_label'):        # "수평면": 바닥 오른쪽 끝 아래
-            q = px[-1]; text = spec['ground_label']; wide = _text_width(text, 24)
-            labels.append({**_lab(text, 0, 0, 24), 'x': round(max(8, q[0] - wide - 4), 1), 'y': round(q[1] + 10, 1)})
+            q = px[-1]; text = spec['ground_label']; lab = _lab(text, 0, 0, 24); wide = _text_width(text, lab['size'])
+            labels.append({**lab, 'x': round(max(8, q[0] - wide - 4), 1), 'y': round(q[1] + 10, 1)})
     # 마찰 구간: 바닥 위에 굵은 회색 띠, 이름은 바닥 바깥쪽에
     for z in spec.get('zones', []):
         xs_ = [z['x0'] + (z['x1'] - z['x0']) * k / 24 for k in range(25)]
@@ -238,7 +253,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
     # 물체 자리: 바닥 위(on) · 좌표(at)는 먼저, 도르래에 매단 것(hang)은 도르래 뒤에
     def size(o):
         kind = o.get('kind', 'block')
-        return kind, o.get('w', (52 if kind == 'block' else 96) * u), o.get('h', (52 if kind == 'block' else 36) * u), o.get('r', 21 * u)
+        return kind, o.get('w', (58 if kind == 'block' else 100) * u), o.get('h', (58 if kind == 'block' else 38) * u), o.get('r', 22 * u)
 
     def anchor_object(o, i, c, ang):
         kind, w, h, r = size(o)
@@ -340,7 +355,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
             dash_attr = f' stroke-dasharray="{dash}"' if dash else ''
             parts.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r:.1f}" fill="{"white" if o.get("ghost") else "url(#ball)"}" stroke="{LINE}" stroke-width="2.2"{dash_attr}/>')
             if o.get('label'):
-                labels.append(_lab(o['label'], c[0], c[1], 22) if r >= 19 else _lab_side(o['label'], c[0] + r * .6, c[1] - r * .9, 'right', 24, 4))
+                labels.append(_lab(o['label'], c[0], c[1], max(22, round(r * 1.2)), scaled=True) if r >= 19 else _lab_side(o['label'], c[0] + r * .6, c[1] - r * .9, 'right', 24, 4))
             continue
         parts.append(_p(_poly(corners, True), fill=fill, width=2.4, dash=dash))
         if kind == 'cart':
@@ -348,7 +363,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
             for k in (-.3, .3):
                 wx = c[0] + k * w * ca + (h / 2 + 4 * u) * sa; wy = c[1] - k * w * sa + (h / 2 + 4 * u) * ca
                 parts.append(_circle((wx, wy), 10 * u, 'white', 2.2)); parts.append(_circle((wx, wy), 2.5 * u, LINE, 1))
-        if o.get('label'): labels.append(_lab(o['label'], c[0], c[1], 26 if u < 1.2 else 30))
+        if o.get('label'): labels.append(_lab(o['label'], c[0], c[1], round(min(h * .62, 40)), scaled=True))
         if o.get('mass'): labels.append(_lab_side(o['mass'], c[0], min(q[1] for q in corners), 'up', 24, 6))
     # 화살표(힘·속도)
     for a in spec.get('arrows', []):
@@ -384,7 +399,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
         parts.append(_arrow(m, a2, 1.8, 11) + _arrow(m, b2, 1.8, 11))
         if ln.get('label'):
             s_ = 1 if off >= 0 else -1
-            labels.append(_lab(ln['label'], m[0] + nx * 22 * s_, m[1] + ny * 22 * s_, 26))
+            labels.append(_lab(ln['label'], m[0] + nx * 30 * s_, m[1] + ny * 30 * s_, 26))
     # 각: 빗면과 수평 사이
     for an in spec.get('angles', []):
         i = an['at']; v = P(track[i]); nbrs = [P(track[j]) for j in (i - 1, i + 1) if 0 <= j < len(track)]
@@ -424,11 +439,16 @@ def _check_circuit(spec):
     return out
 
 
-def _component(kind, a, b, p, parts, labels, centroid):
+def _component(kind, a, b, p, parts, labels, centroid, others=()):
     L = math.dist(a, b); ux, uy = (b[0] - a[0]) / L, (b[1] - a[1]) / L; nx, ny = -uy, ux
     m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
     pt = lambda t, s=0: (m[0] + ux * t + nx * s, m[1] + uy * t + ny * s)
     out = 1 if (m[0] - centroid[0]) * nx + (m[1] - centroid[1]) * ny >= 0 else -1      # 회로 바깥쪽(글씨 쪽)
+    room = {1: 1e9, -1: 1e9}           # 안쪽 가지면 양옆 중 빈 곳이 넓은 쪽에 글씨를 둔다
+    for q in others:
+        along = (q[0] - m[0]) * ux + (q[1] - m[1]) * uy; side_ = (q[0] - m[0]) * nx + (q[1] - m[1]) * ny
+        if abs(along) <= L / 2 + 1 and abs(side_) > 1: room[1 if side_ > 0 else -1] = min(room[1 if side_ > 0 else -1], abs(side_))
+    if min(room.values()) < 1e9 and room[out] < room[-out] - 1: out = -out
     if p.get('side') == 'in': out = -out
     half = {'wire': 0, 'resistor': 38, 'battery': 9, 'switch': 30, 'bulb': 22, 'ammeter': 22, 'voltmeter': 22,
             'led': 20, 'diode': 18, 'capacitor': 8, 'ac': 22, 'coil': 40}[kind]
@@ -461,7 +481,7 @@ def _component(kind, a, b, p, parts, labels, centroid):
             wave = [pt(-12 + 24 * k / 16, -8 * math.sin(2 * math.pi * k / 16)) for k in range(17)]
             parts.append(_p(_poly(wave), width=2))
         else:
-            labels.append(_lab('A' if kind == 'ammeter' else 'V', m[0], m[1] - 5, 22))        # 직류 계기: 글자 밑에 짧은 선
+            labels.append(_lab('A' if kind == 'ammeter' else 'V', m[0], m[1] - 5, 26, scaled=True))        # 직류 계기: 글자 밑에 짧은 선
             parts.append(_line((m[0] - 9, m[1] + 11), (m[0] + 9, m[1] + 11), 2))
     elif kind in ('led', 'diode'):     # 삼각형이 to 쪽을 향한다(순방향)
         tri = [pt(-half, -15), pt(-half, 15), pt(half * .6, 0)]
@@ -488,12 +508,12 @@ def _component(kind, a, b, p, parts, labels, centroid):
 def _circuit(spec, parts, labels, box=FRAME):
     nodes = {k: tuple(v) for k, v in spec['nodes'].items()}
     bw = box[2] - box[0]
-    fit = Fit(list(nodes.values()), box, pad=spec.get('pad', (min(120, bw * .2), 70, min(120, bw * .2), 70)))
+    fit = Fit(list(nodes.values()), box, pad=spec.get('pad', (min(140, bw * .26), 70, min(140, bw * .26), 70)))
     px = {k: fit(v) for k, v in nodes.items()}
     cx = sum(p[0] for p in px.values()) / len(px); cy = sum(p[1] for p in px.values()) / len(px)
     degree = {k: 0 for k in nodes}
     for p in spec['parts']:
-        _component(p['kind'], px[p['from']], px[p['to']], p, parts, labels, (cx, cy))
+        _component(p['kind'], px[p['from']], px[p['to']], p, parts, labels, (cx, cy), list(px.values()))
         degree[p['from']] += 1; degree[p['to']] += 1
     for k, d in degree.items():
         if d >= 3: parts.append(f'<circle cx="{px[k][0]:.1f}" cy="{px[k][1]:.1f}" r="5.5" fill="{LINE}"/>')
@@ -559,7 +579,7 @@ def _graph(spec, parts, labels, box=FRAME):
     ax, ay = spec.get('x') or {}, spec.get('y') or {}
     x0, x1 = min(ax.get('min', min(xs)), 0), ax.get('max', max(xs) * 1.12)
     y0, y1 = min(ay.get('min', min(ys)), 0), ay.get('max', max(ys) * 1.15)
-    L, T, R, B = box[0] + 90, box[1] + 56, box[2] - 110, box[3] - 64
+    L, T, R, B = box[0] + 100, box[1] + 60, box[2] - 140, box[3] - 70
     X = lambda v: L + (v - x0) / (x1 - x0) * (R - L)
     Y = lambda v: B - (v - y0) / (y1 - y0) * (B - T)
     ox, oy = X(0), Y(0)
