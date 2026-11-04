@@ -13,7 +13,7 @@ from PIL import Image
 from .core import ROOT
 from . import runtime
 
-ALLOWED={'svg','g','path','line','polyline','polygon','rect','circle','ellipse','text','tspan','defs','marker','title','desc','radialGradient','stop'}
+ALLOWED={'svg','g','path','line','polyline','polygon','rect','circle','ellipse','text','tspan','defs','marker','title','desc','radialGradient','linearGradient','stop'}
 
 def validate_mode_layers(svg,mode,card=None):
     validate_svg(svg)
@@ -81,13 +81,28 @@ def normalize_png(raw):
         else: canvas.paste(img.convert('RGB'))
         out=io.BytesIO(); canvas.save(out,format='PNG'); return out.getvalue()
 
-def picture(png, bin_id, idx):
+def trim_margins(png, pad=.03):
+    """그림 둘레의 빈 여백을 잘라 낸다. 기출 그림처럼 내용만큼만 차지하게. (잘린 PNG, 원래 크기)"""
+    with Image.open(io.BytesIO(png)) as img:
+        size=img.size; gray=img.convert('L')
+        box=gray.point(lambda v:255 if v<245 else 0).getbbox()
+        if not box: return png,size
+        m=round(pad*size[0])
+        box=(max(0,box[0]-m),max(0,box[1]-m),min(size[0],box[2]+m),min(size[1],box[3]+m))
+        if box[2]-box[0]>=size[0]*.97 and box[3]-box[1]>=size[1]*.97: return png,size
+        out=io.BytesIO(); img.convert('RGB').crop(box).save(out,format='PNG')
+        return out.getvalue(),size
+
+def picture(png, bin_id, idx, original=None):
     # Clone the proven Hancom picture structure, preserving schema attributes.
     template=ET.parse(ROOT/'app/picture.xml').getroot()
     width,height=Image.open(io.BytesIO(png)).size
     ow,oh=width*75,height*75
     # 양식 안내: 그림은 크게, 가운데. 2단 한 단의 폭(31041) 안에서 키운다.
-    dw=min(29000,round(40000*width/height)); dh=round(dw*height/width)
+    # 여백을 잘라 낸 그림은 원래 그림과 같은 배율로 넣는다(내용 크기는 그대로, 빈 곳만 줄어든다).
+    W0,H0=original or (width,height)
+    full=min(29000,round(40000*W0/H0))
+    dw=round(full*width/W0); dh=round(dw*height/width)
     p=copy.deepcopy(template)
     p.set('ParaShape','20')
     p.find('TEXT').set('CharShape','26')
@@ -119,7 +134,7 @@ def embed(hml, assets, student=False):
     if assets: mapping.insert(0,bins)
     tail=root.find('TAIL'); storage=ET.SubElement(tail,'BINDATASTORAGE') if assets else None
     # The figure-prompt paragraphs may hold equations ($3 h$ labels) or tables; they leave with the prompt.
-    removed_eq=0; removed_tables=[]
+    removed_eq=0; removed_tables=[]; trimmed=[]
     for idx,asset in enumerate(assets,1):
         if len(asset)==2: no,png=asset; material_id=None
         else: no,material_id,png=asset
@@ -133,7 +148,8 @@ def embed(hml, assets, student=False):
             removed_eq+=len(list(p.iter('EQUATION')))
             removed_tables+=[ET.tostring(t) for t in p.iter('TABLE')]
             section.remove(p)
-        section.insert(starts[0],picture(png,idx,idx))
+        png,original=trim_margins(png); trimmed.append(png)
+        section.insert(starts[0],picture(png,idx,idx,original))
         ET.SubElement(bins,'BINITEM',BinData=str(idx),Format='PNG',Type='Embedding')
         ET.SubElement(storage,'BINDATA',Encoding='Base64',Id=str(idx),Size=str(len(png))).text=base64.b64encode(png).decode()
     kept_tables=list(before_tables)
@@ -145,7 +161,6 @@ def embed(hml, assets, student=False):
                 text=''.join(ch.itertext()); ch.clear(); ch.text=text
     result=ET.tostring(root,encoding='unicode')
     if '〔그림 프롬프트 시작' in result: raise ValueError('미삽입 그림이 남아 있습니다.')
-    for idx,asset in enumerate(assets,1):
-        raw=asset[-1]
+    for idx,raw in enumerate(trimmed,1):
         if base64.b64decode(root.find(f"TAIL/BINDATASTORAGE/BINDATA[@Id='{idx}']").text)!=raw: raise ValueError('그림 바이트 검증 실패')
     return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'+result

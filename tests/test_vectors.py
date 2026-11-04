@@ -70,7 +70,7 @@ class VectorTests(unittest.TestCase):
         eid=core.uid();c['image']=server.make_image(eid,c,None,svg=SOURCE);c['image_scene']=vectors.from_svg(SOURCE,c['image']['sha256']);c['image_scene']['objects'][0]['matrix']=[2,0,0,1,0,0]
         server.finalize_image(eid,c);e=core.save_exam(dict(id=eid,title='객체 출력 검증',subject='12역학',cards=[c],exports=[],revision=0,card_approval={'digest':core.cards_digest([c])}))
         bundle=server.export_exam(e,convert_hwpx=False);root=ET.parse(core.exam_path(eid)/'exports'/bundle['id']/'시험지_학생용.hml')
-        self.assertEqual(base64.b64decode(root.find('.//BINDATA').text),server.asset_path(eid,c['image']['final_file']).read_bytes())
+        self.assertEqual(base64.b64decode(root.find('.//BINDATA').text),images.trim_margins(server.asset_path(eid,c['image']['final_file']).read_bytes())[0])
     def test_embed_drops_equations_that_lived_in_the_figure_prompt(self):
         # 2026-10-30: the figure description "높이가 $3 h$인 레일 … 구간 $S$" put equations inside the prompt
         # region; replacing that region tripped "그림 삽입 중 수식 또는 표 구조 변경 감지" although nothing else changed.

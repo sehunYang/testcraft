@@ -66,7 +66,7 @@ class LayerTests(unittest.TestCase):
         with Image.open(final) as im:self.assertEqual(im.size,(3000,1920))
         e['cards']=[saved];bundle=server.export_exam(e,convert_hwpx=False)
         hml=ET.parse(core.exam_path(e['id'])/'exports'/bundle['id']/'시험지_학생용.hml')
-        self.assertEqual(base64.b64decode(hml.find('.//BINDATA').text),final.read_bytes())
+        self.assertEqual(base64.b64decode(hml.find('.//BINDATA').text),images.trim_margins(final.read_bytes())[0])
     def test_first_image_automatically_creates_independent_text(self):
         c=image_card();e=core.save_exam(dict(id=core.uid(),title='시험',subject='12역학',cards=[c],exports=[],revision=0,card_approval={'digest':core.cards_digest([c])}))
         pic={'svg':'<svg viewBox="0 0 1000 640"><g id="geometry"/></svg>','constraints':[]}

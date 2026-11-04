@@ -5,6 +5,7 @@
 
 종류(type): pedigree 가계도 · foodweb 먹이 그물 · pyramid 생태 피라미드 · sequence 염기 서열 · cell 세포 소기관 ·
 particles 반응 입자 모형 · energy 반응 경로-에너지
+물리(diagrams_physics): mechanics 역학 상황 · circuit 회로 · graph 그래프 · panels 여러 칸
 """
 import json
 import math
@@ -14,7 +15,7 @@ from .maps import _label
 PREFIX = '도식:'
 W, H = 1000, 640
 LINE, GRAY, DARK = '#111111', '#9a9a9a', '#555555'
-TYPES = ('pedigree', 'foodweb', 'pyramid', 'sequence', 'cell', 'particles', 'energy')
+TYPES = ('pedigree', 'foodweb', 'pyramid', 'sequence', 'cell', 'particles', 'energy', 'mechanics', 'circuit', 'graph', 'panels')
 ORGANELLES = {'nucleus': '핵', 'mitochondria': '미토콘드리아', 'chloroplast': '엽록체', 'golgi': '골지체', 'er': '소포체',
               'ribosome': '리보솜', 'lysosome': '리소좀', 'vacuole': '액포', 'cellwall': '세포벽', 'membrane': '세포막', 'centriole': '중심체'}
 BASES = set('ATGCU')
@@ -45,7 +46,7 @@ def errors(locked):
     out = CHECK[kind](spec)
     if not out:
         try: RENDER[kind](spec, [], [])
-        except (ValueError, KeyError, TypeError, ZeroDivisionError) as e: out.append(f'도식을 그릴 수 없습니다: {e}')
+        except (ValueError, KeyError, TypeError, ZeroDivisionError, IndexError) as e: out.append(f'도식을 그릴 수 없습니다: {e}')
     return out
 
 
@@ -187,26 +188,37 @@ def _check_foodweb(spec):
     return out
 
 
+def _box_edge(c, w, h, toward):
+    """상자(중심 c, 폭 w, 높이 h)의 테두리에서 toward 쪽으로 나가는 점."""
+    dx, dy = toward[0] - c[0], toward[1] - c[1]
+    if not dx and not dy: return c
+    t = min(w / 2 / abs(dx) if dx else 1e9, h / 2 / abs(dy) if dy else 1e9)
+    return (c[0] + dx * t, c[1] + dy * t)
+
+
 def _foodweb(spec, parts, labels):
     levels = spec['levels']; names_left = spec.get('level_names') or []
-    left = 200 if names_left else 60
-    gap = (H - 140) / max(1, len(levels) - 1) if len(levels) > 1 else 0
+    left = 210 if names_left else 50
+    n = len(levels); band = (H - 40) / n
     box = {}
-    for g, row in enumerate(levels):
-        y = H - 80 - g * gap
+    for g, row in enumerate(levels):           # 영양 단계마다 옅은 띠
+        y0 = H - 20 - (g + 1) * band
+        parts.append(f'<rect x="{left - 30 if names_left else 20}" y="{y0:.1f}" width="{W - (left - 30 if names_left else 20) - 20:.1f}" height="{band:.1f}" fill="{"#f1f1f1" if g % 2 == 0 else "#fafafa"}" stroke="none"/>')
+        y = y0 + band / 2
         step = (W - 40 - left) / len(row)
         for k, name in enumerate(row):
             x = left + step * (k + .5)
-            w = max(110, _text_width(name, 26) + 34)
-            box[name] = (x, y, w)
-            parts.append(f'<rect x="{x - w / 2:.1f}" y="{y - 26:.1f}" width="{w:.1f}" height="52" rx="12" fill="white" stroke="{LINE}" stroke-width="2.5"/>')
-            labels.append(_label(name, x, y, size=26))
-        if g < len(names_left): labels.append({**_label(names_left[g], 0, 0, size=22), 'x': 24.0, 'y': round(y - 12, 1)})
-    for a, b in spec.get('links', []):      # 화살표는 먹히는 쪽에서 먹는 쪽으로(에너지 흐름)
-        (x1, y1, _), (x2, y2, _) = box[a], box[b]
-        start = (x1, y1 - 26) if y2 < y1 else (x1, y1 + 26) if y2 > y1 else (x1 + math.copysign(box[a][2] / 2, x2 - x1), y1)
-        end = (x2, y2 + 26) if y2 < y1 else (x2, y2 - 26) if y2 > y1 else (x2 - math.copysign(box[b][2] / 2, x2 - x1), y2)
-        parts.append(_arrow(start, end))
+            box[name] = (x, y, max(104, _text_width(name, 26) + 36), 50)
+        if g < len(names_left): labels.append({**_label(names_left[g], 0, 0, size=22), 'x': 28.0, 'y': round(y - 11, 1)})
+    if names_left: parts.append(_line((left - 30, 20), (left - 30, H - 20), 1.2, '4 4'))
+    for a, b in spec.get('links', []):      # 화살표는 먹히는 쪽 → 먹는 쪽(에너지 흐름), 상자 테두리에서 시작·끝
+        (x1, y1, w1, h1), (x2, y2, w2, h2) = box[a], box[b]
+        s = _box_edge((x1, y1), w1 + 6, h1 + 6, (x2, y2)); e = _box_edge((x2, y2), w2 + 8, h2 + 8, (x1, y1))
+        parts.append(_arrow(s, e, width=2.2, head=13))
+    for name, (x, y, w, h) in box.items():
+        parts.append(f'<rect x="{x - w / 2:.1f}" y="{y - h / 2:.1f}" width="{w:.1f}" height="{h}" rx="{h / 2:.1f}" fill="white" stroke="{LINE}" stroke-width="2.2"/>')
+        labels.append(_label(name, x, y, size=26))
+
 
 
 def _check_pyramid(spec):
@@ -218,16 +230,25 @@ def _check_pyramid(spec):
 
 
 def _pyramid(spec, parts, labels):
+    """계단식 입체 피라미드: 앞면 폭이 값에 비례하고, 윗면·옆면을 옅게 칠해 두께를 준다."""
     levels = spec['levels']; n = len(levels)
-    hstep = min(110, (H - 100) / n); base = H - 50
+    dx, dy = 34, -18
+    hstep = min(104, (H - 90) / n); base = H - 40
     biggest = max(x.get('value', 1) for x in levels)
+    shades = ['#f4f4f4', '#e3e3e3', '#d0d0d0', '#bcbcbc', '#a8a8a8', '#959595']
     for i, lv in enumerate(levels):
         frac = lv.get('value', 1) / biggest if spec.get('scaled', True) else 1 - i / (n + 1)
-        w = max(70, 760 * frac); y = base - (i + 1) * hstep
-        fill = {'gray': '#d9d9d9', 'dark': GRAY}.get(lv.get('pattern'), 'white')
-        parts.append(f'<rect x="{500 - w / 2:.1f}" y="{y:.1f}" width="{w:.1f}" height="{hstep:.1f}" fill="{fill}" stroke="{LINE}" stroke-width="2.5"/>')
-        labels.append(_label(lv['label'], 500, y + hstep / 2, size=26) if w > _text_width(lv['label'], 26) + 30
-                      else {**_label(lv['label'], 0, 0, size=26), 'x': round(500 + w / 2 + 14, 1), 'y': round(y + hstep / 2 - 13, 1)})
+        w = max(80, 740 * frac); y = base - (i + 1) * hstep; x0 = 480 - w / 2
+        fill = {'gray': '#cfcfcf', 'dark': GRAY}.get(lv.get('pattern'), shades[min(i, len(shades) - 1)])
+        top = [(x0, y), (x0 + w, y), (x0 + w + dx, y + dy), (x0 + dx, y + dy)]
+        side = [(x0 + w, y), (x0 + w + dx, y + dy), (x0 + w + dx, y + hstep + dy), (x0 + w, y + hstep)]
+        parts.append(_p('M' + 'L'.join(f'{a:.1f},{b:.1f}' for a, b in side) + 'Z', fill='#8f8f8f', width=1.8))
+        parts.append(_p('M' + 'L'.join(f'{a:.1f},{b:.1f}' for a, b in top) + 'Z', fill='#fbfbfb', width=1.8))
+        parts.append(f'<rect x="{x0:.1f}" y="{y:.1f}" width="{w:.1f}" height="{hstep:.1f}" fill="{fill}" stroke="{LINE}" stroke-width="2.2"/>')
+        labels.append(_label(lv['label'], 480, y + hstep / 2, size=26) if w > _text_width(lv['label'], 26) + 30
+                      else {**_label(lv['label'], 0, 0, size=26), 'x': round(480 + w / 2 + dx + 14, 1), 'y': round(y + hstep / 2 - 13, 1)})
+        if lv.get('note'): labels.append({**_label(lv['note'], 0, 0, size=22), 'x': round(480 + w / 2 + dx + 16, 1), 'y': round(y + hstep / 2 - 11, 1)})
+
 
 
 # ---------------------------------------------------------------- 염기 서열
@@ -483,7 +504,11 @@ def _cell(spec, parts, labels):
 
 
 # ---------------------------------------------------------------- 반응 입자 모형
-ATOM_FILLS = ['white', '#c8c8c8', DARK, LINE]
+SHADES = {'white': ('#ffffff', '#cfcfcf'), 'light': ('#f4f4f4', '#9d9d9d'), 'gray': ('#d9d9d9', '#5e5e5e'), 'dark': ('#8a8a8a', '#161616')}
+SHADE_ORDER = ['gray', 'white', 'dark', 'light']
+RADIUS = {'H': 11, 'He': 11, 'Li': 19, 'Be': 16, 'B': 15, 'C': 15, 'N': 15, 'O': 15, 'F': 14, 'Ne': 14,
+          'Na': 21, 'Mg': 20, 'Al': 19, 'Si': 18, 'P': 18, 'S': 18, 'Cl': 18, 'Ar': 18, 'K': 23, 'Ca': 22}
+FALLBACK_R = [18, 12, 15, 14]
 
 
 def _check_particles(spec):
@@ -494,44 +519,121 @@ def _check_particles(spec):
             if not 1 <= len(mol.get('atoms', [])) <= 5: out.append('분자 하나는 원자 1~5개입니다.')
             if not 1 <= mol.get('count', 1) <= 12: out.append('같은 분자는 12개까지 그립니다.')
     elements = {a for p in spec['panels'] for m in p.get('molecules', []) for a in m.get('atoms', [])}
-    if len(elements) > len(ATOM_FILLS): out.append(f'원소는 {len(ATOM_FILLS)}종류까지 구별해 그립니다.')
+    if len(elements) > 4: out.append('원소는 4종류까지 구별해 그립니다.')
+    if spec.get('container', 'circle') not in ('circle', 'box', 'cylinder'): out.append('container는 circle, box, cylinder 중 하나입니다.')
     return out
 
 
-def _molecule(c, atoms, fills, r=17):
-    x, y = c; n = len(atoms)
-    if n == 1: spots = [(x, y)]
-    elif n <= 3: spots = [(x + (i - (n - 1) / 2) * r * 1.45, y) for i in range(n)]
-    else: spots = [(x, y)] + [(x + r * 1.5 * math.cos(2 * math.pi * k / (n - 1) - math.pi / 2), y + r * 1.5 * math.sin(2 * math.pi * k / (n - 1) - math.pi / 2)) for k in range(n - 1)]
-    order = list(range(1, n)) + [0] if n > 3 else range(n)      # 가운데 원자를 마지막에 그려 위에 보이게
-    return ''.join(_circle(spots[i], r, fills[atoms[i]], 2) for i in order)
+def _atom_defs(parts):
+    stops = ''.join(f'<radialGradient id="atom_{k}" cx=".36" cy=".32" r=".72"><stop offset="0" stop-color="{a}"/><stop offset=".45" stop-color="{a}"/><stop offset="1" stop-color="{b}"/></radialGradient>'
+                    for k, (a, b) in SHADES.items())
+    parts.append(f'<defs>{stops}</defs>')
+
+
+def _molecule_layout(atoms, radius):
+    """원자 중심의 상대 위치(분자 모양). 가운데 원자는 하나뿐인 원자 중 가장 큰 것."""
+    n = len(atoms); rs = [radius[a] for a in atoms]
+    if n == 1: return [(0, 0)]
+    if n == 2:
+        d = (rs[0] + rs[1]) * .78
+        return [(-d * rs[1] / (rs[0] + rs[1]), 0), (d * rs[0] / (rs[0] + rs[1]), 0)]
+    singles = [i for i, a in enumerate(atoms) if atoms.count(a) == 1] or [0]
+    c = max(singles, key=lambda i: rs[i])
+    others = [i for i in range(n) if i != c]
+    if n == 3: angles = [180, 0] if atoms[c] in ('C', 'Be') else [-142, -38]
+    elif n == 4: angles = [-90, 30, 150]
+    else: angles = [-90, 0, 90, 180]
+    pos = [(0, 0)] * n
+    for i, ang in zip(others, angles):
+        d = (rs[c] + rs[i]) * .8; t = math.radians(ang)
+        pos[i] = (d * math.cos(t), d * math.sin(t))
+    return pos
 
 
 def _particles(spec, parts, labels):
+    import random
+    _atom_defs(parts)
     panels = spec['panels']; n = len(panels)
     elements = []
     for p in panels:
         for m in p.get('molecules', []):
             for a in m['atoms']:
                 if a not in elements: elements.append(a)
-    fills = {e: ATOM_FILLS[i] for i, e in enumerate(elements)}
-    pw = (W - 80 - (n - 1) * 90) / n; ph = 400; top = 90
+    custom = spec.get('elements') or {}
+    radius, shade = {}, {}
+    for i, e in enumerate(elements):
+        radius[e] = (custom.get(e) or {}).get('r') or RADIUS.get(e, FALLBACK_R[i % 4])
+        shade[e] = (custom.get(e) or {}).get('shade') or SHADE_ORDER[i % 4]
+    scale = spec.get('atom_scale', 1.5)
+    radius = {e: r * scale for e, r in radius.items()}
+    legend_w = 150
+    gap = 96
+    avail = W - 40 - legend_w - (n - 1) * gap
+    kind = spec.get('container', 'circle')
+    size = min(avail / n, 470)
+    top = max(30, (H - size - 50) / 2)
+    boxes = []
     for i, p in enumerate(panels):
-        x0 = 40 + i * (pw + 90)
-        parts.append(f'<rect x="{x0:.1f}" y="{top}" width="{pw:.1f}" height="{ph}" rx="14" fill="white" stroke="{LINE}" stroke-width="2.5"/>')
-        if p.get('label'): labels.append(_label(p['label'], x0 + pw / 2, top - 34, size=26))
-        mols = [m['atoms'] for m in p.get('molecules', []) for _ in range(m.get('count', 1))]
-        cols = max(1, min(4, math.ceil(math.sqrt(len(mols) * pw / ph))))
-        rows = max(1, math.ceil(len(mols) / cols))
-        for k, atoms in enumerate(mols):
-            cx = x0 + pw * (k % cols + .5) / cols; cy = top + ph * (k // cols + .5) / rows
-            parts.append(_molecule((cx, cy), atoms, fills))
-        if i < n - 1: parts.append(_arrow((x0 + pw + 18, top + ph / 2), (x0 + pw + 72, top + ph / 2), width=3, head=18))
-    x = 60
-    for e in elements:      # 범례: 원과 원소 기호
-        parts.append(_circle((x + 14, 560), 14, fills[e], 2))
-        labels.append({**_label(e, 0, 0, size=24), 'x': float(x + 36), 'y': 548.0})
-        x += 46 + _text_width(e, 24) + 30
+        x0 = 30 + i * (size + gap) + (avail - n * size) / 2
+        cx, cy = x0 + size / 2, top + size / 2
+        t0 = top + size * .18
+        if kind == 'circle': inside = lambda q, m, cx=cx, cy=cy: math.dist(q, (cx, cy)) <= size / 2 - m - 8
+        elif kind == 'box': inside = lambda q, m, x0=x0: x0 + m + 10 <= q[0] <= x0 + size - m - 10 and top + m + 10 <= q[1] <= top + size - m - 10
+        else: inside = lambda q, m, x0=x0: x0 + m + 10 <= q[0] <= x0 + size - m - 10 and t0 + m + 8 <= q[1] <= top + size - m - 10
+        boxes.append((x0, cx, cy, t0, inside))
+
+    def place(i, factor):
+        """겹치지 않게 아무렇게나 흩어 놓고, 저마다 다른 방향으로 돌린다. (자리 목록, 가장 좁은 틈)"""
+        x0, cx, cy, t0, inside = boxes[i]
+        rad = {e: r * factor for e, r in radius.items()}
+        mols = [m['atoms'] for m in panels[i].get('molecules', []) for _ in range(m.get('count', 1))]
+        rng = random.Random(spec.get('seed', 7) * 31 + i)
+        rng.shuffle(mols)
+        placed, out, worst = [], [], 1e9
+        for atoms in mols:
+            lay = _molecule_layout(atoms, rad); rot = rng.uniform(0, 2 * math.pi)
+            lay = [(x * math.cos(rot) - y * math.sin(rot), x * math.sin(rot) + y * math.cos(rot)) for x, y in lay]
+            reach = max(math.hypot(x, y) + rad[a] for (x, y), a in zip(lay, atoms))
+            best, best_room = None, -1e9
+            for _ in range(700):
+                q = (rng.uniform(x0, x0 + size), rng.uniform(top, top + size))
+                if not inside(q, reach): continue
+                room = min([math.dist(q, c) - reach - r2 for c, r2 in placed] or [1e9])
+                if room > best_room: best, best_room = q, room
+                if room > 10: break
+            q = best or (cx, cy)
+            worst = min(worst, best_room if best else -1e9)
+            placed.append((q, reach)); out.append((q, lay, atoms, rad))
+        return out, worst
+    for factor in (1, .9, .8, .72, .64, .56):      # 붐비면 원자를 조금씩 줄인다(모든 칸 같은 비율)
+        layouts = [place(i, factor) for i in range(n)]
+        if all(w >= 3 for _, w in layouts): break
+    for i, p in enumerate(panels):
+        x0, cx, cy, t0, inside = boxes[i]
+        if kind == 'circle':
+            parts.append(_circle((cx, cy), size / 2, 'white', 2.4))
+        elif kind == 'box':
+            parts.append(f'<rect x="{x0:.1f}" y="{top:.1f}" width="{size:.1f}" height="{size:.1f}" rx="10" fill="white" stroke="{LINE}" stroke-width="2.4"/>')
+        else:      # 실린더와 피스톤
+            parts.append(_p(f'M{x0:.1f},{top:.1f}V{top + size:.1f}H{x0 + size:.1f}V{top:.1f}', width=2.6))
+            parts.append(f'<rect x="{x0 + 3:.1f}" y="{t0 - 22:.1f}" width="{size - 6:.1f}" height="22" fill="#b5b5b5" stroke="{LINE}" stroke-width="2"/>')
+            parts.append(f'<rect x="{cx - 8:.1f}" y="{top - 30:.1f}" width="16" height="{t0 - 22 - top + 30:.1f}" fill="#d6d6d6" stroke="{LINE}" stroke-width="1.8"/>')
+        if p.get('label'): labels.append(_label(p['label'], cx, top + size + 30, size=26))
+        for q, lay, atoms, rad in layouts[i][0]:
+            order = sorted(range(len(atoms)), key=lambda k: (rad[atoms[k]], -lay[k][1]))      # 작은 원자를 뒤에
+            for k in order:
+                a = atoms[k]; c = (q[0] + lay[k][0], q[1] + lay[k][1])
+                parts.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{rad[a]:.1f}" fill="url(#atom_{shade[a]})" stroke="{LINE}" stroke-width="1.8"/>')
+        if i < n - 1:
+            ax = x0 + size + 18
+            parts.append(_arrow((ax, cy), (ax + gap - 36, cy), width=3, head=18))
+    ly = top + size / 2 - (len(elements) - 1) * 26
+    lx = boxes[-1][0] + size + 44
+    for e in elements:      # 범례: 오른쪽에 세로로
+        r = min(radius[e] * factor, 17)
+        parts.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="{r:.1f}" fill="url(#atom_{shade[e]})" stroke="{LINE}" stroke-width="1.8"/>')
+        labels.append({**_label(e, 0, 0, size=26), 'x': float(lx + 26), 'y': round(ly - 14, 1)})
+        ly += 52
 
 
 # ---------------------------------------------------------------- 반응 경로-에너지
@@ -589,3 +691,7 @@ PROMPT = """
 - 반응 경로-에너지: {"type":"energy","reactant":0,"product":-40,"peak":60,"catalyst":30,"names":{"reactant":"반응물","product":"생성물"},"marks":[{"from":"reactant","to":"peak","label":"(가)"},{"from":"reactant","to":"product","label":"(나)"}]} 값은 상대적인 에너지다.
 가계도·입자 모형처럼 수가 답에 영향을 주는 도식은 명세의 수가 문항의 조건과 맞는지 review_note에 적는다.
 """
+
+from . import diagrams_physics as _phys      # noqa: E402  (물리 도식은 위의 그리기 도구를 쓴다)
+CHECK.update(_phys.CHECK); RENDER.update(_phys.RENDER)
+PROMPT += _phys.PROMPT

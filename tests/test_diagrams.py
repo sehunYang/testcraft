@@ -23,6 +23,16 @@ EXAMPLES = {
     'particles': dict(panels=[{'label': '반응 전', 'molecules': [{'atoms': ['H', 'H'], 'count': 2}, {'atoms': ['O', 'O'], 'count': 1}]},
                               {'label': '반응 후', 'molecules': [{'atoms': ['O', 'H', 'H'], 'count': 2}]}]),
     'energy': dict(reactant=0, product=-30, peak=50, catalyst=20, marks=[{'from': 'reactant', 'to': 'peak', 'label': '(가)'}]),
+    'mechanics': dict(track=[[0, 4], [4, 0], [8, 0]], datum=0, objects=[{'kind': 'block', 'on': 1, 'label': 'A', 'id': 'A'}, {'kind': 'ball', 'on': 7, 'label': 'B'}],
+                      heights=[{'x': -0.5, 'from': 0, 'to': 4, 'label': '$4h$'}], angles=[{'at': 1, 'label': r'$30^{\circ}$'}],
+                      arrows=[{'from': 'A.right', 'dir': -45, 'len': 80, 'label': '$v$'}], walls=[{'x': 8, 'y0': 0, 'y1': 1.5}], ground_label='수평면'),
+    'circuit': dict(nodes={'a': [0, 0], 'b': [0, 3], 'c': [4, 3], 'd': [4, 0]},
+                    parts=[{'kind': 'battery', 'from': 'a', 'to': 'b', 'label': r'$12\,\mathrm{V}$'}, {'kind': 'resistor', 'from': 'b', 'to': 'c', 'label': '$R$'},
+                           {'kind': 'switch', 'from': 'c', 'to': 'd', 'label': '$S$'}, {'kind': 'bulb', 'from': 'd', 'to': 'a'}]),
+    'graph': dict(x={'label': '시간', 'ticks': [[1, '$t_{0}$']]}, y={'label': '속력', 'ticks': [[2, '$v_{0}$']]},
+                  curves=[{'points': [[0, 2], [1, 1], [2, 0]], 'smooth': True, 'label': 'A'}], guides=[[1, 1]], fills=[{'curve': 0, 'x0': 0, 'x1': 1}]),
+    'panels': dict(items=[{'type': 'mechanics', 'caption': '(가)', 'track': [[0, 0], [6, 0]], 'objects': [{'kind': 'cart', 'on': 2, 'label': 'A'}]},
+                          {'type': 'graph', 'caption': '(나)', 'curves': [{'points': [[0, 0], [1, 1]]}]}]),
 }
 
 
@@ -57,6 +67,45 @@ class DiagramTests(unittest.TestCase):
         self.assertIn('도식:', cli.question_instructions('12생과'))
         self.assertNotIn('도식:', cli.question_instructions('12세지'))
 
+
+    def test_physics_scene_places_objects_on_the_track_and_names_bad_references(self):
+        svg, labels = diagrams.render(spec(type='mechanics', **EXAMPLES['mechanics']))
+        self.assertIn('url(#groundfade)', svg)
+        self.assertTrue(any(l['kind'] == 'physics' and l['text'] == '$4h$' for l in labels))
+        self.assertTrue(any(l['text'] == '수평면' for l in labels))
+        bad = dict(EXAMPLES['mechanics'], arrows=[{'from': 'Z.top', 'dir': 0}])
+        self.assertTrue(any('Z.top' in e for e in diagrams.errors(spec(type='mechanics', **bad))))
+        self.assertTrue(any('track' in e for e in diagrams.errors(spec(type='mechanics', track=[[3, 0], [1, 0]]))))
+        self.assertTrue(any('kind' in e for e in diagrams.errors(spec(type='circuit', nodes={'a': [0, 0], 'b': [1, 0]}, parts=[{'kind': 'tube', 'from': 'a', 'to': 'b'}]))))
+
+    def test_pulley_string_is_level_with_the_block_and_the_hanging_block_drops_straight(self):
+        scene = dict(track=[[0, 4], [8, 4]], base_to=1, objects=[{'kind': 'block', 'on': 3, 'id': 'A', 'label': 'A'}, {'kind': 'block', 'hang': 'P0', 'id': 'B', 'label': 'B'}],
+                     pulleys=[{'at': [8.5, 4.4], 'mount': 'corner', 'align': 'A'}], strings=[['A.right', 'P0']])
+        svg, labels = diagrams.render(spec(type='mechanics', **scene))
+        a = next(l for l in labels if l['text'] == 'A'); b = next(l for l in labels if l['text'] == 'B')
+        self.assertGreater(b['y'], a['y'] + 60)
+        self.assertIn('A24.0,24.0', svg)          # 줄이 도르래를 감아 돈다
+
+    def test_crowded_particle_panels_shrink_atoms_instead_of_overlapping(self):
+        crowded = dict(container='cylinder', panels=[{'molecules': [{'atoms': ['C', 'O', 'O'], 'count': 6}, {'atoms': ['O', 'H', 'H'], 'count': 6}]}])
+        svg, _ = diagrams.render(spec(type='particles', **crowded))
+        self.assertIn('url(#atom_', svg)
+        self.assertEqual(svg.count('<circle'), 6 * 3 + 6 * 3 + 3)
+
+
+    def test_paper_trims_blank_margins_but_keeps_the_print_scale(self):
+        import io
+        from PIL import Image, ImageDraw
+        img = Image.new('RGB', (3000, 1920), 'white'); ImageDraw.Draw(img).rectangle((600, 800, 2400, 1100), fill='black')
+        raw = io.BytesIO(); img.save(raw, format='PNG')
+        cut, original = images.trim_margins(raw.getvalue())
+        w, h = Image.open(io.BytesIO(cut)).size
+        self.assertEqual(original, (3000, 1920)); self.assertLess(h, 600)
+        pic = images.picture(cut, 1, 1, original)
+        width = int(pic.find('.//SHAPEOBJECT/SIZE').get('Width'))
+        self.assertEqual(width, round(29000 * w / 3000))       # 내용은 원래 배율 그대로
+        full = Image.new('RGB', (1000, 640), 'black'); raw = io.BytesIO(); full.save(raw, format='PNG')
+        self.assertEqual(images.trim_margins(raw.getvalue())[0], raw.getvalue())
 
 if __name__ == '__main__':
     unittest.main()
