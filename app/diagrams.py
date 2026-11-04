@@ -56,12 +56,38 @@ def render(locked):
     spec = spec_of(locked)
     parts, labels = [f'<rect x="0" y="0" width="{W}" height="{H}" fill="white"/>'], []
     RENDER[spec['type']](spec, parts, labels)
+    labels = [x for lab in labels for x in _split_roman(lab)]
     if spec['type'] not in _phys.RENDER: labels = [_grow(x) for x in labels]      # 물리 도식은 자리를 잡을 때 이미 키웠다
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}"><g id="geometry">{"".join(parts)}</g></svg>', labels
 
 
 # ---------------------------------------------------------------- 공통 그리기
 TEXT_SCALE = 1.25     # 시험지에 들어가면 그림 글씨가 본문보다 너무 작다. 가운데를 지키며 키운다(2026-11-04).
+
+
+ROMAN = dict(zip('ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ', ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']))
+
+
+def _split_roman(label):
+    """한글 글꼴(신명 중명조)에는 Ⅰ, Ⅱ 같은 로마 숫자가 없다. "마찰 구간 Ⅱ"는 한글 글씨와 수식 글씨 둘로 나눈다."""
+    text = str(label.get('text', ''))
+    if label.get('kind') != 'korean' or not any(ch in ROMAN for ch in text): return [label]
+    out, x, chunk = [], label['x'], ''
+    def flush(piece, kind):
+        nonlocal x
+        if not piece.strip(): x += _text_width(piece, label['size']); return
+        out.append({**label, 'kind': kind, 'text': piece.strip() if kind == 'korean' else piece, 'x': round(x, 1)})
+        x += _text_width(piece if kind == 'korean' else ROMAN_W.get(piece, 'II'), label['size'])
+    for ch in text:
+        if ch in ROMAN:
+            flush(chunk, 'korean'); chunk = ''
+            flush('$\\mathrm{' + ROMAN[ch] + '}$', 'physics')
+        else: chunk += ch
+    flush(chunk, 'korean')
+    return out
+
+
+ROMAN_W = {}
 
 
 def _grow(label, k=TEXT_SCALE):

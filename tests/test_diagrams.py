@@ -117,5 +117,23 @@ class DiagramTests(unittest.TestCase):
         mass = next(l for l in labels if 'kg' in l['text'])
         self.assertEqual(mass['text'], r'$1\,\mathrm{kg}$')
 
+    def test_prompt_example_is_a_valid_spec_and_sources_compile_without_warnings(self):
+        import ast, re, warnings
+        m = re.search(r'예: 수평면 위 물체 A와 끝의 도르래에 매단 B → (\{.*?\})\.', diagrams.PROMPT)
+        self.assertEqual(diagrams.errors(diagrams.PREFIX + ' ' + m.group(1)), [])
+        root = Path(__file__).resolve().parents[1] / 'app'
+        for name in ('diagrams.py', 'diagrams_physics.py', 'cli.py'):
+            with warnings.catch_warnings():
+                warnings.simplefilter('error')
+                ast.parse((root / name).read_text(encoding='utf-8'))
+
+    def test_roman_numerals_missing_from_the_hangul_font_become_math_labels(self):
+        scene = dict(track=[[0, 6], [8, 0], [12, 0]], zones=[{'x0': 2, 'x1': 4, 'label': '마찰 구간 Ⅱ'}])
+        _, labels = diagrams.render(spec(type='mechanics', **scene))
+        texts = [(l['kind'], l['text']) for l in labels]
+        self.assertIn(('korean', '마찰 구간'), texts)
+        self.assertIn(('physics', r'$\mathrm{II}$'), texts)
+        self.assertFalse(any('Ⅱ' in t for _, t in texts))
+
 if __name__ == '__main__':
     unittest.main()
