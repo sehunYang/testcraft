@@ -693,7 +693,7 @@ RENDER = {'pedigree': _pedigree, 'foodweb': _foodweb, 'pyramid': _pyramid, 'sequ
           'particles': _particles, 'energy': _energy}
 
 PROMPT = """
-도식 자료: 가계도, 먹이 그물, 생태 피라미드, 염기 서열, 세포 소기관, 반응 입자 모형, 반응 경로-에너지 그래프는 AI가 그리지 않고 앱이 그린다. 해당 그림 자료의 image_mode는 strict, image_creative와 image_text_*는 빈 문자열로 두고, image_locked 첫 글자부터 `도식: ` 뒤에 JSON 하나만 쓴다. 글씨는 평문이다(LaTeX 금지).
+도식 자료: 가계도, 먹이 그물, 생태 피라미드, 염기 서열, 세포 소기관, 반응 입자 모형, 반응 경로-에너지 그래프, 그리고 물리의 역학 상황(빗면·수평면·도르래·용수철·수레·벽)·회로·운동 그래프는 AI가 SVG 규칙을 쓰지 않고 반드시 아래 명세로 쓴다. 앱이 평가원 그림 꼴로 그린다. 해당 그림 자료의 image_mode는 strict, image_creative와 image_text_*는 빈 문자열로 두고, image_locked 첫 글자부터 `도식: ` 뒤에 JSON 하나만 쓴다. 생명·화학 도식의 글씨는 평문이다(LaTeX 금지). 물리 도식의 글씨는 아래 물리 절을 따른다. 아래 종류로 그릴 수 없는 그림만 SVG 규칙을 쓴다.
 - 가계도: {"type":"pedigree","generations":[["1","2"],["3","4","5"]],"people":[{"id":"1","sex":"M","trait":"a"},{"id":"2","sex":"F","trait":"","carrier":false},…],"couples":[["1","2"]],"children":[{"parents":["1","2"],"kids":["3","4"]}],"traits":{"a":"유전병 ㉠ 발현","b":"…"}} trait는 ""(정상), "a", "b", "ab". 세대마다 왼쪽부터 순서대로 쓴다. 범례는 앱이 만든다.
 - 먹이 그물: {"type":"foodweb","levels":[["벼","풀"],["메뚜기","토끼"],["개구리"],["뱀"]],"links":[["벼","메뚜기"],…],"level_names":["생산자","1차 소비자",…]} levels는 생산자부터, links는 먹히는 쪽 → 먹는 쪽(에너지 흐름).
 - 생태 피라미드: {"type":"pyramid","levels":[{"label":"생산자","value":1000},{"label":"1차 소비자","value":100},…]} 아래부터. value에 비례한 폭(scaled:false면 같은 비율로 줄임).

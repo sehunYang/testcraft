@@ -193,8 +193,9 @@ def schema_for(kind):
     return {'question':QUESTION_SCHEMA,'image':IMAGE_SCHEMA,'plan':PLAN_SCHEMA,'labels':LABELS_SCHEMA}[kind]
 
 IMAGE_POLICY = '''현재 그림·글씨 분리 규칙이 과거 지침의 라벨·문자 규칙보다 우선한다.
-image_locked가 `지도:`로 시작하면 앱이 그리는 지도 명세이므로 내용을 그대로 두고 글씨 프롬프트는 비운다.
-strict: image_locked에 SVG 규칙만 작성한다. image_creative는 반드시 빈 문자열이다.
+image_locked가 `지도:`로 시작하면 앱이 그리는 지도 명세이므로 내용을 그대로 두고 글씨 프롬프트는 비운다. `도식:`으로 시작하는 도식 명세도 같다.
+과목 지침에 도식 종류가 있는 그림(물리의 역학 상황·회로·운동 그래프, 생명과학·화학 도식)은 SVG 규칙을 쓰지 않고 image_locked에 `도식:` 명세를 쓴다. 앱이 평가원 그림 꼴로 그린다.
+strict: image_locked에 SVG 규칙(또는 지도·도식 명세)만 작성한다. image_creative는 반드시 빈 문자열이다.
 flexible: image_creative에 모든 시각 요소와 창작 조건을 작성한다. image_locked는 반드시 빈 문자열이다.
 mixed: 두 영역 모두 작성하되 완전히 서로 다른 요소를 지정한다. 각 줄은 영문 요소ID: 설명 형식이다. 예: image_locked의 floor: 수평 바닥선 / image_creative의 ball: 공의 외관. 두 영역의 ID나 의미상 요소가 겹치면 안 된다. 같은 물체의 윤곽선을 두 영역에 반복해서 지시하지 않는다. 고정 요소와 창작 요소의 공간 관계를 제약으로 설명할 수 있으나 다른 영역 요소를 다시 그리도록 지시하면 안 된다.
 모든 유형의 image_locked/image_creative에는 글씨·숫자·물리량·수식·단위·라벨을 표기하라는 지시를 절대 넣지 않는다. 길이비 1:2 같은 계산 조건은 사용할 수 있으나 그 값을 그림 위에 쓰지 않는다. material의 기존 글씨 지시를 위 두 영역에 복사하지 않는다.

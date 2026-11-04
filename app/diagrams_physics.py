@@ -26,9 +26,24 @@ def _width(text, size):
 TEXT = 1.4       # 시험지에서 본문 글씨와 비슷하게 보이도록(2026-11-04)
 
 
+def _tex(text):
+    """'$3$ kg'처럼 수식과 글자가 섞인 글씨를 수식 하나($3\\,\\mathrm{kg}$)로 바꾼다. 한글이 섞이면 그대로 둔다."""
+    text = str(text).strip()
+    if '$' not in text or (text.startswith('$') and text.endswith('$') and text.count('$') == 2): return text
+    if any('\uac00' <= ch <= '\ud7a3' for ch in text) or text.count('$') % 2: return text
+    out = []
+    for k, part in enumerate(text.split('$')):
+        if not part: continue
+        if k % 2: out.append(part.strip())
+        else:
+            words = part.strip()
+            if words: out.append('\\mathrm{' + words.replace(' ', '\\,') + '}')
+    return '$' + '\\,'.join(out) + '$'
+
+
 def _lab(text, x, y, size=26, scaled=False):
     """글씨 하나. $가 있으면 수식 글씨(physics), 없으면 한글 글씨."""
-    text = str(text)
+    text = _tex(text)
     if not scaled: size = round(size * TEXT)
     if '$' not in text: return _label(text, x, y, size=size)
     wide = _width(text, size)
@@ -38,6 +53,7 @@ def _lab(text, x, y, size=26, scaled=False):
 
 def _lab_side(text, x, y, side, size=26, gap=10):
     """기준점의 한쪽(left/right/up/down)에 붙여 놓는다."""
+    text = _tex(text)
     size = round(size * TEXT)
     wide = _width(text, size)
     dx = {'left': -(wide / 2 + gap), 'right': wide / 2 + gap}.get(side, 0)
@@ -364,7 +380,11 @@ def _mechanics(spec, parts, labels, box=FRAME):
                 wx = c[0] + k * w * ca + (h / 2 + 4 * u) * sa; wy = c[1] - k * w * sa + (h / 2 + 4 * u) * ca
                 parts.append(_circle((wx, wy), 10 * u, 'white', 2.2)); parts.append(_circle((wx, wy), 2.5 * u, LINE, 1))
         if o.get('label'): labels.append(_lab(o['label'], c[0], c[1], round(min(h * .62, 40)), scaled=True))
-        if o.get('mass'): labels.append(_lab_side(o['mass'], c[0], min(q[1] for q in corners), 'up', 24, 6))
+        if o.get('mass'):                 # 매단 물체는 줄이 위로 지나가므로 옆에
+            side = o.get('mass_side') or ('down' if o.get('hang') else 'up')
+            if side == 'up': labels.append(_lab_side(o['mass'], c[0], min(q[1] for q in corners), 'up', 24, 6))
+            elif side == 'down': labels.append(_lab_side(o['mass'], c[0], max(q[1] for q in corners), 'down', 24, 6))
+            else: labels.append(_lab_side(o['mass'], c[0] + (w / 2 if side == 'right' else -w / 2), c[1], side, 24, 10))
     # 화살표(힘·속도)
     for a in spec.get('arrows', []):
         start = at(a['from'])
@@ -647,7 +667,7 @@ CHECK = {'mechanics': _check_mechanics, 'circuit': _check_circuit, 'graph': _che
 RENDER = {'mechanics': _mechanics, 'circuit': _circuit, 'graph': _graph, 'panels': _panels}
 
 PROMPT = """
-물리 도식(앱이 그림): 역학 상황, 회로, 그래프, 그리고 이들을 (가)(나)로 나란히 놓는 panels. 좌표는 세계 좌표(y가 위로 커짐)이고 앱이 칸에 맞춰 늘이고 줄인다. 물체·도르래·부품 크기는 앱이 정한다. 글씨는 수식이면 $...$(LaTeX), 한글이면 평문이다.
+물리 도식(앱이 그림, 이 종류의 그림은 SVG 규칙 대신 반드시 이 명세를 쓴다): 역학 상황, 회로, 그래프, 그리고 이들을 (가)(나)로 나란히 놓는 panels. 예: 수평면 위 물체 A와 끝의 도르래에 매단 B → {"type":"mechanics","track":[[0,4],[8,4]],"base_to":1.5,"objects":[{"kind":"block","on":3,"id":"A","label":"$A$"},{"kind":"block","hang":"P0","drop":2.2,"id":"B","label":"$B$","mass":"$1\,\mathrm{kg}$"}],"pulleys":[{"at":[8.5,4.4],"mount":"corner","align":"A","id":"P0"}],"strings":[["A.right","P0"]]}. 좌표는 세계 좌표(y가 위로 커짐)이고 앱이 칸에 맞춰 늘이고 줄인다. 물체·도르래·부품 크기는 앱이 정한다. 글씨는 수식이면 글씨 하나를 $...$ 하나로 통째로 쓰고(예: "$3\\,\\mathrm{kg}$", "$5\\,\\mathrm{m/s}$"), 한글이면 평문이다.
 - 역학 상황: {"type":"mechanics","track":[[0,4],[3,1],[8,1]],"base":"solid|line|hatch","datum":0,"objects":[{"kind":"block|ball|cart","on":0.8,"label":"A","mass":"$2m$","ghost":false},{"kind":"block","at":[x,y],"label":"B"}],"walls":[{"x":8,"y0":1,"y1":2.2,"side":"right","label":"벽"}],"zones":[{"x0":1,"x1":2,"label":"마찰 구간"}],"heights":[{"x":-0.5,"from":1,"to":4,"label":"$3h$","x_to":0}],"lengths":[{"from":[3,1],"to":[8,1],"label":"$L$","offset":-30}],"angles":[{"at":1,"label":"$30^{\\\\circ}$"}],"points":[{"x":5,"label":"p"}],"arrows":[{"from":"A.right","dir":0,"len":90,"label":"$F$"}],"pulleys":[{"at":[x,y],"mount":"up"}],"ceilings":[{"x0":..,"x1":..,"y":..}],"strings":[["A.top","P0.left"]],"springs":[{"from":[x,y],"to":"A.left"}],"texts":[{"at":[x,y],"text":"수평면"}]} track의 x는 왼쪽부터 커진다. 기울기는 마찰 구간이나 점에서 바꾸지 말고 문항의 상황대로만 꺾는다(꺾이는 곳은 앱이 둥글게, round로 반지름 조절). 출발하는 물체는 공중에 띄우지 말고 on으로 바닥 위에 놓는다. on은 바닥 위 x 위치(빗면이면 물체가 기울어 놓인다). 기준점은 물체 이름.top/bottom/left/right/center, 도르래 P0.left 등. dir는 도(오른쪽 0, 위 90). 값이 문항 조건(높이 비, 각)과 맞게 쓴다.
 - 회로: {"type":"circuit","nodes":{"a":[0,0],"b":[0,3],"c":[4,3],"d":[4,0]},"parts":[{"kind":"battery","from":"a","to":"b","label":"$12\\\\,\\\\mathrm{V}$"},{"kind":"resistor","from":"b","to":"c","label":"$3\\\\,\\\\Omega$"},{"kind":"wire","from":"c","to":"d"},…]} kind: wire, resistor, battery(긴 판 (+)이 to 쪽), switch(state open|closed), bulb, ammeter, voltmeter, led·diode(to 쪽이 순방향), capacitor, ac, coil. 갈림점 점은 앱이 찍는다. terminals:["a"]는 단자.
 - 그래프: {"type":"graph","x":{"label":"시간","ticks":[[1,"$t_{0}$"],[2,"$2t_{0}$"]]},"y":{"label":"속력","ticks":[[2,"$v_{0}$"]]},"curves":[{"points":[[0,3],[1,2],[2,0]],"smooth":true,"label":"A"}],"guides":[[1,2]],"fills":[{"curve":0,"x0":0,"x1":1}]} 점선 guides는 그 점에서 두 축으로 내린다. smooth는 점을 지나는 매끄러운 곡선. 힘-시간처럼 0에서 부드럽게 올라갔다 내려오는 곡선은 {"pulse":{"x0":0,"x1":1,"peak":3,"at":0.4},"label":"A"}로 쓴다(at은 꼭대기 위치 비율).

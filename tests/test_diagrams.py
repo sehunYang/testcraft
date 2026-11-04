@@ -107,5 +107,15 @@ class DiagramTests(unittest.TestCase):
         full = Image.new('RGB', (1000, 640), 'black'); raw = io.BytesIO(); full.save(raw, format='PNG')
         self.assertEqual(images.trim_margins(raw.getvalue())[0], raw.getvalue())
 
+    def test_mixed_math_and_unit_labels_become_one_formula_and_hanging_mass_goes_aside(self):
+        from app.diagrams_physics import _tex
+        self.assertEqual(_tex('$3$ kg'), r'$3\,\mathrm{kg}$')
+        self.assertEqual(_tex('정지'), '정지')
+        scene = dict(track=[[0, 4], [8, 4]], objects=[{'kind': 'block', 'on': 3, 'id': 'A'}, {'kind': 'block', 'hang': 'P0', 'id': 'B', 'mass': '$1$ kg'}],
+                     pulleys=[{'at': [8.5, 4.4], 'align': 'A'}], strings=[['A.right', 'P0']])
+        _, labels = diagrams.render(spec(type='mechanics', **scene))
+        mass = next(l for l in labels if 'kg' in l['text'])
+        self.assertEqual(mass['text'], r'$1\,\mathrm{kg}$')
+
 if __name__ == '__main__':
     unittest.main()
