@@ -30,7 +30,9 @@
     <a class="button header-download" href="#download">다운로드 <span aria-hidden="true">↓</span></a>
   </header>
   <main id="main">
-    <section class="hero wrap" aria-labelledby="hero-title">
+    <section class="hero-band is-dark" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true"><video id="heroLoop" autoplay muted loop playsinline preload="auto" poster="./media/testcraft-loop.jpg"><source src="./media/testcraft-loop.mp4" type="video/mp4"></video><img id="heroMotionPoster" src="./media/testcraft-loop.jpg" alt="" hidden></div>
+      <div class="hero wrap">
       <div class="hero-copy">
         <p class="eyebrow"><span></span> 교사를 위한 시험공방</p>
         <h1 id="hero-title">평가의 의도를 담아,<br>시험을 <em>빚다.</em></h1>
@@ -39,11 +41,9 @@
         <p class="download-caption"><span data-release-version>v1.2.0</span> · Windows 10/11 · 64비트</p>
         <p class="account-note">AI 기능에는 Codex를 사용할 수 있는 유료 ChatGPT 계정이 필요합니다.</p>
       </div>
-      <figure class="hero-visual">
-        <div class="figure-heading"><span class="window-dots" aria-hidden="true">● ● ●</span><span>TestCraft / 자료 디자인</span><span class="live-label">내 컴퓨터의 작업실</span></div>
-        <div class="hero-motion"><video id="heroLoop" muted loop playsinline preload="none" poster="./media/testcraft-loop.jpg" aria-label="아이디어 한 줄에서 문항, 그림, 한글 시험지까지 실제 작업실 시연"><source src="./media/testcraft-loop.mp4" type="video/mp4"></video><img id="heroMotionPoster" src="./assets/studio-designer.png" width="1440" height="960" alt="TestCraft 자료 디자인 작업실" hidden><button id="heroMotionToggle" type="button" aria-label="시연 영상 재생">▶ 재생</button></div>
-        <figcaption><span class="figure-number">01 / THE WORKSHOP</span><span>한 줄이면, 시험지 한 장.</span></figcaption>
-      </figure>
+        <p class="hero-note"><span>실제 앱 시연</span>아이디어 한 줄 → AI 초안 → 그림 → 한글 시험지</p>
+      </div>
+      <button id="heroMotionToggle" type="button" aria-label="배경 시연 영상 일시정지">Ⅱ 일시정지</button>
     </section>
     <div class="spec-strip wrap" aria-label="제품 특징"><span>성취기준에서 시작</span><span>한 줄 아이디어로 AI 초안</span><span>평가원 꼴 도식·지도</span><span>그림·글씨 개별 편집</span><span>학교 양식 HWPX 출력</span></div>
 
@@ -104,8 +104,8 @@
     <section class="shorts wrap section" id="shorts" aria-labelledby="shorts-title">
       <div class="section-heading"><div><p class="eyebrow">30초씩, 실제 앱 화면으로</p><h2 id="shorts-title">과목마다, 아이디어 한 줄.</h2></div><p>물리·미적분·영어·화학·지구과학·통합사회까지,<br>32과목 128문항의 공개 예시 시험지를 실제 앱으로 만들었습니다.</p></div>
       <div class="short-cards">
-        <figure><video controls playsinline preload="none" poster="./media/testcraft-short.jpg" src="./media/testcraft-short.mp4" aria-label="한 줄이면, 시험지 한 장 — 아이디어 한 줄에서 한글 시험지까지"></video><figcaption><b>한 줄이면, 시험지 한 장</b><span>아이디어 → AI 초안 → 그림 → 한글 시험지</span></figcaption></figure>
-        <figure><video controls playsinline preload="none" poster="./media/testcraft-short-subjects.jpg" src="./media/testcraft-short-subjects.mp4" aria-label="과목마다 아이디어 한 줄 — 여섯 과목 예시 문항"></video><figcaption><b>과목마다, 아이디어 한 줄</b><span>그림·그래프·요약문·표·지도까지</span></figcaption></figure>
+        <figure><video controls muted loop playsinline preload="metadata" data-autoplay poster="./media/testcraft-short.jpg" src="./media/testcraft-short.mp4" aria-label="한 줄이면, 시험지 한 장 — 아이디어 한 줄에서 한글 시험지까지"></video><figcaption><b>한 줄이면, 시험지 한 장</b><span>아이디어 → AI 초안 → 그림 → 한글 시험지</span></figcaption></figure>
+        <figure><video controls muted loop playsinline preload="metadata" data-autoplay poster="./media/testcraft-short-subjects.jpg" src="./media/testcraft-short-subjects.mp4" aria-label="과목마다 아이디어 한 줄 — 여섯 과목 예시 문항"></video><figcaption><b>과목마다, 아이디어 한 줄</b><span>그림·그래프·요약문·표·지도까지</span></figcaption></figure>
       </div>
     </section>
 

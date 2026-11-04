@@ -2,13 +2,17 @@
 (()=>{
  const base='https://github.com/sehunYang/testcraft/releases/download/media-v1/';
  const hero=document.querySelector('#heroLoop'),toggle=document.querySelector('#heroMotionToggle');
- const reduced=matchMedia('(prefers-reduced-motion: reduce)');let stopped=reduced.matches||navigator.connection?.saveData===true,visible=false;
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)');let stopped=navigator.connection?.saveData===true,visible=false;      // 교사 지정(2026-11-04): 동작 줄이기와 관계없이 자동 재생, 일시정지 버튼은 유지
  function label(){toggle.textContent=hero.paused?'▶ 재생':'Ⅱ 일시정지';toggle.setAttribute('aria-label',hero.paused?'작업실 시연 영상 재생':'작업실 시연 영상 일시정지')}
  function playback(){if(visible&&!stopped&&!document.hidden&&!document.querySelector('#shortDialog[open]')){hero.muted=true;hero.play().catch(label)}else hero.pause();label()}
  toggle.onclick=()=>{stopped=!hero.paused;playback()};hero.addEventListener('play',label);hero.addEventListener('pause',label);
  hero.addEventListener('error',()=>{hero.hidden=true;document.querySelector('#heroMotionPoster').hidden=false;toggle.hidden=true});
  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;playback()},{threshold:.15}).observe(hero);
- document.addEventListener('visibilitychange',playback);reduced.addEventListener('change',e=>{stopped=e.matches;playback()});
+ document.addEventListener('visibilitychange',playback);
+ // 쇼츠 카드: 화면에 보이면 소리 없이 자동 재생, 벗어나면 멈춤.
+ const cards=[...document.querySelectorAll('video[data-autoplay]')];
+ const cardIO=new IntersectionObserver(entries=>{for(const e of entries){const v=e.target;if(e.isIntersecting&&!document.querySelector('#shortDialog[open]')){v.play().catch(()=>{})}else if(!e.isIntersecting)v.pause()}},{threshold:.55});
+ cards.forEach(v=>cardIO.observe(v));
  const video=document.querySelector('#siteTutorialVideo'),list=document.querySelector('#siteTutorialList');
  const make=(tag,props={})=>Object.assign(document.createElement(tag),props);
  function safeVideo(url){try{const u=new URL(url);return u.href.startsWith(base)&&u.origin==='https://github.com'&&!u.username&&!u.password}catch{return false}}
