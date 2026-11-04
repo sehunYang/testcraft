@@ -26,7 +26,7 @@
   <a class="skip-link" href="#main">본문으로 바로 가기</a>
   <header class="site-header">
     <a class="brand" href="#" aria-label="TestCraft 처음으로"><img src="./assets/logo.png" width="38" height="38" alt=""><span>TestCraft</span></a>
-    <nav aria-label="주 메뉴"><a href="#workflow">출제 과정</a><a href="#tutorials">사용 안내</a><a href="#faq">자주 묻는 질문</a><a class="github-link" href="https://github.com/sehunYang/testcraft">GitHub <span aria-hidden="true">↗</span></a></nav>
+    <nav aria-label="주 메뉴"><a href="#idea">한 줄 아이디어</a><a href="#figures">그림 자료</a><a href="#workflow">출제 과정</a><a href="#tutorials">사용 안내</a><a href="#faq">자주 묻는 질문</a><a class="github-link" href="https://github.com/sehunYang/testcraft">GitHub <span aria-hidden="true">↗</span></a></nav>
     <a class="button header-download" href="#download">다운로드 <span aria-hidden="true">↓</span></a>
   </header>
   <main id="main">
@@ -41,11 +41,27 @@
       </div>
       <figure class="hero-visual">
         <div class="figure-heading"><span class="window-dots" aria-hidden="true">● ● ●</span><span>TestCraft / 자료 디자인</span><span class="live-label">내 컴퓨터의 작업실</span></div>
-        <div class="hero-motion"><video id="heroLoop" muted loop playsinline preload="none" poster="./assets/studio-designer.png" aria-label="문항 설계부터 자료 편집과 출력까지 실제 작업실 시연"><source src="./media/testcraft-loop.mp4" type="video/mp4"></video><img id="heroMotionPoster" src="./assets/studio-designer.png" width="1440" height="960" alt="TestCraft 자료 디자인 작업실" hidden><button id="heroMotionToggle" type="button" aria-label="시연 영상 재생">▶ 재생</button></div>
-        <figcaption><span class="figure-number">01 / THE WORKSHOP</span><span>그림은 정교하게. 글씨는 자유롭게.</span></figcaption>
+        <div class="hero-motion"><video id="heroLoop" muted loop playsinline preload="none" poster="./media/testcraft-loop.jpg" aria-label="아이디어 한 줄에서 문항, 그림, 한글 시험지까지 실제 작업실 시연"><source src="./media/testcraft-loop.mp4" type="video/mp4"></video><img id="heroMotionPoster" src="./assets/studio-designer.png" width="1440" height="960" alt="TestCraft 자료 디자인 작업실" hidden><button id="heroMotionToggle" type="button" aria-label="시연 영상 재생">▶ 재생</button></div>
+        <figcaption><span class="figure-number">01 / THE WORKSHOP</span><span>한 줄이면, 시험지 한 장.</span></figcaption>
       </figure>
     </section>
-    <div class="spec-strip wrap" aria-label="제품 특징"><span>성취기준에서 시작</span><span>내장 Codex CLI</span><span>그림·글씨 개별 편집</span><span>학교 양식 HWPX 출력</span></div>
+    <div class="spec-strip wrap" aria-label="제품 특징"><span>성취기준에서 시작</span><span>한 줄 아이디어로 AI 초안</span><span>평가원 꼴 도식·지도</span><span>그림·글씨 개별 편집</span><span>학교 양식 HWPX 출력</span></div>
+
+    <section class="idea wrap section" id="idea" aria-labelledby="idea-title">
+      <div class="section-heading"><div><p class="eyebrow">짧게 쓰고, 깊게 검토하세요</p><h2 id="idea-title">아이디어 한 줄이<br>문항 하나가 됩니다.</h2></div><p>상황과 묻고 싶은 것만 적으세요.<br>중력 가속도, 실의 질량, 마찰처럼 늘 붙는 조건은<br>AI가 평가원 단서 조항으로 채웁니다.</p></div>
+      <div class="idea-flow">
+        <div class="idea-card idea-input"><span class="idea-tag">선생님이 쓴 한 줄</span><p>수평면 위의 물체 A(3 kg)와 도르래에 매단 물체 B(1 kg)를 실로 연결하고 가만히 놓았을 때, B가 0.8 m 내려온 순간 A의 속력을 묻는 문항</p><small>물리학 · 최선답형 · 86자</small></div>
+        <div class="idea-arrow" aria-hidden="true">→</div>
+        <div class="idea-card idea-output"><span class="idea-tag">AI 초안 · 실제 생성 결과</span>
+          <p class="idea-stem"><b>1.</b> 그림과 같이 질량이 각각 3 kg, 1 kg인 물체 <i>A</i>, <i>B</i>를 도르래에 걸친 실로 연결하고 가만히 놓았다. <i>A</i>는 수평면 위에 있고, <i>B</i>는 실에 매달려 있다. <mark>(단, 중력 가속도의 크기는 10 m/s²이고, 실과 도르래의 질량, 물체의 크기, 모든 마찰과 공기 저항은 무시한다.)</mark></p>
+          <img src="./assets/figures/pulley.png" width="1000" height="577" loading="lazy" alt="수평면 위의 물체 A와 탁자 끝 도르래에 실로 매달린 물체 B 그림. 질량 3 kg, 1 kg이 표시되어 있다.">
+          <p class="idea-question"><i>B</i>가 0.8 m 내려온 순간, <i>A</i>의 속력은?</p>
+          <ol class="idea-choices"><li>√2 m/s</li><li class="is-answer">2 m/s</li><li>4√3/3 m/s</li><li>2√2 m/s</li><li>4 m/s</li></ol>
+          <div class="idea-checks"><span>정답 ②</span><span>해설 ✓</span><span>오답 근거 ✓</span><span>검산 ✓</span></div>
+        </div>
+      </div>
+      <p class="image-note">홍보 영상을 찍을 때 실제 앱이 만든 결과입니다. 상황을 바꾸는 조건(질량 관계, 처음 속도 등)은 AI가 지어내지 않고, 넣은 단서는 검토 의견에 적어 둡니다.</p>
+    </section>
 
     <section class="workflow wrap section" id="workflow" aria-labelledby="workflow-title">
       <div class="section-heading"><div><p class="eyebrow">하나의 작업실, 네 번의 집중</p><h2 id="workflow-title">출제는 하나의 흐름이니까.</h2></div><p>파일과 도구 사이를 오가는 대신,<br>지금 필요한 판단에 집중하세요.</p></div>
@@ -72,6 +88,27 @@
       <p class="image-note">실제 앱에 공개용 예시 문항을 넣은 화면입니다. 이미지 클릭 시 원본을 볼 수 있습니다. 버전에 따라 배치가 다를 수 있습니다.</p>
     </section>
 
+    <section class="figures-band" id="figures" aria-labelledby="figures-title"><div class="wrap section">
+      <div class="section-heading"><div><p class="eyebrow">AI는 명세를, 그림은 앱이</p><h2 id="figures-title">평가원 꼴 그림,<br>수와 비율까지 정확하게.</h2></div><p>AI가 장면을 명세로 적으면 앱이 기출의 선 굵기와 회색 음영,<br>입체 음영으로 그립니다. 높이·각·개수가 문항 조건과 어긋나지 않고,<br>글씨는 따로 옮길 수 있는 레이어로 들어갑니다.</p></div>
+      <div class="figure-grid">
+        <figure><img src="./assets/figures/mechanics.png" width="1200" height="843" loading="lazy" alt="빗면과 언덕, 마찰 구간 두 곳, 높이 15h와 9h가 표시된 역학 상황 그림"><figcaption><b>역학 상황</b><span>빗면·도르래·용수철·벽·마찰 구간</span></figcaption></figure>
+        <figure><img src="./assets/figures/circuit.png" width="1200" height="451" loading="lazy" alt="전지와 저항 세 개로 된 회로 (가), (나)"><figcaption><b>회로</b><span>전지·저항·스위치·LED·계기</span></figcaption></figure>
+        <figure><img src="./assets/figures/graph.png" width="1200" height="780" loading="lazy" alt="힘-시간 그래프: A는 좁고 높게, B는 넓고 낮게 부드럽게 오르내리는 곡선"><figcaption><b>그래프</b><span>기호 눈금·점선·넓이·부드러운 곡선</span></figcaption></figure>
+        <figure><img src="./assets/figures/particles.png" width="1200" height="564" loading="lazy" alt="반응 전과 후 둥근 용기 안의 입자 모형, 원자는 입체 구로 표현"><figcaption><b>반응 입자 모형</b><span>원소별 크기·입체 원자·흩어진 배치</span></figcaption></figure>
+        <figure><img src="./assets/figures/cell.png" width="1200" height="768" loading="lazy" alt="이웃 세포와 맞닿은 육각형 식물 세포와 소기관 A~E"><figcaption><b>세포 소기관</b><span>기출 모식도 꼴·육각형 식물 세포</span></figcaption></figure>
+        <figure><img src="./assets/figures/map.png" width="1200" height="768" loading="lazy" alt="약 2억 5천만 년 전 판게아 대륙 분포 지도와 적도, 지점 A, B"><figcaption><b>지도</b><span>지질시대 대륙·과거 국경·시군구</span></figcaption></figure>
+      </div>
+      <p class="figure-more">이 밖에도 <span>가계도</span><span>먹이 그물</span><span>생태 피라미드</span><span>염기 서열·코돈</span><span>반응 경로-에너지</span><span>세계·한국 지도</span></p>
+    </div></section>
+
+    <section class="shorts wrap section" id="shorts" aria-labelledby="shorts-title">
+      <div class="section-heading"><div><p class="eyebrow">30초씩, 실제 앱 화면으로</p><h2 id="shorts-title">과목마다, 아이디어 한 줄.</h2></div><p>물리·미적분·영어·화학·지구과학·통합사회까지,<br>32과목 128문항의 공개 예시 시험지를 실제 앱으로 만들었습니다.</p></div>
+      <div class="short-cards">
+        <figure><video controls playsinline preload="none" poster="./media/testcraft-short.jpg" src="./media/testcraft-short.mp4" aria-label="한 줄이면, 시험지 한 장 — 아이디어 한 줄에서 한글 시험지까지"></video><figcaption><b>한 줄이면, 시험지 한 장</b><span>아이디어 → AI 초안 → 그림 → 한글 시험지</span></figcaption></figure>
+        <figure><video controls playsinline preload="none" poster="./media/testcraft-short-subjects.jpg" src="./media/testcraft-short-subjects.mp4" aria-label="과목마다 아이디어 한 줄 — 여섯 과목 예시 문항"></video><figcaption><b>과목마다, 아이디어 한 줄</b><span>그림·그래프·요약문·표·지도까지</span></figcaption></figure>
+      </div>
+    </section>
+
     <section class="section wrap" id="tutorials" aria-labelledby="tutorials-title">
       <div class="tutorial-intro"><div><p class="eyebrow">처음부터, 함께 만드는 시험</p><h2 id="tutorials-title">보고, 바로 따라 하세요.</h2><p>실제 작업실을 조작하며 설명하는 7편의 안내.<br>앱의 도움말에서는 현재 화면에 맞는 영상과 화면 안내를 만납니다.</p></div><button id="watchShort" class="button" type="button">30초로 만나는 TestCraft ▶</button></div>
       <div class="tutorial-layout"><div class="tutorial-watch"><video id="siteTutorialVideo" controls playsinline preload="none" poster="./media/01-start.jpg" aria-label="TestCraft 사용 튜토리얼"></video><div class="tutorial-watch-copy"><h3 id="siteTutorialTitle">처음 시작하기</h3><p id="siteTutorialDescription">공개용 예제 시험을 실제로 만드는 과정입니다.</p><p id="siteTutorialError" class="media-error" role="status" hidden>영상을 불러오지 못했습니다. 영상 새 창에서 보기 또는 아래 글 안내를 이용해 주세요.</p><ol id="siteTutorialChapters" class="tutorial-site-chapters" aria-label="영상 챕터"></ol><a id="siteTutorialDownload" href="https://github.com/sehunYang/testcraft/releases/download/media-v1/01-start.mp4" target="_blank" rel="noopener">영상 새 창에서 보기 ↗</a><details><summary>글로 읽기</summary><div id="siteTutorialTranscript"></div></details></div></div><ol id="siteTutorialList" class="tutorial-playlist" aria-label="사용 튜토리얼 목록">
@@ -92,6 +129,7 @@
       <details><summary>API 키를 준비해야 하나요?</summary><p>설치 배포본은 내장 Codex CLI와 계정 로그인을 사용하므로 API 키가 필요하지 않습니다. Codex를 사용할 수 있는 유료 ChatGPT 계정이 필요하며, 이용 한도는 해당 계정의 서비스 조건을 따릅니다.</p></details>
       <details><summary>한글 프로그램 없이도 사용할 수 있나요?</summary><p>문항 설계와 검토는 가능합니다. 최종 HWPX 시험지 변환에는 한컴오피스 한글이 필요합니다. 변환 시 앱이 별도의 숨김 한글 프로세스를 사용하며, 한글 프로그램과 신명 중명조 글꼴은 설치 파일에 포함되지 않습니다.</p></details>
       <details><summary>시험과 문항은 어디에 저장되나요?</summary><p>새 설치의 작업물은 내 컴퓨터의 %LOCALAPPDATA%\TestCraft에 저장됩니다. 기존 Question Studio 데이터가 있으면 이전 위치를 유지합니다. AI 기능을 실행하면 선택한 문항 내용이 로그인한 Codex 서비스로 전달됩니다.</p></details>
+      <details><summary>그림도 AI가 그리나요?</summary><p>과학 상황 그림·회로·그래프·입자 모형·세포·가계도와 지도는 AI가 장면을 명세로 적고 앱이 정해진 규칙으로 그립니다. 그래서 수와 비율이 문항 조건과 맞고, 선 굵기와 음영이 평가원 그림 꼴로 고르게 나옵니다. 그 밖의 그림은 AI가 SVG로 그리며, 어느 쪽이든 교사가 확인하고 고친 뒤 확정합니다.</p></details>
       <details><summary>AI가 만든 문항을 바로 출력하나요?</summary><p>교사가 문항과 정답·해설을 검토하고 배점을 확인한 뒤 전체 문항카드를 승인합니다. 실제 그림 제작은 승인 이후 진행하며, 완성된 그림도 최종 확인합니다. 출력한 시험지는 인쇄 전 배치와 수식을 확인해 주세요.</p></details>
       <details><summary>직접 수정하거나 재배포할 수 있나요?</summary><p>소스는 GNU AGPL-3.0으로 공개합니다. 수정·재배포 시 해당 라이선스 조건을 따라 주세요. 포함된 외부 구성 요소는 각각의 라이선스를 유지합니다.</p></details>
     </div></section>

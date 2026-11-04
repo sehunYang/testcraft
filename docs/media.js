@@ -30,6 +30,6 @@
   list.replaceChildren();c.episodes.forEach((ep,i)=>{const li=make('li'),b=make('button',{type:'button'}),text=make('span',{textContent:ep.title});text.append(make('small',{textContent:`${Math.floor(ep.duration/60)}분 ${Math.round(ep.duration%60)}초 · 한국어 설명·자막`}));b.append(make('span',{className:'tutorial-no',textContent:String(i+1).padStart(2,'0')}),text);b.onclick=()=>choose(ep,b);li.append(b);list.append(li);if(!i)choose(ep,b)});
  }).catch(()=>{document.querySelector('#siteTutorialError').hidden=false});
  const dialog=document.querySelector('#shortDialog'),short=dialog.querySelector('video');
- document.querySelector('#watchShort').onclick=()=>{hero.pause();video.pause();dialog.showModal();short.src=base+'testcraft-short.mp4';short.play().catch(()=>{})};
+ document.querySelector('#watchShort').onclick=()=>{hero.pause();video.pause();dialog.showModal();short.src='./media/testcraft-short.mp4';short.play().catch(()=>{})};
  dialog.querySelector('button').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{short.pause();playback()});
 })();

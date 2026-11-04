@@ -16,7 +16,7 @@
 
 **[🌐 TestCraft 안내 페이지](https://shy.ai.kr/testcraft/)** · **[⬇️ Windows 다운로드](https://github.com/sehunYang/testcraft/releases/latest)**
 
-[왜 TestCraft?](#why-testcraft) · [작업실 둘러보기](#the-workshop) · [설치](#installation) · [자주 묻는 질문](#faq) · [개발](#development)
+[왜 TestCraft?](#why-testcraft) · [v1.2.0 새 기능](#whats-new) · [작업실 둘러보기](#the-workshop) · [설치](#installation) · [자주 묻는 질문](#faq) · [개발](#development)
 
 </div>
 
@@ -30,6 +30,34 @@
 문항카드에 설계한 의도를 AI에 옮기고, 그림을 따로 만들고, 다시 시험지 양식에 넣는 일은 서로 떨어져 있기 쉽습니다. TestCraft는 이 과정을 **설계 → 검토 → 그림 → 출력**이라는 하나의 작업 흐름으로 묶었습니다.
 
 AI가 초안을 쓰더라도 문항·정답·해설과 배점은 교사가 검토합니다. **전체 문항카드를 승인한 뒤 실제 그림 제작과 시험지 출력으로 진행**합니다.
+
+<br>
+
+<a id="whats-new"></a>
+## ✨ v1.2.0 — 아이디어 한 줄, 평가원 꼴 그림
+
+**짧게 쓰고, 깊게 검토하세요.** 상황과 묻고 싶은 것만 적으면 AI가 문항을 씁니다. 중력 가속도, 실의 질량, 마찰처럼 늘 붙는 조건은 AI가 평가원 단서 조항으로 채우고 검토 의견에 알립니다. 상황을 바꾸는 조건은 지어내지 않습니다.
+
+> 선생님이 쓴 한 줄 — *수평면 위의 물체 A(3 kg)와 도르래에 매단 물체 B(1 kg)를 실로 연결하고 가만히 놓았을 때, B가 0.8 m 내려온 순간 A의 속력을 묻는 문항*
+>
+> AI 초안 — 그림과 같이 질량이 각각 3 kg, 1 kg인 물체 A, B를 도르래에 걸친 실로 연결하고 가만히 놓았다. … **(단, 중력 가속도의 크기는 10 m/s²이고, 실과 도르래의 질량, 물체의 크기, 모든 마찰과 공기 저항은 무시한다.)**
+
+**그림은 AI가 명세를, 앱이 정확하게.** 과학 상황 그림·회로·그래프·입자 모형·세포·가계도와 지도는 AI가 장면을 명세로 적고 앱이 기출의 선 굵기와 회색 음영으로 그립니다. 높이·각·개수가 문항 조건과 어긋나지 않고, 글씨는 따로 옮길 수 있는 레이어로 들어갑니다.
+
+<table>
+<tr>
+<td width="33%"><img src="docs/assets/figures/mechanics.png" alt="빗면과 언덕, 마찰 구간 두 곳이 있는 역학 상황 그림"><br><b>역학 상황</b> · 빗면·도르래·용수철·마찰 구간</td>
+<td width="33%"><img src="docs/assets/figures/circuit.png" alt="저항 세 개로 된 회로 (가), (나)"><br><b>회로</b> · 전지·저항·스위치·LED·계기</td>
+<td width="33%"><img src="docs/assets/figures/graph.png" alt="부드럽게 오르내리는 힘-시간 그래프 A, B"><br><b>그래프</b> · 기호 눈금·점선·넓이</td>
+</tr>
+<tr>
+<td><img src="docs/assets/figures/particles.png" alt="반응 전후 둥근 용기의 입자 모형"><br><b>반응 입자 모형</b> · 입체 원자·흩어진 배치</td>
+<td><img src="docs/assets/figures/cell.png" alt="육각형 식물 세포와 소기관 A~E"><br><b>세포 소기관</b> · 기출 모식도 꼴</td>
+<td><img src="docs/assets/figures/map.png" alt="판게아 대륙 분포 지도와 지점 A, B"><br><b>지도</b> · 지질시대 대륙·과거 국경·시군구</td>
+</tr>
+</table>
+
+이 밖에 가계도·먹이 그물·생태 피라미드·염기 서열·반응 경로-에너지 그래프, 교과별 세부 형식 132종, 32과목 128문항 공개 예시 시험지가 함께 들어 있습니다. [30초 영상 두 편 보기 ↗](https://shy.ai.kr/testcraft/#shorts)
 
 <br>
 
@@ -202,6 +230,6 @@ python -m http.server 8080 --directory .runtime/pages
 
 ## 영상으로 시작하기
 
-[7편의 한국어 사용 튜토리얼과 30초 소개 영상](https://shy.ai.kr/testcraft/#tutorials)을 제공합니다. 앱 상단의 **도움말**은 현재 화면에 맞는 영상과 실제 버튼을 강조하는 따라 하기 안내를 엽니다.
+[7편의 한국어 사용 튜토리얼](https://shy.ai.kr/testcraft/#tutorials)과 [30초 소개 영상 두 편](https://shy.ai.kr/testcraft/#shorts)을 제공합니다. 앱 상단의 **도움말**은 현재 화면에 맞는 영상과 실제 버튼을 강조하는 따라 하기 안내를 엽니다.
 
 공통 오리지널 음악 *Quiet Precision*은 튜토리얼 108 BPM과 홍보 리프라이즈 128 BPM으로 편곡했습니다. 실제 앱 조작을 녹화했으며 AI 생성 대기는 단축 표시합니다. [영상·음악 제작 소스](instructions/영상-제작-운영.md)도 공개합니다.

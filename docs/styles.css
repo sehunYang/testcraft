@@ -10,3 +10,43 @@
 @media(max-width:800px){.wrap{width:calc(100% - 40px)}.site-header{height:72px;padding-inline:20px;gap:18px}.brand{font-size:21px}.brand img{width:32px;height:32px}.site-header nav{margin-left:auto}.site-header nav a:not(.github-link){display:none}.site-header .header-download{padding-inline:14px;gap:10px;min-height:42px}.section{padding-block:72px}.hero{grid-template-columns:1fr;gap:46px;padding-top:54px;padding-bottom:44px}.hero-copy{max-width:570px}.hero h1{font-size:clamp(32px,6vw,44px);letter-spacing:-1.9px}.hero-description{font-size:15px}.hero-visual{max-width:640px;transform:none;margin-inline:auto;width:100%}.figure-heading{font-size:10px}.live-label{display:inline}.spec-strip{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;font-size:12px;padding-block:20px}.section-heading{display:block}.section-heading>p{margin-top:18px}.section-heading>p br{display:none}h2{font-size:28px}.process{grid-template-columns:1fr 1fr;gap:22px;margin:32px 0}.process p{max-width:240px}.showcase-tabs button{padding:17px 14px;font-size:14px;gap:8px}.showcase-tabs button .tab-arrow{display:none}.panel-caption{padding:22px;grid-template-columns:1fr;gap:12px}.panel-caption h3{font-size:19px}.panel-caption p{font-size:12px}.image-note{text-align:left}.output-inner{padding-block:54px;grid-template-columns:1fr;gap:26px}.output-inner h2{font-size:28px}.file-stack>div{padding:20px 0}.download-intro{text-align:left}.download-intro .eyebrow{justify-content:flex-start}.download-intro h2{font-size:30px}.download-intro>p br{display:none}.download-box{grid-template-columns:1fr;margin-top:30px}.download-main{padding:28px}.download-requirements{border-left:0;border-top:1px solid var(--line);padding:28px}.install-steps{grid-template-columns:1fr;gap:24px}.install-steps p br{display:none}.faq{grid-template-columns:1fr;gap:30px}.faq .text-link{margin-top:18px}.site-footer{padding-block:32px;gap:24px}.footer-links{gap:18px;flex-wrap:wrap}.site-footer small{font-size:10px}}
 @media(max-width:390px){.site-header{gap:12px;padding-inline:16px}.site-header nav{display:none}.header-download{margin-left:auto}.wrap{width:calc(100% - 32px)}.hero h1{font-size:30px;letter-spacing:-1.6px}.hero-description{font-size:13px}.hero-actions{gap:18px}.hero-actions .text-link{font-size:13px}.hero-visual figcaption{font-size:10px;padding:12px}.figure-number{font-size:8px}.live-label{display:none}.showcase-tabs button{padding:16px 10px;font-size:12px;gap:5px}.showcase-tabs button>span:first-child{font-size:10px}.download-main,.download-requirements{padding:24px}.download-main>.button{min-width:0;width:100%;font-size:14px;gap:20px}.download-main h3{font-size:22px}.alternative-downloads{gap:14px}.spec-strip{gap:10px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+/* 2026-11-04 · 한 줄 아이디어 · 그림 자료 · 짧은 영상 */
+.site-header nav{gap:26px}
+.idea .section-heading>p,.figures-band .section-heading>p,.shorts .section-heading>p{text-align:right}
+.idea-flow{display:grid;grid-template-columns:.8fr 56px 1.4fr;align-items:center;gap:0;margin-top:44px}
+.idea-card{border:1px solid var(--line);border-radius:14px;background:white;padding:30px 32px;box-shadow:0 18px 50px #18366010}
+.idea-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--blue);background:var(--soft);border-radius:999px;padding:4px 12px;margin-bottom:16px}
+.idea-input p{font-size:21px;line-height:1.65;letter-spacing:-.5px;font-weight:620;color:var(--navy)}
+.idea-input small{display:block;margin-top:18px;font-size:12px;color:var(--muted)}
+.idea-input{border-color:#b9c8f2;background:linear-gradient(180deg,#fff,#f6f8ff)}
+.idea-arrow{text-align:center;font-size:30px;color:var(--blue);font-weight:300}
+.idea-output{font-family:"Batang","바탕",serif;font-size:14px;line-height:1.85;color:#1d2430}
+.idea-output .idea-tag{font-family:"Pretendard GOV","Pretendard",sans-serif}
+.idea-stem mark{background:linear-gradient(transparent 55%,#ffe58a 55%);color:inherit;padding:0 1px}
+.idea-output img{width:100%;max-width:400px;margin:14px auto 8px}
+.idea-question{margin-top:4px}
+.idea-choices{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(5,auto);justify-content:start;gap:4px 22px;counter-reset:c}
+.idea-choices li{counter-increment:c;white-space:nowrap}
+.idea-choices li:before{content:counter(c,decimal) ") ";content:"①";margin-right:4px}
+.idea-choices li:nth-child(2):before{content:"②"}.idea-choices li:nth-child(3):before{content:"③"}.idea-choices li:nth-child(4):before{content:"④"}.idea-choices li:nth-child(5):before{content:"⑤"}
+.idea-choices .is-answer{color:var(--blue);font-weight:700}
+.idea-checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;font-family:"Pretendard GOV","Pretendard",sans-serif}
+.idea-checks span{font-size:11px;font-weight:650;color:#1d7a5c;background:#e8f6ef;border-radius:6px;padding:4px 10px}
+.idea-checks span:first-child{color:white;background:var(--blue)}
+.figures-band{background:#f1f4fb;border-block:1px solid var(--line)}
+.figure-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+.figure-grid figure{background:white;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:transform .25s ease,box-shadow .25s ease}
+.figure-grid figure:hover{transform:translateY(-4px);box-shadow:0 16px 40px #18366016}
+.figure-grid img{width:100%;aspect-ratio:4/3;object-fit:contain;padding:18px;background:white}
+.figure-grid figcaption{border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:2px}
+.figure-grid figcaption b{font-size:15px}.figure-grid figcaption span{font-size:12px;color:var(--muted)}
+.figure-more{margin-top:26px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.figure-more span{border:1px solid #cdd7ed;background:white;border-radius:999px;padding:3px 12px;font-size:12px;color:var(--navy)}
+.short-cards{display:grid;grid-template-columns:repeat(2,minmax(0,330px));justify-content:center;gap:48px;margin-top:46px}
+.short-cards figure{margin:0}
+.short-cards video{width:100%;aspect-ratio:9/16;border-radius:18px;background:#0b1530;box-shadow:0 24px 60px #0b153033;display:block}
+.short-cards figcaption{margin-top:16px;text-align:center;display:flex;flex-direction:column}
+.short-cards figcaption b{font-size:16px}.short-cards figcaption span{font-size:12px;color:var(--muted)}
+@media(max-width:1100px){.site-header nav{gap:16px}.idea-flow{grid-template-columns:1fr;gap:14px}.idea-arrow{transform:rotate(90deg)}.figure-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.idea .section-heading>p,.figures-band .section-heading>p,.shorts .section-heading>p{text-align:left}.idea-input p{font-size:18px}.idea-card{padding:22px}.idea-output img{width:100%}.idea-choices{grid-template-columns:repeat(2,auto)}.figure-grid{grid-template-columns:1fr;gap:16px}.short-cards{grid-template-columns:minmax(0,300px);gap:34px}}
