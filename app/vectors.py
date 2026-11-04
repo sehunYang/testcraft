@@ -9,8 +9,9 @@ from PIL import Image
 from . import images
 from .core import uid
 
-TAGS={'g','path','line','polyline','polygon','rect','circle','ellipse','defs','marker','title','desc'}
-ATTRS=set('id data-element transform d points x y x1 y1 x2 y2 width height rx ry cx cy r fill fill-rule fill-opacity stroke stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset stroke-opacity opacity marker-start marker-mid marker-end markerWidth markerHeight markerUnits refX refY orient viewBox preserveAspectRatio vector-effect'.split())
+TAGS={'g','path','line','polyline','polygon','rect','circle','ellipse','defs','marker','title','desc','linearGradient','radialGradient','stop'}
+GRADIENT={'linearGradient','radialGradient','stop'}      # 앱 도식의 음영. defs 안에서만 쓴다.
+ATTRS=set('id data-element transform d points x y x1 y1 x2 y2 width height rx ry cx cy r fill fill-rule fill-opacity stroke stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset stroke-opacity opacity marker-start marker-mid marker-end markerWidth markerHeight markerUnits refX refY orient viewBox preserveAspectRatio vector-effect offset stop-color stop-opacity fx fy gradientUnits'.split())
 
 def safe_fragment(source, defs=False):
     if not isinstance(source,str) or len(source)>900000 or '<!' in source: raise ValueError('그림 객체 SVG 형식 오류')
@@ -18,7 +19,7 @@ def safe_fragment(source, defs=False):
     if len(list(root.iter()))>5000: raise ValueError('그림 객체가 너무 복잡합니다.')
     for node in list(root.iter())[1:]:
         tag=node.tag.split('}')[-1]
-        if tag not in TAGS or (not defs and tag in ('defs','marker')): raise ValueError('그림 객체에는 선·도형만 넣을 수 있습니다. 글씨는 글씨 레이어를 사용하세요.')
+        if tag not in TAGS or (not defs and (tag in ('defs','marker') or tag in GRADIENT)): raise ValueError('그림 객체에는 선·도형만 넣을 수 있습니다. 글씨는 글씨 레이어를 사용하세요.')
         node.tag=tag
         for key,val in node.attrib.items():
             if key not in ATTRS or len(val)>800000: raise ValueError('지원하지 않는 SVG 속성: '+key)

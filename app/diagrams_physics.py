@@ -196,6 +196,8 @@ def _tangent(c, r, p, away):
 def _mechanics(spec, parts, labels, box=FRAME):
     _defs(parts)
     track = [tuple(p) for p in spec.get('track', [])]
+    if spec.get('smooth') and len(track) >= 3:     # 곡면 레일·언덕: 점을 지나는 매끄러운 곡선(위치·높이 계산도 이 곡선으로)
+        track = [tuple(q) for q in _monotone(track)]
     world = list(track)
     world += [tuple(o['at']) for o in spec.get('objects', []) if _pt(o.get('at'))]
     world += [tuple(p['at']) for p in spec.get('pulleys', []) if _pt(p.get('at'))]
@@ -227,7 +229,8 @@ def _mechanics(spec, parts, labels, box=FRAME):
     if track:
         px = [P(p) for p in track]
         base = spec.get('base', 'solid')
-        rr = 0 if spec.get('sharp') else spec.get('round', 40)
+        rr = 0 if spec.get('sharp') or spec.get('smooth') else spec.get('round', 40)
+        if 0 < rr < 4: rr = 40            # 세계 좌표로 착각한 작은 값은 기본 둥글기로
         if base == 'solid':
             bottom = P((0, spec['base_to']))[1] if _num(spec.get('base_to')) else max(y for _, y in px) + 26 * u
             region = _rounded(px, rr) + f'L{px[-1][0]:.1f},{bottom:.1f}L{px[0][0]:.1f},{bottom:.1f}Z'
@@ -365,6 +368,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
                 parts.append(_hatch(a_, b_, side=1 if mount in ('up', 'left') else -1, size=8, step=10))
         parts.append(_circle(c, r, 'white', 2.5)); parts.append(_circle(c, 4.5, LINE, 1))
     for o, kind, c, ang, w, h, r, corners in drawn:
+        if 'label' not in o and re.fullmatch(r'[A-Z]', str(o.get('id', ''))): o = {**o, 'label': f"${o['id']}$"}   # 이름표를 빠뜨리면 id(A, B)를 쓴다
         dash = '7 5' if o.get('ghost') else ''
         fill = {'gray': '#bdbdbd', 'light': PALE}.get(o.get('shade'), 'white')
         if kind == 'ball':
@@ -668,7 +672,7 @@ RENDER = {'mechanics': _mechanics, 'circuit': _circuit, 'graph': _graph, 'panels
 
 PROMPT = """
 물리 도식(앱이 그림, 이 종류의 그림은 SVG 규칙 대신 반드시 이 명세를 쓴다): 역학 상황, 회로, 그래프, 그리고 이들을 (가)(나)로 나란히 놓는 panels. 예: 수평면 위 물체 A와 끝의 도르래에 매단 B → {"type":"mechanics","track":[[0,4],[8,4]],"base_to":1.5,"objects":[{"kind":"block","on":3,"id":"A","label":"$A$"},{"kind":"block","hang":"P0","drop":2.2,"id":"B","label":"$B$","mass":"$1\\\\,\\\\mathrm{kg}$"}],"pulleys":[{"at":[8.5,4.4],"mount":"corner","align":"A","id":"P0"}],"strings":[["A.right","P0"]]}. 좌표는 세계 좌표(y가 위로 커짐)이고 앱이 칸에 맞춰 늘이고 줄인다. 물체·도르래·부품 크기는 앱이 정한다. 글씨는 수식이면 글씨 하나를 $...$ 하나로 통째로 쓰고(예: "$3\\,\\mathrm{kg}$", "$5\\,\\mathrm{m/s}$"), 한글이면 평문이다.
-- 역학 상황: {"type":"mechanics","track":[[0,4],[3,1],[8,1]],"base":"solid|line|hatch","datum":0,"objects":[{"kind":"block|ball|cart","on":0.8,"label":"A","mass":"$2m$","ghost":false},{"kind":"block","at":[x,y],"label":"B"}],"walls":[{"x":8,"y0":1,"y1":2.2,"side":"right","label":"벽"}],"zones":[{"x0":1,"x1":2,"label":"마찰 구간"}],"heights":[{"x":-0.5,"from":1,"to":4,"label":"$3h$","x_to":0}],"lengths":[{"from":[3,1],"to":[8,1],"label":"$L$","offset":-30}],"angles":[{"at":1,"label":"$30^{\\\\circ}$"}],"points":[{"x":5,"label":"p"}],"arrows":[{"from":"A.right","dir":0,"len":90,"label":"$F$"}],"pulleys":[{"at":[x,y],"mount":"up"}],"ceilings":[{"x0":..,"x1":..,"y":..}],"strings":[["A.top","P0.left"]],"springs":[{"from":[x,y],"to":"A.left"}],"texts":[{"at":[x,y],"text":"수평면"}]} track의 x는 왼쪽부터 커진다. 기울기는 마찰 구간이나 점에서 바꾸지 말고 문항의 상황대로만 꺾는다(꺾이는 곳은 앱이 둥글게, round로 반지름 조절). 출발하는 물체는 공중에 띄우지 말고 on으로 바닥 위에 놓는다. on은 바닥 위 x 위치(빗면이면 물체가 기울어 놓인다). 기준점은 물체 이름.top/bottom/left/right/center, 도르래 P0.left 등. dir는 도(오른쪽 0, 위 90). 값이 문항 조건(높이 비, 각)과 맞게 쓴다.
+- 역학 상황: {"type":"mechanics","track":[[0,4],[3,1],[8,1]],"base":"solid|line|hatch","datum":0,"objects":[{"kind":"block|ball|cart","on":0.8,"label":"A","mass":"$2m$","ghost":false},{"kind":"block","at":[x,y],"label":"B"}],"walls":[{"x":8,"y0":1,"y1":2.2,"side":"right","label":"벽"}],"zones":[{"x0":1,"x1":2,"label":"마찰 구간"}],"heights":[{"x":-0.5,"from":1,"to":4,"label":"$3h$","x_to":0}],"lengths":[{"from":[3,1],"to":[8,1],"label":"$L$","offset":-30}],"angles":[{"at":1,"label":"$30^{\\\\circ}$"}],"points":[{"x":5,"label":"p"}],"arrows":[{"from":"A.right","dir":0,"len":90,"label":"$F$"}],"pulleys":[{"at":[x,y],"mount":"up"}],"ceilings":[{"x0":..,"x1":..,"y":..}],"strings":[["A.top","P0.left"]],"springs":[{"from":[x,y],"to":"A.left"}],"texts":[{"at":[x,y],"text":"수평면"}]} 물체에는 label(예: "$A$")을 붙이고, 문두에 주어진 높이·길이·각·질량·속력은 heights·lengths·angles·mass·arrows로 그림에 표시한다. track의 x는 왼쪽부터 커진다. 기울기는 마찰 구간이나 점에서 바꾸지 말고 문항의 상황대로만 꺾는다(꺾이는 곳은 앱이 둥글게, round는 화면 픽셀 반지름으로 기본 40). 곡면 레일·언덕처럼 굽은 바닥은 점 4~6개에 "smooth":true를 붙여 매끄러운 곡선으로 잇는다. 출발하는 물체는 공중에 띄우지 말고 on으로 바닥 위에 놓는다. on은 바닥 위 x 위치(빗면이면 물체가 기울어 놓인다). 기준점은 물체 이름.top/bottom/left/right/center, 도르래 P0.left 등. dir는 도(오른쪽 0, 위 90). 값이 문항 조건(높이 비, 각)과 맞게 쓴다.
 - 회로: {"type":"circuit","nodes":{"a":[0,0],"b":[0,3],"c":[4,3],"d":[4,0]},"parts":[{"kind":"battery","from":"a","to":"b","label":"$12\\\\,\\\\mathrm{V}$"},{"kind":"resistor","from":"b","to":"c","label":"$3\\\\,\\\\Omega$"},{"kind":"wire","from":"c","to":"d"},…]} kind: wire, resistor, battery(긴 판 (+)이 to 쪽), switch(state open|closed), bulb, ammeter, voltmeter, led·diode(to 쪽이 순방향), capacitor, ac, coil. 갈림점 점은 앱이 찍는다. terminals:["a"]는 단자.
 - 그래프: {"type":"graph","x":{"label":"시간","ticks":[[1,"$t_{0}$"],[2,"$2t_{0}$"]]},"y":{"label":"속력","ticks":[[2,"$v_{0}$"]]},"curves":[{"points":[[0,3],[1,2],[2,0]],"smooth":true,"label":"A"}],"guides":[[1,2]],"fills":[{"curve":0,"x0":0,"x1":1}]} 점선 guides는 그 점에서 두 축으로 내린다. smooth는 점을 지나는 매끄러운 곡선. 힘-시간처럼 0에서 부드럽게 올라갔다 내려오는 곡선은 {"pulse":{"x0":0,"x1":1,"peak":3,"at":0.4},"label":"A"}로 쓴다(at은 꼭대기 위치 비율).
 - 여러 칸: {"type":"panels","layout":"row|column","items":[{"type":"mechanics",…,"caption":"(가)"},{"type":"graph",…,"caption":"(나)"}]}

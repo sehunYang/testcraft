@@ -135,5 +135,22 @@ class DiagramTests(unittest.TestCase):
         self.assertIn(('physics', r'$\mathrm{II}$'), texts)
         self.assertFalse(any('Ⅱ' in t for _, t in texts))
 
+    def test_app_drawn_figures_convert_to_editable_objects_with_their_shading(self):
+        import hashlib
+        from app import vectors
+        for kind, fields in (('mechanics', EXAMPLES['mechanics']), ('particles', EXAMPLES['particles'])):
+            with self.subTest(kind):
+                svg, _ = diagrams.render(spec(type=kind, **fields))
+                scene = vectors.from_svg(svg, hashlib.sha256(svg.encode()).hexdigest())
+                self.assertTrue(scene['objects'])
+                self.assertIn('Gradient', scene['defs'])
+
+    def test_small_ai_json_slips_are_repaired_and_stored_clean(self):
+        bad = '도식: {"type":"mechanics","track":[[0,4.5],[3.5,0],[8,0]],"heights":[{"x":-0.7,"from":0,"to":4.5,"label":"$0.45$ m,"x_to":0}]}'
+        self.assertEqual(diagrams.errors(bad), [])
+        clean = diagrams.canonical(bad)
+        self.assertEqual(diagrams.spec_of(clean)['heights'][0]['label'], '$0.45$ m')
+        self.assertTrue(any('JSON' in e for e in diagrams.errors('도식: {"type":"mechanics","track":[[0,1]')))
+
 if __name__ == '__main__':
     unittest.main()

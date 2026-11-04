@@ -673,6 +673,9 @@ def apply_question_result(card,result,subject_id=''):
     missing_kinds=[kind for kind in material_request_kinds if kind not in resulting_kinds]
     if missing_kinds:
         raise ValueError('AI 응답에 요청한 자료 종류가 없습니다: '+', '.join(missing_kinds))
+    for block in core.material_blocks(card):            # AI가 낸 작은 JSON 실수를 고친 도식 명세는 깨끗한 JSON으로 저장한다
+        if block.get('kind')=='image' and diagrams.is_diagram(block.get('image_locked')): block['image_locked']=diagrams.canonical(block['image_locked'])
+    if diagrams.is_diagram(card.get('image_locked')): card['image_locked']=diagrams.canonical(card['image_locked'])
     for block in core.material_blocks(card):
         if block.get('kind')=='image':
             projected,_=core.material_projection(card,block['id'],require_image=True)

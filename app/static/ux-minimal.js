@@ -307,11 +307,30 @@ function standardField(c){
  const options=Object.entries(state.standards).filter(([,v])=>v.subject===state.exam.subject);
  return `<label class="full">성취기준 · ${esc(subjectLabel())}<select data-field="standard" aria-label="성취기준 선택"><option value="">성취기준 선택</option>${c.standard&&!options.some(([code])=>code===c.standard)?`<option selected value="${esc(c.standard)}">${esc(c.standard)} · 과목 확인 필요</option>`:''}${options.map(([code,v])=>`<option value="${esc(code)}" ${code===c.standard?'selected':''}>${esc(code)} · ${esc(v.name)}</option>`).join('')}</select></label>`
 }
+// 앱이 그리는 도식·지도는 JSON 대신 무엇을 그리는지 말로 보여 준다(2026-11-04).
+const APP_DIAGRAM_NAMES={mechanics:'역학 상황',circuit:'회로',graph:'그래프',panels:'여러 칸',pedigree:'가계도',foodweb:'먹이 그물',pyramid:'생태 피라미드',sequence:'염기 서열',cell:'세포 소기관',particles:'반응 입자 모형',energy:'반응 경로-에너지'};
+function appDrawnSummary(locked){
+ const text=String(locked||'').trim(),map=text.startsWith('지도:'),diagram=text.startsWith('도식:');
+ if(!map&&!diagram)return null;
+ let spec;try{spec=JSON.parse(text.slice(3))}catch{return null}
+ const plain=v=>String(v).replace(/\\mathrm\{([^}]*)\}/g,'$1').replace(/\\,/g,' ').replace(/\$/g,'').replace(/\\([A-Za-z]+)/g,'$1').trim();
+ const words=[];(function walk(v,key){if(Array.isArray(v))v.forEach(x=>walk(x,key));else if(v&&typeof v==='object')Object.entries(v).forEach(([k,x])=>walk(x,k));else if(['label','mass','text','caption'].includes(key)&&String(v).trim())words.push(plain(v))})(spec);
+ const kinds=diagram?(spec.type==='panels'?(spec.items||[]).map(i=>APP_DIAGRAM_NAMES[i.type]||i.type):[APP_DIAGRAM_NAMES[spec.type]||spec.type]):[];
+ const parts=[];
+ if(diagram&&spec.type==='mechanics'){const n=k=>(spec[k]||[]).length;const objs=(spec.objects||[]).map(o=>plain(o.label||o.id||'')).filter(Boolean);
+  if(objs.length)parts.push('물체 '+objs.join(', '));for(const [k,name] of [['pulleys','도르래'],['springs','용수철'],['walls','벽'],['zones','마찰 구간'],['heights','높이 표시']])if(n(k))parts.push(name+' '+n(k))}
+ const items=[(map?'지도':'그림: '+kinds.join(' + '))+(parts.length?' — '+parts.join(' · '):'')];
+ items.push(words.length?'글씨: '+[...new Set(words)].join(', ')+' (명세에서 앱이 자리를 잡아 넣습니다)':'글씨 없음');
+ items.push('AI가 쓴 명세대로 앱이 평가원 꼴로 그립니다. 수치를 바꾸려면 계획 수정에서 명세의 숫자를 고칩니다.');
+ return {title:map?'앱이 그리는 지도 · strict':'앱이 그리는 도식 · '+kinds.join(' + '),items,json:JSON.stringify(spec,null,1)};
+}
 const uxBaseImagePlanFields=imagePlanFields;
 imagePlanFields=function(c){
  const readonly=state.stage===2&&state.exam?.card_approval&&imageFlowState().step===0;
  if(readonly){
   const mode={strict:'정확 도형 · strict',mixed:'혼합 · mixed',flexible:'자유 표현 · flexible'}[c.image_mode]||'유형 미선택';
+  const app=appDrawnSummary(c.image_locked);
+  if(app)return `<section class="image-plan-readonly app-drawn"><div><b>${esc(app.title)}</b><button class="small-btn" data-ux-action="edit-image-plan">계획 수정</button></div><p>${esc(c.material||'장면 설명이 없습니다.')}</p><ul>${app.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><details><summary>명세 보기</summary><pre>${esc(app.json)}</pre></details></section>`;
   const rules=[c.image_locked&&`SVG 규칙: ${c.image_locked}`,c.image_creative&&`창작 허용 영역: ${c.image_creative}`].filter(Boolean);
   const labels=[['기호·변수',c.image_text_physics],['수식',c.image_text_math],['한글',c.image_text_korean]].filter(([,value])=>String(value||'').trim());
   return `<section class="image-plan-readonly"><div><b>${esc(mode)}</b><button class="small-btn" data-ux-action="edit-image-plan">계획 수정</button></div><p>${esc(c.material||'장면 설명이 없습니다.')}</p>${rules.length?`<ul>${rules.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="hint">유형별 그림 규칙이 비어 있습니다.</p>'}${c.image_text_none?'<p>그림에 넣을 글씨 없음</p>':labels.length?`<ul class="planned-labels">${labels.map(([kind,value])=>`<li>${kind}: ${esc(value)}</li>`).join('')}</ul>`:'<p class="hint">독립 글씨 계획을 확인해 주세요.</p>'}</section>`;
@@ -371,6 +390,7 @@ function uxPrimary(){
   const imageBlock=uxActiveImageBlock(e.cards[state.card]),imageLabel=imageBlock?.label||'그림';
   const flow=imageFlowState();if(flow.step===0)return `<div class="task-action"><span>${esc(imageLabel)} 계획은 저장됐습니다. 이 그림의 제작 범위를 확인한 뒤에 진행할 수 있습니다.</span><button class="primary" data-ux-action="confirm-plan">${esc(imageLabel)} 계획 확인</button></div>`;
   if(flow.step===1&&!uxCliReady())return `<div class="task-action"><span>그림 생성 전에 AI 연결을 완료하세요.</span><button class="primary" data-ux-action="connect">AI 연결</button></div>`;
+  if(flow.step===1&&/^\s*(도식|지도):/.test(c?.image_locked||''))return `<div class="task-action"><span>앱이 명세대로 그림과 글씨를 바로 만듭니다.</span><button class="primary" data-ux-action="generate-image">그림 생성</button></div>`;
   if(flow.step===1)return `<div class="task-action"><span>현재 문항의 배경 그림을 생성합니다. 글씨 레이어는 따로 보존합니다.</span><button class="primary" data-ux-action="generate-image">그림 생성</button></div>`;
   if(flow.step===2&&!c.labels_initialized&&uxCliReady())return `<div class="task-action"><span>배경 그림은 저장됐습니다. 글씨 레이어만 다시 배치합니다.</span><button class="primary" data-ux-action="retry-labels">글씨만 자동 배치</button></div>`;
   if(flow.step===2&&!c.labels_initialized)return `<div class="task-action"><span>AI 연결 후 글씨 레이어를 배치하거나 ‘글씨 없음’을 선택하세요.</span><button class="primary" data-ux-action="connect">AI 연결</button></div>`;

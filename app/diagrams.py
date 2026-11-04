@@ -9,6 +9,7 @@ particles 반응 입자 모형 · energy 반응 경로-에너지
 """
 import json
 import math
+import re
 
 from .maps import _label
 
@@ -28,12 +29,40 @@ def is_diagram(locked):
 def spec_of(locked):
     text = str(locked or '').strip()
     if not text.startswith(PREFIX): raise ValueError('도식 명세가 아닙니다.')
+    body = text[len(PREFIX):]
     try:
-        spec = json.loads(text[len(PREFIX):])
+        spec = json.loads(body)
     except ValueError as e:
-        raise ValueError(f'도식 명세의 JSON 오류: {e}') from None
+        spec = _repaired(body)
+        if spec is None: raise ValueError(f'도식 명세의 JSON 오류: {e}') from None
     if not isinstance(spec, dict): raise ValueError('도식 명세는 JSON 객체여야 합니다.')
     return spec
+
+
+def _repaired(body):
+    """AI가 자주 내는 작은 JSON 실수만 고친다: LaTeX 백슬래시, 글씨 값의 닫는 따옴표 빠짐. 고칠 수 없으면 None."""
+    fixes = [
+        lambda b: re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', b),                          # \circ → \\circ
+        lambda b: re.sub(r'(:\s*"[^"{}\[\],]*?)(\s*,\s*"[A-Za-z_]+"\s*:)', r'\1"\2', b),     # "label":"0.45 m,"x" → 닫는 따옴표
+        lambda b: re.sub(r'(:\s*"[^"{}\[\],]*?)(\s*[}\]])', r'\1"\2', b),                    # "label":"0.45 m} → 닫는 따옴표
+    ]
+    candidate = body
+    for fix in fixes:
+        candidate = fix(candidate)
+        try:
+            return json.loads(candidate)
+        except ValueError:
+            continue
+    return None
+
+
+def canonical(locked):
+    """고칠 수 있었던 명세를 깨끗한 JSON으로 다시 쓴다(사람이 읽고 고치기 쉽게)."""
+    if not is_diagram(locked): return locked
+    try:
+        return PREFIX + ' ' + json.dumps(spec_of(locked), ensure_ascii=False)
+    except ValueError:
+        return locked
 
 
 def errors(locked):
