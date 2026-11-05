@@ -30,7 +30,7 @@
  }
  video.addEventListener('error',()=>{document.querySelector('#siteTutorialError').hidden=false});
  fetch('./media/catalog.json').then(r=>{if(!r.ok)throw Error('catalog');return r.json()}).then(c=>{
-  if(!Array.isArray(c.episodes)||c.episodes.length!==7||c.episodes.some(e=>!safeVideo(e.video)))throw Error('catalog');
+  if(!Array.isArray(c.episodes)||c.episodes.length!==8||c.episodes.some(e=>!safeVideo(e.video)))throw Error('catalog');
   list.replaceChildren();c.episodes.forEach((ep,i)=>{const li=make('li'),b=make('button',{type:'button'}),text=make('span',{textContent:ep.title});text.append(make('small',{textContent:`${Math.floor(ep.duration/60)}분 ${Math.round(ep.duration%60)}초 · 한국어 설명·자막`}));b.append(make('span',{className:'tutorial-no',textContent:String(i+1).padStart(2,'0')}),text);b.onclick=()=>choose(ep,b);li.append(b);list.append(li);if(!i)choose(ep,b)});
  }).catch(()=>{document.querySelector('#siteTutorialError').hidden=false});
  const dialog=document.querySelector('#shortDialog'),short=dialog.querySelector('video');

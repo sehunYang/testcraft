@@ -230,6 +230,6 @@ python -m http.server 8080 --directory .runtime/pages
 
 ## 영상으로 시작하기
 
-[7편의 한국어 사용 튜토리얼](https://shy.ai.kr/testcraft/#tutorials)과 [30초 소개 영상 두 편](https://shy.ai.kr/testcraft/#shorts)을 제공합니다. 앱 상단의 **도움말**은 현재 화면에 맞는 영상과 실제 버튼을 강조하는 따라 하기 안내를 엽니다.
+[8편의 한국어 사용 튜토리얼](https://shy.ai.kr/testcraft/#tutorials)과 [30초 소개 영상 두 편](https://shy.ai.kr/testcraft/#shorts)을 제공합니다. 앱 상단의 **도움말**은 현재 화면에 맞는 영상과 실제 버튼을 강조하는 따라 하기 안내를 엽니다.
 
 공통 오리지널 음악 *Quiet Precision*은 튜토리얼 108 BPM과 홍보 리프라이즈 128 BPM으로 편곡했습니다. 실제 앱 조작을 녹화했으며 AI 생성 대기는 단축 표시합니다. [영상·음악 제작 소스](instructions/영상-제작-운영.md)도 공개합니다.
