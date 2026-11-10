@@ -1,27 +1,27 @@
 {
-  "version": "v1.2.2",
-  "published_at": "2026-11-05T03:35:15Z",
+  "version": "v1.2.3",
+  "published_at": "2026-11-10T00:57:08Z",
   "assets": [
     {
       "kind": "setup",
-      "name": "TestCraft-1.2.2-windows-x64-setup.exe",
-      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.2/TestCraft-1.2.2-windows-x64-setup.exe",
-      "size": 245460675,
-      "digest": "sha256:5884bd59381c2b60b5d4690b2f0e3e1212a0d2ed537fdea50ca152c4ae81e882"
+      "name": "TestCraft-1.2.3-windows-x64-setup.exe",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.3/TestCraft-1.2.3-windows-x64-setup.exe",
+      "size": 245484384,
+      "digest": "sha256:7c687498bd9f8a53bb1567874b514e07723d2d985e561c76faf768b4012cf844"
     },
     {
       "kind": "portable",
-      "name": "TestCraft-1.2.2-windows-x64-portable.zip",
-      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.2/TestCraft-1.2.2-windows-x64-portable.zip",
-      "size": 358340552,
-      "digest": "sha256:27d3a8200b01c88176a9593318cc426d9b871f031ec0946996e9371e71205c85"
+      "name": "TestCraft-1.2.3-windows-x64-portable.zip",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.3/TestCraft-1.2.3-windows-x64-portable.zip",
+      "size": 358354905,
+      "digest": "sha256:e016f0b7570b36d2d1057ae0a1a1f98ae3b2f0a49f62717b1dc991725ae62c73"
     },
     {
       "kind": "checksums",
       "name": "SHA256SUMS",
-      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.2/SHA256SUMS",
+      "url": "https://github.com/sehunYang/testcraft/releases/download/v1.2.3/SHA256SUMS",
       "size": 211,
-      "digest": "sha256:7f595d22bdfc4adfe138834736924c9747e89598ff401dd330b4de4671e54463"
+      "digest": "sha256:480de2adae47e373e067b68112ecaff4969b1ff4c9c860320c6829591107288e"
     }
   ]
 }
