@@ -1,0 +1,37 @@
+/* 기출 변형 화면 */
+.variant-source{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line,#d9dee8);border-radius:10px;padding:10px;background:#fafbfc}
+.variant-source img{max-width:340px;max-height:260px;object-fit:contain;background:#fff;border:1px solid #e4e7ee}
+.variant-source small{display:block;color:#667085;margin-top:4px}
+.variant-source.empty{color:#667085}
+
+.variant-source-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.file-btn{display:inline-flex;align-items:center;cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid #cfd6e4}
+
+.variant-methods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.variant-method{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;border:1px solid #d9dee8;border-radius:10px;padding:10px;cursor:pointer}
+.variant-method input{grid-row:span 2}
+.variant-method small{color:#667085}
+.variant-method.on{border-color:#2f5bd8;background:#f1f5ff}
+
+dialog.variant-pack-dialog{width:min(1100px,94vw);max-width:none;max-height:92vh}
+.variant-pack-tools{display:flex;gap:10px;align-items:end;margin:10px 0;flex-wrap:wrap}
+.variant-pack-tools input[type=search]{flex:1;min-width:220px}
+
+.variant-pack-body{display:grid;grid-template-columns:280px 1fr;gap:12px;height:62vh}
+.variant-pack-list{overflow:auto;margin:0;padding:0;list-style:none;border:1px solid #e4e7ee;border-radius:8px}
+.variant-pack-list button{width:100%;text-align:left;border:0;border-bottom:1px solid #eef0f4;background:none;padding:8px 10px}
+.variant-pack-list button small{display:block;color:#667085}
+.variant-pack-list button.on{background:#eef3ff}
+
+.variant-pack-preview{overflow:auto;border:1px solid #e4e7ee;border-radius:8px;background:#f6f7f9;display:flex;justify-content:center;align-items:flex-start;padding:10px}
+.variant-pack-preview img{max-width:100%;background:#fff}
+
+.variant-crop{max-height:62vh;overflow:auto;background:#f6f7f9;padding:10px;border-radius:8px}
+.variant-crop-stage{position:relative;display:inline-block;cursor:crosshair;user-select:none;touch-action:none}
+.variant-crop-stage img{display:block;max-width:100%;pointer-events:none}
+.variant-crop-box{position:absolute;border:2px solid #2f5bd8;background:rgb(47 91 216/12%)}
+
+.variant-summary{border:1px solid #d9e2fb;background:#f5f8ff;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:13px}
+.variant-summary ul{margin:6px 0 4px 18px}
+.variant-summary .warn{color:#b42318;margin:4px 0}
+

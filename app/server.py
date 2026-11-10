@@ -19,7 +19,7 @@ import traceback
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import core, cli, codex_setup, diagrams, formats, images, labels, literature, maps, runtime, vectors
+from . import core, cli, codex_setup, diagrams, formats, images, labels, literature, maps, runtime, variants, vectors
 from .catalog import subjects, subject_name, GROUP_OF
 from .hwpx import validate_hwpx_package
 
@@ -575,6 +575,16 @@ def check_korean(result,subject_id=''):
     if len(HAN.findall(' '.join(t for t in texts if isinstance(t,str))))>5:
         raise ValueError('AI가 한국어가 아닌 언어(한자·중국어)로 작성했습니다. 결과를 적용하지 않았습니다. 다시 생성해 주세요.')
 
+def record_variant(eid,card,result):
+    """AI가 적은 바뀐 점을 카드에 두고, 원본 글과 많이 겹치면 검토 의견에 알린다."""
+    v=card.setdefault('variant',{}) or {}
+    v['changes']=[str(c)[:300] for c in (result.get('variant_changes') or [])][:12]
+    text_file=variants.source_file(core.exam_path(eid),v.get('source'),'.txt')
+    v['overlap']=variants.overlap(text_file.read_text(encoding='utf-8'),card) if text_file else 0.0
+    if v['overlap']>=variants.overlap_limit(card):
+        card['review_note']=(card.get('review_note','')+f"\n원본 기출과 겹치는 표현이 많습니다(겹침 {round(v['overlap']*100)}%). 문장과 수치를 더 바꿔 주세요.").strip()
+    card['variant']=v
+
 def apply_question_result(card,result,subject_id=''):
     check_korean(result,subject_id)
     original_card=copy.deepcopy(card)
@@ -735,6 +745,10 @@ def launch_job(eid, payload):
         kind='question' if action=='workflow' else action
         if kind=='question':
             for c in selected:
+                if c.get('authoring_mode')=='variant':           # 기출 변형: 원본·변형 방식·유형·난이도만 있으면 된다
+                    variants.check(c)
+                    if not all(c.get(k) for k in ('type','difficulty')): raise ValueError(f"{c['no']}번: 유형·난이도를 골라 주세요.")
+                    continue
                 if not all(c.get(k) for k in ('standard','type','difficulty','idea')): raise ValueError(f"{c['no']}번: 성취기준·유형·난이도·핵심 아이디어를 입력해 주세요.")
         if action in ('image','labels','plan'):
             targets=[(c,mid) for c in selected for _,mid in image_material_targets(c,payload.get('material_id'),all_when_missing=True)]
@@ -765,7 +779,14 @@ def launch_job(eid, payload):
                 svg,map_labels=diagrams.render(card['image_locked'])
                 return {'svg':svg,'constraints':[],'map_labels':map_labels,'review_note':'앱이 명세대로 그린 도식입니다. 명세의 수와 관계가 문항 조건과 맞는지 확인해 주세요.'}
             extra=asset_path(eid,card['image']['svg']).read_text(encoding='utf-8') if step=='labels' and (card.get('image') or {}).get('svg') else ''
-            return cli.execute(provider,folder/f"{card['id']}-{material_id+'-' if material_id else ''}{step}",cli.prompt_for(card,step,feedback,subject_name(exam['subject']),extra,exam['subject'],context if step=='question' else ''),cli.schema_for(step),str(payload.get('model','')),cancel)
+            variant=step=='question' and card.get('authoring_mode')=='variant'
+            images=()
+            if variant:
+                variants.check(card)
+                source=variants.source_file(core.exam_path(eid),card['variant']['source'])
+                if not source: raise ValueError(f"{card['no']}번: 원본 기출 그림 파일이 없습니다. 원본을 다시 골라 주세요.")
+                images=(source,)
+            return cli.execute(provider,folder/f"{card['id']}-{material_id+'-' if material_id else ''}{step}",cli.prompt_for(card,step,feedback,subject_name(exam['subject']),extra,exam['subject'],context if step=='question' else ''),cli.schema_for(step,variant),str(payload.get('model','')),cancel,**({'images':images} if images else {}))
         def persist():
             with core.LOCK:
                 current=core.read_exam(eid)
@@ -788,6 +809,7 @@ def launch_job(eid, payload):
         if kind=='question':
             marks.extend(result.get('passage_marks') or [] if card.get('set_id') else [])
             card=apply_question_result(card,result,exam['subject'])
+            if card.get('authoring_mode')=='variant': record_variant(eid,card,result)
         elif kind=='plan':
             chosen=card.get('image_mode')
             if chosen and result['image_mode']!=chosen: raise ValueError('교사가 선택한 그림 유형을 변경할 수 없습니다.')
@@ -918,6 +940,12 @@ class Handler(BaseHTTPRequestHandler):
                            'subjects':subjects(core.standards()),'formats':formats.catalog(),'cli':{p:bool(cli.discover(p)) for p in ('codex','claude')},
                            'hwp_conversion_available':hwp_conversion_available(),'legacy':legacy}); return
             if p=='/api/standards': self.send(core.standards()); return
+            if p=='/api/kice/index': self.send(variants.pack_index(q.get('subject',[''])[0])); return
+            if p=='/api/kice/image': self.send(variants.pack_image(q.get('key',[''])[0]),content_type='image/webp'); return
+            if p.startswith('/api/sources/'):
+                _,_,_,eid,name=p.split('/')
+                if not re.fullmatch('[a-f0-9]{16}',eid) or not variants.SOURCE_NAME.fullmatch(name): raise ValueError('원본 파일 이름 오류')
+                self.send((core.exam_path(eid)/'sources'/name).read_bytes(),content_type='image/png'); return
             if p=='/api/map-options': self.send(maps.options()); return
             if p=='/api/map-polities':
                 year=int(q.get('year',['0'])[0])
@@ -964,7 +992,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
             static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
             static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
-            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/map-editor.css')})
+            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/variant.js','/variant.css','/map-editor.css')})
             # Bundled help videos, captions and posters (tools/media_v2/build_help.py); names are checked, not listed.
             if re.fullmatch(r'/tutorials/[0-9]{2}-[a-z-]+\.(mp4|vtt|jpg)',p) and (core.ROOT/'app/static'/p.lstrip('/')).is_file():
                 static[p]=p.lstrip('/')
@@ -1029,6 +1057,10 @@ class Handler(BaseHTTPRequestHandler):
                 eid=data.get('exam_id')
                 if eid and eid in ACTIVE and path!='/api/cancel': raise ValueError('생성 작업 중에는 편집할 수 없습니다. 완료 후 다시 시도해 주세요.')
                 duplicate_exam=None
+                if path=='/api/variant-source':
+                    if not eid or not re.fullmatch('[a-f0-9]{16}',eid): raise ValueError('시험 ID 오류')
+                    core.read_exam(eid)
+                    self.send({'source':variants.save_source(core.exam_path(eid),data,core.uid())}); return
                 if path=='/api/duplicate-card':
                     duplicate_exam=core.read_exam(eid)
                     request_id=data.get('request_id')

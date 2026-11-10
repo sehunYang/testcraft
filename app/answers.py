@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from .catalog import official_code
 from .core import SUBJECTIVE_TYPES
 from .mathtext import math_segments
+from . import variants
 
 
 def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
@@ -132,6 +133,8 @@ def build_answer_hml(title: str, cards: list[dict], destination: Path) -> str:
         metadata = f"{official_code(card.get('standard', ''))} {card.get('standard_name', '')}".strip()
         if card.get('concepts'): metadata += f"  |  {card['concepts']}"
         if metadata: append(metadata, 'meta')
+        source = variants.answer_note(card)
+        if source: append(source, 'meta')                 # 기출 변형 출처는 해설지에만 적는다
         if card['no'] in written:
             append('모범 답안', 'body', 'bold'); explanation(card.get('model_answer') or '')
             append('채점 기준', 'body', 'bold'); explanation(card.get('rubric') or '')

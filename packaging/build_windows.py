@@ -20,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 
-VERSION = "1.2.2"
+VERSION = "1.2.3"
 PRODUCT = "TestCraft"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGING_ROOT = Path(__file__).resolve().parent

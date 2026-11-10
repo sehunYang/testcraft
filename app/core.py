@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from functools import lru_cache
 import openpyxl
-from . import runtime
+from . import runtime, variants
 from .catalog import subject_id, infer_subject, subjects
 from . import catalog as subject_catalog
 from . import diagrams, formats, maps
@@ -38,7 +38,7 @@ IMAGE_MODES = ('strict', 'mixed', 'flexible')
 LOCK = threading.RLock()
 COLS = {2:'no',3:'standard',4:'standard_name',5:'standard_note',6:'difficulty',7:'type',8:'answer',9:'idea',10:'stem',11:'material',12:'question',13:'statements',14:'choices',15:'points',16:'estimate',17:'discrimination',18:'original_no',19:'concepts',20:'explanation'}
 TEXT_FIELDS = ['standard','standard_name','standard_note','difficulty','type','idea','stem','material','question','statements','choices','points','concepts','explanation','review_note','image_mode','image_locked','image_creative','ai_feedback','image_text_physics','image_text_math','image_text_korean','model_answer','rubric','conditions']
-AUTHORING_MODES = ('ai','manual','legacy')
+AUTHORING_MODES = ('ai','manual','legacy','variant')
 MATERIALS_REQUEST_MAX = 4000
 MATERIAL_KINDS = ('image','text','table')
 MATERIAL_REQUEST_IMAGE_MODES = ('strict','mixed','flexible')
@@ -53,7 +53,7 @@ def uid():
 
 def normalize_authoring_mode(value):
     if value not in AUTHORING_MODES:
-        raise ValueError('작성 방식은 ai, manual, legacy 중 하나여야 합니다.')
+        raise ValueError('작성 방식은 ai, manual, legacy, variant 중 하나여야 합니다.')
     return value
 
 def normalize_materials_request(value):
@@ -123,7 +123,7 @@ def read_exam(eid):
         card.setdefault('image_plan_version',1)
         for key,value in {'ai_requested':False,'ai_feedback':'','image_mode':'','image_locked':'','image_creative':'','image_plan_approval':None,
                           'authoring_mode':'legacy','materials_request':'','material_request_kinds':[],
-                          'material_request_image_mode':'','format':''}.items():
+                          'material_request_image_mode':'','format':'','variant':None}.items():
             card.setdefault(key,value)
     if not cards_approved(exam): exam['card_approval']=None
     return exam
@@ -136,6 +136,7 @@ def save_exam(exam):
             card['material_request_kinds']=normalize_material_request_kinds(card.get('material_request_kinds',[]))
             card['material_request_image_mode']=normalize_material_request_image_mode(card.get('material_request_image_mode',''))
             validate_material_request_preferences(card['material_request_kinds'],card['material_request_image_mode'])
+            variants.normalize(card)
         if (exam.get('card_approval') or {}).get('digest') != cards_digest(exam['cards'], exam.get('sets')):
             exam['card_approval']=None
         exam['updated'] = now()
@@ -145,7 +146,7 @@ def save_exam(exam):
 
 def blank_card(no=1, authoring_mode='legacy'):
     mode=normalize_authoring_mode(authoring_mode)
-    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, partial_credit=False, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', format='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,materials=None, set_id='')
+    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, partial_credit=False, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', format='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,materials=None, set_id='', variant=None)
 
 def legacy_material(card):
     """Project a pre-materials card as its single stable material block."""
@@ -265,7 +266,7 @@ def normalize_materials(card):
     return sync_material_aliases(card)
 
 def content_hash(card):
-    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','format','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override')
+    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','format','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override','variant')
     fields = {k:v for k,v in card.items() if k not in excluded}
     if 'type' in fields: fields['type']=hashed_type(fields['type'])
     for key in ('set_id','model_answer','rubric','conditions','partial_credit'):   # cards saved before these fields keep their hash

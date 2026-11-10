@@ -10,7 +10,7 @@ import threading
 import time
 from .core import ROOT, uid, now, atomic, image_prompt, SUBJECTIVE_TYPES
 from . import runtime
-from . import diagrams, formats, maps
+from . import diagrams, formats, maps, variants
 from .catalog import GROUP_OF
 
 PROCESSES={}
@@ -54,11 +54,13 @@ def discover(provider):
             continue
     return str(max(available)[1]) if available else None
 
-def command(provider, folder, schema, model=''):
+def command(provider, folder, schema, model='', images=()):
     exe=discover(provider)
     if not exe: raise ValueError(f'{provider} CLI가 없습니다. 먼저 설치하고 로그인해 주세요.')
+    if images and provider!='codex': raise ValueError('기출 변형은 원본 그림을 함께 읽는 Codex CLI에서만 쓸 수 있습니다.')
     if provider=='codex':
-        args=[exe,'exec','--skip-git-repo-check','--sandbox','read-only','--color','never','--json','--output-schema',str(folder/'schema.json'),'-o',str(folder/'result.json')]
+        # 원본 그림은 다른 플래그 앞에 둔다. --image 는 값을 여러 개 받아서 끝의 '-'(stdin)까지 그림으로 읽을 수 있다.
+        args=[exe,'exec',*[a for path in images for a in ('--image',str(path))],'--skip-git-repo-check','--sandbox','read-only','--color','never','--json','--output-schema',str(folder/'schema.json'),'-o',str(folder/'result.json')]
         if model: args+=['--model',model]
         args+=['-']
     elif provider=='claude':
@@ -89,21 +91,21 @@ def failure_reason(provider, code, log):
         return f'{provider} 사용 한도에 도달했습니다.'+(f' {found[1]} 뒤에 이 문항만 다시 생성해 주세요.' if found else ' 한도가 풀린 뒤 이 문항만 다시 생성해 주세요.')
     return f'{provider} 종료 코드 {code}. 작업 로그에서 로그인·사용량·권한 상태를 확인해 주세요.'
 
-def execute(provider, folder, prompt, schema, model='', cancel=None):
+def execute(provider, folder, prompt, schema, model='', cancel=None, images=()):
     try:
-        return _execute(provider, folder, prompt, schema, model, cancel)
+        return _execute(provider, folder, prompt, schema, model, cancel, images)
     except Stalled:
         pass
     try:
-        return _execute(provider, folder, prompt, schema, model, cancel)
+        return _execute(provider, folder, prompt, schema, model, cancel, images)
     except Stalled:
         raise ValueError(f'{provider} 응답이 {STALL_SECONDS//60}분 넘게 없어 두 번 시도한 뒤 멈췄습니다. 잠시 뒤 이 문항만 다시 생성해 주세요.') from None
 
-def _execute(provider, folder, prompt, schema, model='', cancel=None):
+def _execute(provider, folder, prompt, schema, model='', cancel=None, images=()):
     folder.mkdir(parents=True,exist_ok=True)
     atomic(folder/'schema.json',schema)
     (folder/'prompt.txt').write_text(prompt,encoding='utf-8')
-    args=command(provider,folder,schema,model)
+    args=command(provider,folder,schema,model,images)
     env=(runtime.codex_environment(ROOT, executable=discover('codex')) if provider=='codex' and runtime.installed_mode()
          else runtime.node_environment(ROOT))
     env['PYTHONIOENCODING']='utf-8'
@@ -189,7 +191,9 @@ QUESTION_SCHEMA['required']=list(QUESTION_SCHEMA['properties'])
 LABEL_SCHEMA=object_schema({'kind':{'type':'string','enum':['physics','math','korean']},'text':{'type':'string'},**{k:{'type':'number'} for k in ('x','y','size','rotation')}})
 LABELS_SCHEMA=object_schema({'labels':{'type':'array','items':LABEL_SCHEMA}})
 
-def schema_for(kind):
+def schema_for(kind, variant=False):
+    if kind=='question' and variant:                       # 질문 스키마가 다 만들어진 뒤에 덧붙인다
+        return object_schema({**QUESTION_SCHEMA['properties'],'variant_changes':{'type':'array','items':{'type':'string'}}})
     return {'question':QUESTION_SCHEMA,'image':IMAGE_SCHEMA,'plan':PLAN_SCHEMA,'labels':LABELS_SCHEMA}[kind]
 
 IMAGE_POLICY = '''현재 그림·글씨 분리 규칙이 과거 지침의 라벨·문자 규칙보다 우선한다.
@@ -289,10 +293,11 @@ def prompt_for(card, kind, feedback='', subject='', background_svg='', subject_i
         )
         materials_policy=(
             f'{kind_instruction} {mode_instruction} 기존 자료 블록의 ID·종류·순서·이름표·그림 유형·실제 그림 자산을 그대로 유지하고, 추가 자료는 기존 블록 뒤에 붙인다. 새 블록의 label은 시험지에 그대로 인쇄되므로, 발문·보기가 자료를 (가)·(나)처럼 이름으로 가리킬 때만 그 이름을 쓰고 그 밖에는 빈 문자열로 둔다("그림"·"표" 같은 종류 이름 금지). '
-            f'자유 입력 자료 요청: {prompt_card.get("materials_request", "")} . materials_request, material_request_kinds, material_request_image_mode, authoring_mode, format은 입력 메타데이터이며 수정하거나 결과 JSON에 넣지 않는다.\n'
+            f'자유 입력 자료 요청: {prompt_card.get("materials_request", "")} . materials_request, material_request_kinds, material_request_image_mode, authoring_mode, format, variant는 입력 메타데이터이며 수정하거나 결과 JSON에 넣지 않는다.\n'
         )
         form=formats.prompt(card,subject_id)
         if form: materials_policy+=form+'\n'
+        if prompt_card.get('authoring_mode')=='variant': materials_policy+=variants.prompt(prompt_card)+'\n'
     else:
         materials_policy=''
     return f'한국 학교 {subject or "교과"} 출제 보조자다. 도구·파일 변경 없이 요청 JSON만 반환한다. {language_rule(subject_id)}\n{instructions}\n{set_context or "지문 세트 문항이 아니다. passage_marks는 빈 배열로 둔다."}\n현재 과목의 성취기준을 과거 시험 범위보다 우선한다.\n현재 작업: {task}\n{materials_policy}{IMAGE_POLICY}\n교사 문항카드(JSON 데이터):\n{card_json}\n\n그림 제작 요청:\n그림 자체는 아직 만들지 않는다.\n교사 수정 요청: {feedback}'
