@@ -19,7 +19,7 @@ import traceback
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import core, cli, codex_setup, diagrams, formats, images, labels, literature, maps, runtime, variants, vectors
+from . import core, cli, codex_setup, diagrams, formats, images, kice, labels, literature, maps, runtime, variants, vectors
 from .catalog import subjects, subject_name, GROUP_OF
 from .hwpx import validate_hwpx_package
 
@@ -941,6 +941,7 @@ class Handler(BaseHTTPRequestHandler):
                            'hwp_conversion_available':hwp_conversion_available(),'legacy':legacy}); return
             if p=='/api/standards': self.send(core.standards()); return
             if p=='/api/kice/index': self.send(variants.pack_index(q.get('subject',[''])[0])); return
+            if p=='/api/kice/status': self.send(kice.status()); return
             if p=='/api/kice/image': self.send(variants.pack_image(q.get('key',[''])[0]),content_type='image/webp'); return
             if p.startswith('/api/sources/'):
                 _,_,_,eid,name=p.split('/')
@@ -1053,6 +1054,8 @@ class Handler(BaseHTTPRequestHandler):
                         segments.append({'type':'math','text':value,'url':rendered['url'],'width':rendered['width'],'height':rendered['height']})
                     else: segments.append({'type':'text','text':value})
                 self.send({'segments':segments});return
+            if path=='/api/kice/download': self.send(kice.start()); return
+            if path=='/api/kice/cancel': self.send(kice.cancel()); return
             with core.LOCK:
                 eid=data.get('exam_id')
                 if eid and eid in ACTIVE and path!='/api/cancel': raise ValueError('생성 작업 중에는 편집할 수 없습니다. 완료 후 다시 시도해 주세요.')

@@ -3,8 +3,9 @@
 (()=>{
 const METHODS=[['numbers','수치·조건만 바꾸기','같은 상황에서 값과 정답만 바꿉니다.'],['situation','상황 바꾸고 원리 유지','묻는 원리는 같게, 상황·소재를 새로 정합니다.'],['form','유형·난이도 바꾸기','아래 목표 유형·난이도로 바꿉니다.']];
 const vs={pack:null,list:[],subject:'',filter:'',picked:null,upload:null};
-// 기출 묶음은 공개 배포하지 않는다(평가원 저작권). 묶음이 있는 PC에서만 목록 버튼을 보인다.
-fetch('/api/kice/index?subject=__none__').then(r=>r.json()).then(p=>{vs.pack=p}).catch(()=>{});
+// 기출 묶음은 설치 파일로 나눠 주지 않는다(평가원 저작권). 묶음이 없으면 교사가 평가원 홈페이지에서 직접 받는다.
+const loadPack=()=>fetch('/api/kice/index?subject=__none__').then(r=>r.json()).then(p=>{vs.pack=p;return p});
+loadPack().catch(()=>{});
 const html=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const draftVariant=d=>{d.variant=d.variant&&typeof d.variant==='object'?d.variant:{methods:[],memo:'',source:null};d.variant.methods=Array.isArray(d.variant.methods)?d.variant.methods:[];return d.variant};
 const isVariant=()=>state.authoringDraft?.mode==='variant';
@@ -37,7 +38,7 @@ function sourceBlock(v){const s=v.source;if(!s?.image)return `<div class="varian
 function view(){const session=state.authoringDraft,d=session.draft,v=draftVariant(d),formOn=v.methods.includes('form');
  return `<section class="design-authoring variant-authoring"><div class="authoring-heading"><button type="button" class="small-btn" data-authoring-cancel>← 문항 목록</button><div><div class="eyebrow">VARIANT DRAFT</div><h2>${session.targetCardId?`${html(String(d.no).padStart(2,'0'))}번 문항`:'새 문항'} · 기출 변형</h2><p>원본 기출과 변형 방식을 저장합니다. AI 생성은 저장 후 원할 때 시작합니다. 원본 문장·그림은 시험지에 들어가지 않습니다.</p></div></div>
  <form id="authoringDraftForm" class="authoring-draft-form" novalidate><section class="panel"><div class="panel-body"><div class="authoring-fields">
- <fieldset class="authoring-group full"><legend>원본 기출</legend>${sourceBlock(v)}<div class="variant-source-actions">${vs.pack&&!vs.pack.available?'':'<button type="button" class="secondary" data-variant-open-pack>기출 목록에서 고르기</button>'}<label class="secondary file-btn">그림·PDF 올리기<input type="file" accept="image/png,image/jpeg,application/pdf" data-variant-file hidden></label></div></fieldset>
+ <fieldset class="authoring-group full"><legend>원본 기출</legend>${sourceBlock(v)}<div class="variant-source-actions"><button type="button" class="secondary" data-variant-open-pack>${vs.pack&&!vs.pack.available?'평가원 기출 받기':'기출 목록에서 고르기'}</button><label class="secondary file-btn">그림·PDF 올리기<input type="file" accept="image/png,image/jpeg,application/pdf" data-variant-file hidden></label></div></fieldset>
  <fieldset class="authoring-group full" data-variant-anchor="variant-method"><legend>변형 방식 <span class="muted">하나 이상 고르세요</span></legend><div class="variant-methods">${METHODS.map(([k,t,h])=>`<label class="variant-method ${v.methods.includes(k)?'on':''}"><input type="checkbox" data-variant-method="${k}" ${v.methods.includes(k)?'checked':''}><b>${t}</b><small>${h}</small></label>`).join('')}</div>
  <label class="full">교사 메모 <span class="muted">선택 사항</span><textarea data-variant-memo maxlength="2000" placeholder="예: 그래프 대신 표로, 오답 ③을 매력적인 오답으로">${html(v.memo||'')}</textarea></label></fieldset>
  <fieldset class="authoring-group full"><legend>${formOn?'목표 유형·난이도':'유형·난이도 <span class="muted">원본과 같게 둡니다</span>'}</legend><div class="fields">${authoringSelect('type','문항 유형',[['','선택해 주세요'],...(state.boot?.types||[]).map(x=>[x,x])],d)}${authoringSelect('difficulty','난이도',[['','선택해 주세요'],['상','상'],['중','중'],['하','하']],d)}
@@ -47,10 +48,23 @@ function view(){const session=state.authoringDraft,d=session.draft,v=draftVarian
 
 // 4) 기출 목록 창
 function picker(){let dlg=document.querySelector('#variantPackDialog');if(!dlg){dlg=document.createElement('dialog');dlg.id='variantPackDialog';dlg.className='variant-pack-dialog';document.body.append(dlg)}return dlg}
-async function openPack(){const dlg=picker();if(!vs.pack){vs.pack=await (await fetch('/api/kice/index?subject=__none__')).json()}
- if(!vs.pack.available){toast('기출 팩이 설치되어 있지 않습니다.');return}
+async function openPack(){const dlg=picker();if(!vs.pack?.available)await loadPack();
+ if(!vs.pack.available){if(!dlg.open)dlg.showModal();await pollFetch();return}
  const name=typeof subjectLabel==='function'?subjectLabel():'';vs.subject=vs.subject||vs.pack.subjects.find(s=>name.replace(/\s/g,'').includes(s.replace(/[ⅠⅡ]/g,''))&&name.includes(s.slice(-1)))||vs.pack.subjects.find(s=>name.includes(s.replace(/[ⅠⅡ]/g,'')))||vs.pack.subjects[0];
  await loadSubject();dlg.showModal();drawPack()}
+// 4-1) 평가원에서 받기: 이 PC가 평가원 홈페이지에서 과학탐구 문제지를 받아 문항별로 자른다
+let fetchTimer=0;
+async function pollFetch(){clearTimeout(fetchTimer);const dlg=picker();if(!dlg.open)return;const st=await (await fetch('/api/kice/status')).json();
+ if(st.finished&&!st.running&&!st.error){await loadPack();if(vs.pack.available&&!st.failed.length){await openPack();return}}
+ const pct=st.total?Math.round(st.done/st.total*100):0;
+ dlg.innerHTML=`<div class="dialog-top"><div><div class="eyebrow">KICE</div><h2>평가원 기출 받기</h2></div><button type="button" class="icon-btn" data-variant-close aria-label="닫기">×</button></div>
+ <p class="variant-fetch-note">${html(st.notice)}</p>
+ <ul class="variant-fetch-facts"><li>과학탐구 8과목(물리학·화학·생명과학·지구과학 Ⅰ·Ⅱ), ${st.years[0]}~${st.years[1]}학년도 수능·6월·9월 모의평가</li><li>받는 양 약 300MB, 만들어지는 묶음 약 150MB · 수십 분 걸릴 수 있습니다</li><li>창을 닫아도 계속 받습니다. 멈춘 뒤 다시 누르면 이어서 받습니다.</li></ul>
+ ${st.running||st.finished?`<div class="variant-fetch-progress"><progress max="100" value="${pct}"></progress><span>${st.done}/${st.total||'?'}개 시험 · ${st.questions}문항</span></div><p>${html(st.stage)}</p>`:''}
+ ${st.error?`<p class="warn">${html(st.error)}</p>`:''}
+ ${st.failed.length?`<details><summary>잘 나누지 못한 시험지 ${st.failed.length}개</summary><ul>${st.failed.map(f=>`<li>${html(f)}</li>`).join('')}</ul></details>`:''}
+ <div class="dialog-actions"><button type="button" data-variant-close>닫기</button>${st.running?'<button type="button" data-variant-fetch-cancel>멈추기</button>':`${vs.pack?.available?'<button type="button" data-variant-open-pack>기출 목록 보기</button>':''}<button type="button" class="primary" data-variant-fetch-start>${st.finished?'다시 받기':'동의하고 받기'}</button>`}</div>`;
+ if(st.running)fetchTimer=setTimeout(()=>run(pollFetch),1500)}
 async function loadSubject(){vs.list=(await (await fetch('/api/kice/index?subject='+encodeURIComponent(vs.subject))).json()).questions;vs.picked=null}
 const roundName=r=>r.round==='수능'?'수능':r.round+' 모평';
 function drawPack(){const dlg=picker(),words=vs.filter.trim().split(/\s+/).filter(Boolean),rows=vs.list.filter(r=>{const hay=`${r.year} ${roundName(r)} ${r.no}번 ${r.label} ${r.form} ${r.points?r.points+'점':''} ${r.ask}`;return words.every(w=>hay.includes(w))}).slice(0,400);
@@ -86,6 +100,8 @@ async function useUpload(){const u=vs.upload,label=document.querySelector('[data
 const run=fn=>Promise.resolve().then(fn).catch(err=>toast(err.message||String(err)));
 window.addEventListener('click',e=>{const t=e.target;
  if(t.closest('[data-variant-open-pack]')){e.preventDefault();e.stopImmediatePropagation();run(openPack);return}
+ if(t.closest('[data-variant-fetch-start]')){e.preventDefault();e.stopImmediatePropagation();run(async()=>{await api('/api/kice/download',{});await pollFetch()});return}
+ if(t.closest('[data-variant-fetch-cancel]')){e.preventDefault();e.stopImmediatePropagation();run(async()=>{await api('/api/kice/cancel',{});await pollFetch()});return}
  if(t.closest('[data-variant-close]')){e.preventDefault();t.closest('dialog')?.close();return}
  const pick=t.closest('[data-variant-pick]');if(pick){e.preventDefault();vs.picked=pick.dataset.variantPick;drawPack();return}
  if(t.closest('[data-variant-use]')){e.preventDefault();run(async()=>{await useSource({kind:'kice',key:vs.picked});picker().close()});return}

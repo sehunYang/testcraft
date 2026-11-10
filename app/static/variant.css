@@ -35,3 +35,7 @@ dialog.variant-pack-dialog{width:min(1100px,94vw);max-width:none;max-height:92vh
 .variant-summary ul{margin:6px 0 4px 18px}
 .variant-summary .warn{color:#b42318;margin:4px 0}
 
+.variant-fetch-note{margin:10px 0;padding:10px 12px;border-radius:8px;background:var(--soft,#f4f6fb);line-height:1.6}
+.variant-fetch-facts{margin:0 0 12px 18px;line-height:1.7;color:var(--muted,#555)}
+.variant-fetch-progress{display:flex;gap:10px;align-items:center}
+.variant-fetch-progress progress{flex:1;height:10px}
