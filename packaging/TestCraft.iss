@@ -5,8 +5,8 @@
 [Setup]
 AppId={{3C24F521-2636-4B44-BE3D-6947866D3950}
 AppName=TestCraft
-AppVersion=1.2.4
-AppVerName=TestCraft 1.2.4
+AppVersion=1.2.5
+AppVerName=TestCraft 1.2.5
 AppPublisher=TestCraft
 DefaultDirName={localappdata}\Programs\TestCraft
 DefaultGroupName=TestCraft
@@ -20,7 +20,7 @@ SetupIconFile={#ReleaseStage}\app\static\favicon.ico
 UninstallDisplayIcon={app}\TestCraft.exe
 InfoBeforeFile={#RequirementsInfo}
 OutputDir={#ReleaseOutput}
-OutputBaseFilename=TestCraft-1.2.4-windows-x64-setup
+OutputBaseFilename=TestCraft-1.2.5-windows-x64-setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 Uninstallable=yes
@@ -49,8 +49,20 @@ Name: "{autodesktop}\TestCraft"; Filename: "{app}\TestCraft.exe"; Tasks: desktop
 
 [Run]
 Filename: "{app}\TestCraft.exe"; Description: "Launch TestCraft"; Flags: nowait postinstall skipifsilent
+; 앱 안 업데이트(/SILENT /RELAUNCH)로 설치했을 때는 묻지 않고 앱을 다시 연다.
+Filename: "{app}\TestCraft.exe"; Flags: nowait; Check: RelaunchRequested
 
 [Code]
+function RelaunchRequested(): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), '/RELAUNCH') = 0 then
+      Result := True;
+end;
+
 function TryStopInstalledTestCraft(var ErrorMessage: String): Boolean;
 var
   PythonwPath: String;

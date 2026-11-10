@@ -2,6 +2,7 @@
 // 기출 변형: 문항 추가의 셋째 방식. 원본(기출 팩 또는 올린 그림·PDF)을 고르고, 교사가 고른 변형 방식만 AI에 전한다.
 (()=>{
 const METHODS=[['numbers','수치·조건만 바꾸기','같은 상황에서 값과 정답만 바꿉니다.'],['situation','상황 바꾸고 원리 유지','묻는 원리는 같게, 상황·소재를 새로 정합니다.'],['form','유형·난이도 바꾸기','아래 목표 유형·난이도로 바꿉니다.']];
+const side={open:false,key:''};
 const vs={pack:null,list:[],subject:'',filter:'',picked:null,upload:null};
 // 기출 묶음은 설치 파일로 나눠 주지 않는다(평가원 저작권). 묶음이 없으면 교사가 평가원 홈페이지에서 직접 받는다.
 const loadPack=()=>fetch('/api/kice/index?subject=__none__').then(r=>r.json()).then(p=>{vs.pack=p;return p});
@@ -102,6 +103,7 @@ window.addEventListener('click',e=>{const t=e.target;
  if(t.closest('[data-variant-open-pack]')){e.preventDefault();e.stopImmediatePropagation();run(openPack);return}
  if(t.closest('[data-variant-fetch-start]')){e.preventDefault();e.stopImmediatePropagation();run(async()=>{await api('/api/kice/download',{});await pollFetch()});return}
  if(t.closest('[data-variant-fetch-cancel]')){e.preventDefault();e.stopImmediatePropagation();run(async()=>{await api('/api/kice/cancel',{});await pollFetch()});return}
+ if(t.closest('[data-variant-side]')){e.preventDefault();e.stopImmediatePropagation();side.open=!side.open;syncSide();document.querySelectorAll('.variant-summary [data-variant-side]').forEach(x=>x.textContent=side.open?'원본 닫기':'원본 나란히 보기');return}
  if(t.closest('[data-variant-close]')){e.preventDefault();t.closest('dialog')?.close();return}
  const pick=t.closest('[data-variant-pick]');if(pick){e.preventDefault();vs.picked=pick.dataset.variantPick;drawPack();return}
  if(t.closest('[data-variant-use]')){e.preventDefault();run(async()=>{await useSource({kind:'kice',key:vs.picked});picker().close()});return}
@@ -121,7 +123,14 @@ window.addEventListener('input',e=>{const t=e.target;
 
 // 7) 문항 카드에서 원본·바뀐 점 보기
 window.variantSummary=function(card){const v=card?.authoring_mode==='variant'?card.variant:null;if(!v?.source)return '';
- return `<div class="variant-summary"><b>기출 변형</b> · ${html(v.source.label)}${v.methods?.length?` · ${v.methods.map(m=>METHODS.find(x=>x[0]===m)?.[1]).join(', ')}`:''}${v.changes?.length?`<ul>${v.changes.map(c=>`<li data-variant-math="${html(c)}">${html(c)}</li>`).join('')}</ul>`:''}${v.overlap>=(v.methods?.length===1&&v.methods[0]==='numbers'?.5:.25)?`<p class="warn">원본과 겹치는 표현이 많습니다(${Math.round(v.overlap*100)}%).</p>`:''}<a href="/api/sources/${html(state.exam.id)}/${html(v.source.image)}" target="_blank" rel="noopener">원본 보기 ↗</a></div>`};
+ return `<div class="variant-summary"><b>기출 변형</b> · ${html(v.source.label)}${v.methods?.length?` · ${v.methods.map(m=>METHODS.find(x=>x[0]===m)?.[1]).join(', ')}`:''}${v.changes?.length?`<ul>${v.changes.map(c=>`<li data-variant-math="${html(c)}">${html(c)}</li>`).join('')}</ul>`:''}${v.overlap>=(v.methods?.length===1&&v.methods[0]==='numbers'?.5:.25)?`<p class="warn">원본과 겹치는 표현이 많습니다(${Math.round(v.overlap*100)}%).</p>`:''}<span class="variant-summary-actions"><button type="button" class="small-btn" data-variant-side>${side.open?'원본 닫기':'원본 나란히 보기'}</button><a href="/api/sources/${html(state.exam.id)}/${html(v.source.image)}" target="_blank" rel="noopener">새 탭에서 보기 ↗</a></span></div>`};
+
+// 7-1) 원본 나란히 보기: 화면 오른쪽에 원본을 붙여 두고 문항을 검토·수정한다. 문항을 옮기면 그 문항의 원본으로 바뀐다
+function sidePanel(){let el=document.querySelector('#variantSidePanel');if(!el){el=document.createElement('aside');el.id='variantSidePanel';el.className='variant-side-panel';el.hidden=true;document.body.append(el)}return el}
+function syncSide(){const el=sidePanel(),card=state.exam?.cards?.[state.card],s=card?.authoring_mode==='variant'?card.variant?.source:null,show=side.open&&!!s?.image&&!!document.querySelector('.variant-summary');   // 검토 화면의 변형 문항에서만 붙여 둔다
+ document.body.classList.toggle('variant-side-open',show);el.hidden=!show;if(!show){side.key='';return}
+ const key=state.exam.id+'/'+s.image;if(side.key===key)return;side.key=key;
+ el.innerHTML=`<div class="variant-side-head"><div><div class="eyebrow">ORIGINAL</div><b>${html(s.label)}</b></div><button type="button" class="icon-btn" data-variant-side aria-label="원본 닫기">×</button></div><div class="variant-side-body"><img alt="원본 기출" src="/api/sources/${html(key)}"></div>`}
 
 // 바뀐 점의 $…$ 수식을 미리보기와 같은 방식으로 그린다
 const mathCache=new Map();
@@ -129,6 +138,6 @@ function drawMath(){for(const li of document.querySelectorAll('.variant-summary 
  const text=li.dataset.variantMath;li.dataset.ready='1';if(typeof previewNeedsMath!=='function'||!previewNeedsMath(text))continue;
  const job=mathCache.get(text)||api('/api/math-preview',{text}).then(r=>r.segments);mathCache.set(text,job);
  job.then(seg=>{if(Array.isArray(seg)&&li.isConnected)li.innerHTML=previewMathMarkup(seg,text)}).catch(()=>{mathCache.delete(text)})}}
-new MutationObserver(()=>{if(document.querySelector('.variant-summary [data-variant-math]:not([data-ready])'))drawMath()}).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(()=>{if(side.open)syncSide();if(document.querySelector('.variant-summary [data-variant-math]:not([data-ready])'))drawMath()}).observe(document.body,{childList:true,subtree:true});
 
 })();

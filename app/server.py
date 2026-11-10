@@ -19,7 +19,7 @@ import traceback
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import core, cli, codex_setup, diagrams, formats, images, kice, labels, literature, maps, runtime, variants, vectors
+from . import core, cli, codex_setup, diagrams, formats, images, kice, labels, literature, maps, runtime, updates, variants, vectors
 from .catalog import subjects, subject_name, GROUP_OF
 from .hwpx import validate_hwpx_package
 
@@ -942,6 +942,7 @@ class Handler(BaseHTTPRequestHandler):
             if p=='/api/standards': self.send(core.standards()); return
             if p=='/api/kice/index': self.send(variants.pack_index(q.get('subject',[''])[0])); return
             if p=='/api/kice/status': self.send(kice.status()); return
+            if p=='/api/update/status': self.send(updates.check(q.get('force',[''])[0]=='1')); return
             if p=='/api/kice/image': self.send(variants.pack_image(q.get('key',[''])[0]),content_type='image/webp'); return
             if p.startswith('/api/sources/'):
                 _,_,_,eid,name=p.split('/')
@@ -993,7 +994,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
             static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
             static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
-            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/variant.js','/variant.css','/map-editor.css')})
+            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/variant.js','/variant.css','/update.js','/update.css','/map-editor.css')})
             # Bundled help videos, captions and posters (tools/media_v2/build_help.py); names are checked, not listed.
             if re.fullmatch(r'/tutorials/[0-9]{2}-[a-z-]+\.(mp4|vtt|jpg)',p) and (core.ROOT/'app/static'/p.lstrip('/')).is_file():
                 static[p]=p.lstrip('/')
@@ -1055,6 +1056,9 @@ class Handler(BaseHTTPRequestHandler):
                     else: segments.append({'type':'text','text':value})
                 self.send({'segments':segments});return
             if path=='/api/kice/download': self.send(kice.start()); return
+            if path=='/api/update/install':
+                if ACTIVE: raise ValueError('AI 작업이 끝난 뒤 업데이트해 주세요.')
+                self.send(updates.start_install()); return
             if path=='/api/kice/cancel': self.send(kice.cancel()); return
             with core.LOCK:
                 eid=data.get('exam_id')
