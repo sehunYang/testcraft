@@ -280,3 +280,7 @@ h1,h2,h3,summary,figcaption b,.process b{text-wrap:balance}p{text-wrap:pretty}
 .zoom-box img{display:block;width:100%;max-width:none;height:auto;background:#fff;user-select:none;-webkit-user-drag:none;margin:0 auto}
 .zoom-hint{padding:8px 20px 12px;font-size:var(--fs-xs);color:#c5cee6}
 @media(max-width:700px){.zoom-dialog{width:100vw;height:100dvh;border-radius:0}.zoom-title{font-size:15px}.zoom-bar{padding-left:14px;gap:6px}.zoom-hint{font-size:13px}}
+
+/* 기호로 된 선택지는 두 줄로 */
+.idea-choices-wide{grid-template-columns:repeat(3,auto);gap:8px 26px}.idea-choices-wide li{white-space:nowrap}.idea-output sub{font-size:.72em}
+@media(max-width:800px){.idea-choices-wide{grid-template-columns:1fr}}

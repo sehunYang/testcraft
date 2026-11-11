@@ -48,19 +48,19 @@
     <div class="spec-strip wrap" aria-label="제품 특징"><span>성취기준에서 시작</span><span>한 줄 아이디어로 AI 초안</span><span>기출 변형</span><span>평가원 꼴 도식·지도</span><span>그림·글씨 개별 편집</span><span>학교 양식 HWPX 출력</span></div>
 
     <section class="idea wrap section" id="idea" aria-labelledby="idea-title">
-      <div class="section-heading"><div><p class="eyebrow">짧게 쓰고, 깊게 검토하세요</p><h2 id="idea-title">아이디어 한 줄이 <br>문항 하나가 됩니다.</h2></div><p>상황과 묻고 싶은 것만 적으세요. <br>수치와, 중력 가속도·실의 질량·마찰처럼 늘 붙는 조건은 <br>AI가 채웁니다.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">짧게 쓰고, 깊게 검토하세요</p><h2 id="idea-title">아이디어 한 줄이 <br>문항 하나가 됩니다.</h2></div><p>상황과 묻고 싶은 것만 적으세요. <br>중력 가속도, 실의 질량, 마찰처럼 늘 붙는 조건은 <br>AI가 평가원 단서 조항으로 채웁니다.</p></div>
       <div class="idea-flow">
         <div class="idea-card idea-input"><span class="idea-tag">선생님이 쓴 한 줄</span><p>수평면 위의 물체 A와 도르래에 매단 물체 B가 실로 연결되어 가만히 놓았을 때, B가 일정 거리를 내려온 순간 A의 속력을 묻는 문항</p><small>물리학 · 최선답형 · 75자</small></div>
         <div class="idea-arrow" aria-hidden="true">→</div>
-        <div class="idea-card idea-output"><span class="idea-tag">AI 초안 예시</span>
-          <p class="idea-stem"><b>1.</b> 그림과 같이 질량이 각각 3 kg, 1 kg인 물체 <i>A</i>, <i>B</i>를 도르래에 걸친 실로 연결하고 가만히 놓았다. <i>A</i>는 수평면 위에 있고, <i>B</i>는 실에 매달려 있다.</p>
-          <img src="./assets/figures/pulley.png" width="1000" height="643" loading="lazy" alt="수평면 위의 물체 A와 탁자 끝 도르래에 실로 매달린 물체 B 그림. 질량 3 kg, 1 kg이 표시되어 있다.">
-          <p class="idea-question"><i>B</i>가 0.8 m 내려온 순간, <i>A</i>의 속력은? <mark>(단, 중력 가속도의 크기는 10 m/s²이고, 실과 도르래의 질량, 물체의 크기, 모든 마찰과 공기 저항은 무시한다.)</mark></p>
-          <ol class="idea-choices"><li>√2 m/s</li><li class="is-answer">2 m/s</li><li>4√3/3 m/s</li><li>2√2 m/s</li><li>4 m/s</li></ol>
-          <div class="idea-checks"><span>정답 ②</span><span>해설 ✓</span><span>오답 근거 ✓</span><span>검산 ✓</span></div>
+        <div class="idea-card idea-output"><span class="idea-tag">AI 초안 · 실제 생성 결과</span>
+          <p class="idea-stem"><b>1.</b> 그림과 같이 수평면 위의 물체 <i>A</i>와 도르래에 매달린 물체 <i>B</i>가 실로 연결되어 있다. <i>A</i>, <i>B</i>의 질량은 각각 <i>m</i><sub>A</sub>, <i>m</i><sub>B</sub>이다. 두 물체를 가만히 놓는다.</p>
+          <img src="./assets/figures/pulley.png" width="1000" height="613" loading="lazy" alt="수평면 위의 물체 A와 탁자 끝 도르래에 실로 매달린 물체 B 그림. 질량 m_A, m_B가 표시되어 있다.">
+          <p class="idea-question"><i>B</i>가 거리 <i>h</i>만큼 내려온 순간, <i>A</i>의 속력은? <mark>(단, 중력 가속도의 크기는 <i>g</i>이고, 실과 도르래의 질량, 물체의 크기, 모든 마찰과 공기 저항은 무시한다.)</mark></p>
+          <ol class="idea-choices idea-choices-wide"><li>√(<i>m</i><sub>B</sub><i>gh</i> / (<i>m</i><sub>A</sub>+<i>m</i><sub>B</sub>))</li><li>√(2<i>m</i><sub>B</sub><i>gh</i> / (<i>m</i><sub>A</sub>+2<i>m</i><sub>B</sub>))</li><li class="is-answer">√(2<i>m</i><sub>B</sub><i>gh</i> / (<i>m</i><sub>A</sub>+<i>m</i><sub>B</sub>))</li><li>√(2<i>m</i><sub>B</sub><i>gh</i> / <i>m</i><sub>A</sub>)</li><li>√(2(<i>m</i><sub>A</sub>+<i>m</i><sub>B</sub>)<i>gh</i> / <i>m</i><sub>A</sub>)</li></ol>
+          <div class="idea-checks"><span>정답 ③</span><span>해설 ✓</span><span>오답 근거 ✓</span><span>검산 ✓</span></div>
         </div>
       </div>
-      <p class="image-note">앱이 만드는 초안의 예시입니다. 한 줄에 없는 수치는 AI가 풀이가 깔끔하게 떨어지도록 정하고, 단서 조항은 발문 뒤에 붙입니다. 넣은 단서와 정한 수치는 검토 의견에 적어 두므로 선생님이 확인하고 고칠 수 있습니다.</p>
+      <p class="image-note">홍보 영상을 찍을 때 실제 앱이 이 한 줄로 만든 결과입니다. 한 줄에 없는 수치는 AI가 지어내지 않고 기호로 쓰며, 단서 조항은 발문 뒤에 붙입니다. 넣은 단서는 검토 의견에 적어 둡니다. 수치를 넣고 싶으면 한 줄에 적으면 됩니다.</p>
     </section>
 
     <section class="variant wrap section" id="variant" aria-labelledby="variant-title">
