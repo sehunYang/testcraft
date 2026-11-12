@@ -1,5 +1,5 @@
 'use strict';
-// 스크롤하면 섹션과 카드가 차례로 떠오른다. 기출 변형의 변형 방식은 차례로 켜진다. 동작 줄이기 설정에서는 쉰다.
+// 스크롤하면 섹션과 카드가 차례로 떠오른다. 동작 줄이기 설정에서는 쉰다.
 (()=>{
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const targets=document.querySelectorAll('.section-heading,.idea-card,.idea-arrow,.variant-methods,.variant-card,.variant-changes,.variant-facts li,.process li,.studio-showcase,.figure-grid figure,.figure-more,.short-cards figure,.tutorial-intro,.tutorial-layout,.output-inner,.download-intro,.download-box,.install-steps li,.faq details,.faq>div:first-child');
@@ -9,8 +9,11 @@
   const order=new Map();
   targets.forEach(el=>{const n=order.get(el.parentElement)||0;order.set(el.parentElement,n+1);el.classList.add('reveal');el.style.transitionDelay=Math.min(n,5)*80+'ms';io.observe(el)});
  }
- const methods=[...document.querySelectorAll('.variant-methods span')];let k=0;
- if(methods.length)setInterval(()=>{if(reduced.matches||document.hidden)return;methods[k].classList.remove('on');k=(k+1)%methods.length;methods[k].classList.add('on')},2600);
+ // 기출 변형: 방식 버튼을 누르면 변형 문항·바뀐 점·원본의 강조가 그 방식으로 바뀐다.
+ const methods=[...document.querySelectorAll('.variant-methods button')],versus=document.querySelector('.variant-versus');
+ methods.forEach(b=>b.addEventListener('click',()=>{const mode=b.dataset.variant;versus.dataset.mode=mode;
+  methods.forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',String(on))});
+  document.querySelectorAll('.variant [data-panel]').forEach(el=>{el.hidden=el.dataset.panel!==mode})}));
 })();
 // 쇼츠 표지를 누르면 창이 열리고 소리와 함께 재생한다(자동 재생하지 않는다).
 (()=>{

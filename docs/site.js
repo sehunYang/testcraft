@@ -29,3 +29,20 @@ fetch(new URL('./release.json',document.baseURI),{cache:'no-cache'}).then(respon
  }
  document.querySelectorAll('[data-release-notes]').forEach(node=>node.href=`https://github.com/sehunYang/testcraft/releases/tag/${release.version}`);
 }).catch(()=>{/* Keep the verified, ordinary HTML download links usable without JavaScript or network metadata. */});
+// 출제 흐름의 체험판: 누르면 실제 앱 화면(demo/)을 띄운다. 탭은 체험판의 단계도 함께 바꾼다.
+(()=>{
+ const box=document.querySelector('[data-demo]');if(!box)return;
+ const screen=box.querySelector('.demo-screen'),poster=box.querySelector('.demo-poster'),start=box.querySelector('.demo-start');
+ const posters=poster.dataset.posters.split(' ');let frame=null;
+ const fit=()=>{if(frame)frame.style.transform=`scale(${screen.clientWidth/1440})`};
+ start.addEventListener('click',()=>{
+  if(matchMedia('(max-width:800px)').matches){window.open('./demo/index.html','_blank','noopener');return}   // 휴대폰은 화면이 좁아 새 창에서 연다
+  frame=document.createElement('iframe');frame.src='./demo/index.html';frame.title='TestCraft 체험판';frame.allow='clipboard-write';
+  screen.append(frame);fit();start.hidden=true;frame.addEventListener('load',()=>{poster.hidden=true});
+  new ResizeObserver(fit).observe(screen);
+ });
+ box.querySelectorAll('[data-demo-stage]').forEach(tab=>tab.addEventListener('click',()=>{
+  const n=+tab.dataset.demoStage;
+  if(frame)frame.contentWindow?.postMessage({tcDemoStage:n},location.origin);else poster.src=posters[n];
+ }));
+})();

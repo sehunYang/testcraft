@@ -1,0 +1,4 @@
+/* TestCraft 체험판 표시 */
+#demoBadge{position:fixed;left:50%;top:13px;transform:translateX(-50%);z-index:2147483000;padding:7px 16px;border-radius:99px;
+  background:#101933;color:#fff;font:600 13px/1.4 "Studio Pretendard GOV","Pretendard GOV","Malgun Gothic",sans-serif;
+  box-shadow:0 6px 20px #10193340;pointer-events:none;white-space:nowrap}

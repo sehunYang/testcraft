@@ -65,13 +65,18 @@
 
     <section class="variant wrap section" id="variant" aria-labelledby="variant-title">
       <div class="section-heading"><div><p class="eyebrow">기출 변형 <b class="variant-new">NEW</b></p><h2 id="variant-title">잘 만든 한 문항이 <br>새 문항 하나로.</h2></div><p>가진 문제를 캡처해 올리거나, 평가원 기출을 내 PC로 받아 고르세요. <br>바꿀 것만 고르면 나머지는 원본대로 둡니다.</p></div>
-      <div class="variant-methods" aria-label="변형 방식"><span class="on"><i></i>수치·조건만 바꾸기</span><span><i></i>상황 바꾸고 원리 유지</span><span><i></i>유형·난이도 바꾸기</span></div>
-      <div class="variant-versus">
-        <div class="variant-card"><span class="idea-tag">원본</span><p>질량이 각각 <b class="variant-swap">3 kg, 1 kg</b>인 물체 <i>A</i>, <i>B</i>를 실로 연결하고 가만히 놓았다. <i>B</i>가 <b class="variant-swap">0.8 m</b> 내려온 순간, <i>A</i>의 속력은?</p><p class="variant-answer">정답 2 m/s</p></div>
+      <div class="variant-methods" role="group" aria-label="변형 방식 고르기"><button type="button" data-variant="num" aria-pressed="true" class="on"><i></i>수치·조건만 바꾸기</button><button type="button" data-variant="sit" aria-pressed="false"><i></i>상황 바꾸고 원리 유지</button><button type="button" data-variant="type" aria-pressed="false"><i></i>유형·난이도 바꾸기</button></div>
+      <p class="variant-hint">방식을 눌러 보세요. 같은 원본이 어떻게 달라지는지 바로 보입니다.</p>
+      <div class="variant-versus" data-mode="num">
+        <div class="variant-card"><span class="idea-tag">원본 · 단답형 · 하</span><p><b class="variant-swap" data-hl="sit">수평면 위의 물체 <i>A</i>와 도르래에 매단 물체 <i>B</i></b>의 질량은 각각 <b class="variant-swap" data-hl="num">3&nbsp;kg, 1&nbsp;kg</b>이다. 두 물체를 실로 연결하고 가만히 놓았을 때, <i>B</i>가 <b class="variant-swap" data-hl="num">0.8&nbsp;m</b> 내려온 순간 <b class="variant-swap" data-hl="type"><i>A</i>의 속력은?</b> <small class="variant-caveat">(단, 중력 가속도는 10 m/s²이고, 모든 마찰과 실의 질량은 무시한다.)</small></p><p class="variant-answer">정답 2&nbsp;m/s</p></div>
         <div class="idea-arrow" aria-hidden="true">⟲</div>
-        <div class="variant-card next"><span class="idea-tag">변형 문항</span><p>질량이 각각 <b class="variant-swap">1 kg, 1 kg</b>인 물체 <i>C</i>, <i>D</i>를 실로 연결하고 가만히 놓았다. <i>D</i>가 <b class="variant-swap">0.9 m</b> 내려온 순간, <i>C</i>의 속력은?</p><p class="variant-answer">정답 3 m/s <span>검산 ✓</span></p></div>
+        <div class="variant-card next" data-panel="num" aria-live="polite"><span class="idea-tag">변형 문항 · 단답형 · 하</span><p>수평면 위의 물체 <i>C</i>와 도르래에 매단 물체 <i>D</i>의 질량은 각각 <b class="variant-swap">1&nbsp;kg, 1&nbsp;kg</b>이다. 두 물체를 실로 연결하고 가만히 놓았을 때, <i>D</i>가 <b class="variant-swap">0.9&nbsp;m</b> 내려온 순간 <i>C</i>의 속력은? <small class="variant-caveat">(단, 중력 가속도는 10 m/s²이고, 모든 마찰과 실의 질량은 무시한다.)</small></p><p class="variant-answer">정답 3&nbsp;m/s <span>검산 ✓</span></p></div>
+        <div class="variant-card next" data-panel="sit" hidden><span class="idea-tag">변형 문항 · 단답형 · 하</span><p>질량이 각각 3&nbsp;kg, 1 kg인 물체 <i>C</i>, <i>D</i>를 <b class="variant-swap">도르래 양쪽에 실로 매달고</b> 가만히 놓았다. <i>C</i>가 0.9&nbsp;m 내려온 순간 <i>D</i>의 속력은? <small class="variant-caveat">(단, 중력 가속도는 10 m/s²이고, 모든 마찰과 실의 질량은 무시한다.)</small></p><p class="variant-answer">정답 3&nbsp;m/s <span>검산 ✓</span></p></div>
+        <div class="variant-card next" data-panel="type" hidden><span class="idea-tag">변형 문항 · 합답형 · 상</span><p>수평면 위의 물체 <i>A</i>와 도르래에 매단 물체 <i>B</i>의 질량은 각각 3&nbsp;kg, 1 kg이다. 두 물체를 실로 연결하고 가만히 놓았을 때, <i>B</i>가 0.8&nbsp;m 내려오는 동안에 대한 설명으로 <b class="variant-swap">옳은 것만을 〈보기〉에서 있는 대로 고른 것은?</b> <small class="variant-caveat">(단, 중력 가속도는 10 m/s²이고, 모든 마찰과 실의 질량은 무시한다.)</small></p><ol class="variant-bogi" aria-label="보기"><li><b>ㄱ.</b> <i>A</i>의 가속도의 크기는 2.5 m/s²이다.</li><li><b>ㄴ.</b> 실이 <i>A</i>를 당기는 힘의 크기는 10 N이다.</li><li><b>ㄷ.</b> <i>B</i>의 역학적 에너지 감소량은 <i>A</i>의 운동 에너지 증가량과 같다.</li></ol><p class="variant-answer">정답 ㄱ, ㄷ <span>검산 ✓</span></p></div>
       </div>
-      <ul class="variant-changes" aria-label="바뀐 점"><li>바뀐 점</li><li>질량 3 kg, 1 kg → 1 kg, 1 kg</li><li>이동 거리 0.8 m → 0.9 m</li><li>정답 2 m/s → 3 m/s</li></ul>
+      <ul class="variant-changes" data-panel="num" aria-label="바뀐 점"><li>바뀐 점</li><li>질량 3&nbsp;kg, 1&nbsp;kg → 1&nbsp;kg, 1&nbsp;kg</li><li>이동 거리 0.8&nbsp;m → 0.9&nbsp;m</li><li>정답 2&nbsp;m/s → 3&nbsp;m/s</li></ul>
+      <ul class="variant-changes" data-panel="sit" aria-label="바뀐 점" hidden><li>바뀐 점</li><li>수평면 + 도르래 → 도르래 양쪽에 매달기</li><li>원리는 그대로: 역학적 에너지 보존</li><li>정답 2&nbsp;m/s → 3&nbsp;m/s</li></ul>
+      <ul class="variant-changes" data-panel="type" aria-label="바뀐 점" hidden><li>바뀐 점</li><li>단답형 → 합답형(〈보기〉 세 개)</li><li>난이도 하 → 상</li><li>가속도·장력·에너지를 함께 판단</li></ul>
       <ul class="variant-facts"><li><b>원본과 나란히 검토</b><span>원본을 화면 오른쪽에 붙여 두고 새 문항을 고칩니다.</span></li><li><b>겹침 검사</b><span>원본과 겹치는 표현이 많으면 알려 줍니다.</span></li><li><b>출처는 해설지에만</b><span>학생용 시험지에는 원본 문장과 출처가 들어가지 않습니다.</span></li></ul>
       <p class="image-note">평가원 기출은 설치 파일에 들어 있지 않습니다. 앱에서 동의하면 평가원 공식 홈페이지에서 과학탐구 문제지를 내 PC로 직접 받습니다. 지금은 과학탐구부터 지원합니다.</p>
     </section>
@@ -79,26 +84,34 @@
     <section class="workflow wrap section" id="workflow" aria-labelledby="workflow-title">
       <div class="section-heading"><div><p class="eyebrow">하나의 작업실, 네 번의 집중</p><h2 id="workflow-title">출제는 하나의 흐름이니까.</h2></div><p>파일과 도구 사이를 오가는 대신, <br>지금 필요한 판단에 집중하세요.</p></div>
       <ol class="process"><li><span>01</span><b>설계</b><p>성취기준과 묻고 싶은 생각을 정합니다.</p></li><li><span>02</span><b>검토</b><p>문항·정답·배점을 살피고 승인합니다.</p></li><li><span>03</span><b>그림</b><p>자료를 만들고 객체와 글씨를 다듬습니다.</p></li><li><span>04</span><b>출력</b><p>시험지와 해설을 파일로 완성합니다.</p></li></ol>
-      <div class="studio-showcase">
-        <div class="showcase-tabs" role="tablist" aria-label="작업실 화면 둘러보기">
-          <button id="tab-design" role="tab" aria-selected="true" aria-controls="panel-design" tabindex="0"><span>01</span> 설계<span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" tabindex="-1"><span>02</span> 검토<span class="tab-arrow" aria-hidden="true">↗</span></button>
-          <button id="tab-designer" role="tab" aria-selected="false" aria-controls="panel-designer" tabindex="-1"><span>03</span> 그림<span class="tab-arrow" aria-hidden="true">↗</span></button>
+      <div class="studio-showcase" data-demo>
+        <div class="showcase-tabs" role="tablist" aria-label="작업실 단계 고르기">
+          <button id="tab-design" role="tab" aria-selected="true" aria-controls="panel-design" tabindex="0" data-demo-stage="0"><span>01</span> 설계</button>
+          <button id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" tabindex="-1" data-demo-stage="1"><span>02</span> 검토</button>
+          <button id="tab-designer" role="tab" aria-selected="false" aria-controls="panel-designer" tabindex="-1" data-demo-stage="2"><span>03</span> 그림</button>
+          <button id="tab-output" role="tab" aria-selected="false" aria-controls="panel-output" tabindex="-1" data-demo-stage="3"><span>04</span> 출력</button>
         </div>
         <div class="showcase-panel" id="panel-design" role="tabpanel" aria-labelledby="tab-design" tabindex="0">
           <div class="panel-caption"><h3>네 가지 기준으로, 문항의 방향을.</h3><p>성취기준·문항 유형·난이도·핵심 아이디어를 입력하세요. AI 초안과 직접 작성 중에서 선택하고, 문항 분포를 보며 시험 전체의 균형을 잡습니다.</p></div>
-          <a href="./assets/studio-design.png" target="_blank" rel="noopener"><img src="./assets/studio-design.png" width="1440" height="960" loading="lazy" alt="설계 화면: 문항별 성취기준, 유형, 난이도, 배점, 정답과 AI 작성 요청을 한눈에 확인합니다."></a>
         </div>
         <div class="showcase-panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" tabindex="0" hidden>
           <div class="panel-caption"><h3>초안은 AI가, 마지막 판단은 선생님이.</h3><p>문두·발문·보기·정답과 해설을 미리보며 고칩니다. 검토와 배점, 전체 문항카드 승인을 마친 뒤에 실제 그림 제작과 출력으로 넘어갑니다.</p></div>
-          <a href="./assets/studio-review.png" target="_blank" rel="noopener"><img src="./assets/studio-review.png" width="1440" height="960" loading="lazy" alt="검토 화면: 문항 내용 편집과 오른쪽 시험 문항 미리보기를 함께 확인합니다."></a>
         </div>
         <div class="showcase-panel" id="panel-designer" role="tabpanel" aria-labelledby="tab-designer" tabindex="0" hidden>
           <div class="panel-caption"><h3>한 장의 그림도, 선 하나까지.</h3><p>strict·mixed·flexible로 제작 범위를 정하고 SVG 객체를 이동·회전·정렬합니다. 물리량·수식·한글은 독립 글씨 객체로 편집하며, 배경을 고쳐도 글씨 레이어는 유지됩니다.</p></div>
-          <a href="./assets/studio-designer.png" target="_blank" rel="noopener"><img src="./assets/studio-designer.png" width="1440" height="960" loading="lazy" alt="자료 디자인 화면: 그림 객체, 회전 손잡이, 글씨 레이어와 속성 패널을 제공합니다."></a>
+        </div>
+        <div class="showcase-panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output" tabindex="0" hidden>
+          <div class="panel-caption"><h3>검사를 통과하면, 한 번에 파일로.</h3><p>문항·배점·승인과 그림 확인을 앱이 마지막으로 점검합니다. 통과하면 학교 양식의 학생용·교사용 한글 시험지와 정답·해설지를 한 번에 만듭니다.</p></div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-bar"><span class="demo-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="demo-title">TestCraft 체험판 <small>실제 앱 화면</small></span><a class="demo-open" href="./demo/index.html" target="_blank" rel="noopener">새 창에서 크게 ↗</a></div>
+          <div class="demo-screen">
+            <img class="demo-poster" src="./assets/demo/design.webp" width="1440" height="900" loading="lazy" alt="체험판 설계 화면: 4문항 가운데 4번은 아이디어 한 줄만 있고 AI 요청이 켜져 있습니다." data-posters="./assets/demo/design.webp ./assets/demo/review.webp ./assets/demo/image.webp ./assets/demo/output.webp">
+            <button class="demo-start" type="button"><b>▶ 직접 눌러 보기</b><span>4번 문항의 ‘AI 초안 1문항 생성’부터 눌러 보세요</span></button>
+          </div>
         </div>
       </div>
-      <p class="image-note">실제 앱에 공개용 예시 문항을 넣은 화면입니다. 이미지 클릭 시 원본을 볼 수 있습니다. 버전에 따라 배치가 다를 수 있습니다.</p>
+      <p class="image-note demo-note">실제 앱 화면을 그대로 옮긴 체험판입니다. 문항 편집부터 검토·승인·그림 확정까지 눌러 볼 수 있습니다. AI 작업은 진행 창만 3초 보여 주고, 4번 문항만 미리 만들어 둔 실제 앱 결과로 채워집니다. 파일 받기는 실행되지 않으며, 바꾼 내용은 창을 닫으면 사라집니다.</p>
     </section>
 
     <section class="figures-band" id="figures" aria-labelledby="figures-title"><div class="wrap section">
@@ -140,9 +153,9 @@
     <dialog id="shortDialog" class="short-dialog"><video controls playsinline preload="none" aria-label="TestCraft 홍보 숏츠"></video><button type="button">닫기</button></dialog>
 
     <section class="output-band" aria-labelledby="output-title"><div class="wrap output-inner"><div><p class="eyebrow">끝은, 바로 쓸 수 있는 파일로</p><h2 id="output-title">시험지와 답지까지 <br>같은 흐름 안에서.</h2><p>한글 수식을 담은 학생용·교사용 시험지, <br>정답과 해설, 문항카드를 함께 준비합니다.</p><p class="output-note">HWPX 출력에는 한컴오피스 한글 설치가 필요합니다.</p></div><div class="output-visual"><div class="paper-stack" aria-hidden="true">
-<div class="paper paper-card"><i>문항카드</i><div class="grid"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
-<div class="paper paper-answer paper-real"><img src="./assets/output/answers-1.webp" width="1600" height="2263" loading="lazy" alt=""></div>
-<div class="paper paper-exam paper-real"><img src="./assets/output/student-1.webp" width="1600" height="2263" loading="lazy" alt=""></div>
+<div class="paper paper-card" aria-hidden="true"><i>문항카드</i><table class="mini-card"><thead><tr><th>번호</th><th>유형</th><th>난이도</th><th>배점</th><th>정답</th></tr></thead><tbody><tr><td>1</td><td>최선답형</td><td>중</td><td>20</td><td>③</td></tr><tr><td>2</td><td>최선답형</td><td>상</td><td>30</td><td>②</td></tr><tr><td>3</td><td>합답형</td><td>상</td><td>30</td><td>④</td></tr><tr><td>서답 1</td><td>서술형</td><td>중</td><td>20</td><td>—</td></tr></tbody></table><p class="mini-card-sum">합계 100점 · 4문항</p></div>
+<div class="paper paper-answer paper-real"><img src="./assets/output/stack-answers.webp" width="630" height="840" loading="lazy" alt=""></div>
+<div class="paper paper-exam paper-real"><img src="./assets/output/stack-exam.webp" width="630" height="840" loading="lazy" alt=""></div>
 </div><div class="file-stack" aria-label="출력 파일 예시 보기"><button type="button" data-output="exam"><span class="file-icon">H</span><span>학생용 · 교사용 시험지<small>학교 양식과 한글 수식</small></span><b>HWPX</b><em>예시 보기</em></button><button type="button" data-output="answers"><span class="file-icon">H</span><span>정답과 해설<small>정답 요약표와 문항별 풀이</small></span><b>HWPX</b><em>예시 보기</em></button><button type="button" data-output="card"><span class="file-icon">X</span><span>문항카드<small>출제 기준과 문항 구성</small></span><b>XLSX</b><em>예시 보기</em></button></div></div></div></div></section>
 
     <dialog id="outputDialog" class="output-dialog" aria-labelledby="outputDialogTitle"><div class="output-dialog-head"><div><p class="eyebrow">출력 예시 · 물리학</p><h3 id="outputDialogTitle">학생용 · 교사용 시험지</h3></div><button type="button" class="output-dialog-close" aria-label="닫기">×</button></div>

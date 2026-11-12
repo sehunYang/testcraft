@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>TestCraft 체험판</title>
+<style>
+  :root{--ink:#101933;--muted:#5d6782;--bg:#f4f6fb;--blue:#2f5bff}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Pretendard GOV","Pretendard","Malgun Gothic",sans-serif}
+  main{height:100%;display:grid;place-items:center;text-align:center;padding:0 16px;box-sizing:border-box}
+  .spin{width:34px;height:34px;border-radius:50%;border:4px solid #d7dcea;border-top-color:var(--blue);margin:0 auto 18px;animation:s 1s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  p{margin:6px 0;color:var(--muted);font-size:15px;line-height:1.6}
+  b{display:block;font-size:19px;color:var(--ink);margin-bottom:6px}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+<main><div id="msg"><div class="spin" aria-hidden="true"></div><b>체험판 작업실을 여는 중입니다</b><p>실제 앱 화면입니다. AI 생성과 파일 받기는 실행되지 않습니다.</p></div></main>
+<script>
+// 체험판 준비: 서비스 워커가 앱 화면의 파일 요청을 맡은 뒤에 작업실(app.html)로 넘어간다.
+(async () => {
+  const msg = document.getElementById('msg');
+  const fail = () => { msg.innerHTML = '<b>이 브라우저에서는 체험판을 열 수 없습니다</b><p>최신 Chrome·Edge에서 다시 열거나, <a href="../#download" target="_top">앱을 내려받아</a> 사용해 보세요.</p>'; };
+  if (!('serviceWorker' in navigator)) return fail();
+  try {
+    await navigator.serviceWorker.register('./sw.js', {scope: './'});
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, {once: true}); setTimeout(r, 3000); });
+    if (!navigator.serviceWorker.controller) {
+      let tries = 0; try { tries = +sessionStorage.getItem('tc-demo-reload') || 0; sessionStorage.setItem('tc-demo-reload', tries + 1); } catch {}
+      if (tries < 2) location.reload(); else fail();
+      return;
+    }
+    try { sessionStorage.removeItem('tc-demo-reload'); } catch {}
+    location.replace('./app.html' + location.hash);
+  } catch (e) { fail(); }
+})();
+</script>
+</body>
+</html>
