@@ -20,3 +20,11 @@
   video.src=button.dataset.short;video.muted=false;video.volume=1;dialog.showModal();video.play().catch(()=>{});
  }));
 })();
+
+// 첫 화면 영상: 두 편의 소개 영상을 번갈아 계속 튼다.
+(()=>{
+ const hero=document.querySelector('#heroLoop');if(!hero)return;
+ const list=['./media/testcraft-loop.mp4','./media/testcraft-loop-wow.mp4'];let k=0;
+ hero.loop=false;
+ hero.addEventListener('ended',()=>{k=(k+1)%list.length;hero.src=list[k];hero.load();hero.play().catch(()=>{})});
+})();

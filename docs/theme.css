@@ -284,3 +284,7 @@ h1,h2,h3,summary,figcaption b,.process b{text-wrap:balance}p{text-wrap:pretty}
 /* 기호로 된 선택지는 두 줄로 */
 .idea-choices-wide{grid-template-columns:repeat(3,auto);gap:8px 26px}.idea-choices-wide li{white-space:nowrap}.idea-output sub{font-size:.72em}
 @media(max-width:800px){.idea-choices-wide{grid-template-columns:1fr}}
+
+/* 2026-11-12 · 쇼츠 세 편 */
+@media(min-width:1101px){.shorts{display:block}.short-cards{margin-top:48px;grid-template-columns:repeat(3,300px);justify-content:center;gap:36px}}
+@media(max-width:1100px){.short-cards{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:min(62%,300px);overflow-x:auto;scroll-snap-type:x mandatory;justify-content:start;gap:14px;padding-bottom:10px}.short-cards figure{scroll-snap-align:start}}
