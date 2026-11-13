@@ -4,6 +4,7 @@
 물체·도르래·부품의 크기는 화면 픽셀로 고정해 어떤 장면에서도 같은 크기로 보인다.
 글씨는 글씨 레이어로 따로 둔다($...$ 로 쓴 글씨는 수식 글꼴).
 """
+import json
 import math
 import re
 
@@ -26,6 +27,22 @@ def _width(text, size):
 TEXT = 1.4       # 시험지에서 본문 글씨와 비슷하게 보이도록(2026-11-04)
 
 
+def _measure(text, size):
+    """수식 글씨가 실제로 차지하는 (폭, 높이). 어림으로 놓으면 물체 이름이 가운데에서 비켜난다(2026-11-11).
+    글씨 그리기에 실패하면 어림값을 쓴다. 한글이 섞인 글씨('힘의 $x$성분')는 나중에 한글·수식 조각으로 나뉘므로
+    조각 폭의 합으로 잰다(2026-11-13: 하나로 재면 좁게 잡혀 축선을 덮었다)."""
+    if '$' in str(text) and re.search('[가-힣]', str(text)):
+        pieces = [t for t in re.split(r'(\$[^$]+\$)', str(text)) if t.strip()]
+        sizes = [_measure(t, size) if t.startswith('$') else (_text_width(t.strip(), size) + size * .25, size) for t in pieces]
+        return sum(w for w, _ in sizes), max(h for _, h in sizes)
+    try:
+        from . import labels
+        r = labels.render('physics', text, size)
+        return float(r['width']), float(r['height'])
+    except Exception:
+        return _width(text, size), size
+
+
 def _tex(text):
     """'$3$ kg'처럼 수식과 글자가 섞인 글씨를 수식 하나($3\\,\\mathrm{kg}$)로 바꾼다. 한글이 섞이면 그대로 둔다."""
     text = str(text).strip()
@@ -46,18 +63,18 @@ def _lab(text, x, y, size=26, scaled=False):
     text = _tex(text)
     if not scaled: size = round(size * TEXT)
     if '$' not in text: return _label(text, x, y, size=size)
-    wide = _width(text, size)
+    wide, high = _measure(text, size)
     return {'kind': 'physics', 'text': text, 'x': round(max(8, min(W - wide - 8, x - wide / 2)), 1),
-            'y': round(max(8, min(H - size - 8, y - size / 2)), 1), 'size': size, 'rotation': 0}
+            'y': round(max(8, min(H - high - 8, y - high / 2)), 1), 'size': size, 'rotation': 0}
 
 
 def _lab_side(text, x, y, side, size=26, gap=10):
     """기준점의 한쪽(left/right/up/down)에 붙여 놓는다."""
     text = _tex(text)
     size = round(size * TEXT)
-    wide = _width(text, size)
+    wide, high = _measure(text, size) if '$' in text else (_width(text, size), size)
     dx = {'left': -(wide / 2 + gap), 'right': wide / 2 + gap}.get(side, 0)
-    dy = {'up': -(size / 2 + gap), 'down': size / 2 + gap}.get(side, 0)
+    dy = {'up': -(high / 2 + gap), 'down': high / 2 + gap}.get(side, 0)
     return _lab(text, x + dx, y + dy, size, scaled=True)
 
 
@@ -193,26 +210,60 @@ def _tangent(c, r, p, away):
     return max(cands, key=lambda t: (t[0] - c[0]) * away[0] + (t[1] - c[1]) * away[1])
 
 
+def _hang_straight(spec):
+    """도르래 왼쪽·오른쪽에서 줄로 바로 매단 물체는 연직으로 늘어진다(2026-11-13 교사 지적: 줄이 좌우로 벌어지면 물리 오류).
+    좌표(at)로 놓고 줄 ["A.top","P0.left"]로 이은 물체를 도르래 아래에 매다는 hang으로 바꾼다."""
+    pulleys = {pl.get('id', f'P{k}'): pl for k, pl in enumerate(spec.get('pulleys', [])) if _pt(pl.get('at'))}
+    objs = {o.get('id', o.get('label')): o for o in spec.get('objects', [])}
+    keep = []
+    for s in spec.get('strings', []):
+        ends = [x for x in s if isinstance(x, str)]
+        if len(s) == 2 and len(ends) == 2:
+            top = next((x for x in ends if x.endswith('.top') and x[:-4] in objs), None)
+            side = next((x for x in ends if x.rsplit('.', 1)[0] in pulleys and x.rsplit('.', 1)[-1] in ('left', 'right')), None)
+            if top and side:
+                o, (pid, lr) = objs[top[:-4]], side.rsplit('.', 1)
+                if _pt(o.get('at')) and o['at'][1] < pulleys[pid]['at'][1]:
+                    o['hang'], o['side'], o['drop'] = pid, lr, pulleys[pid]['at'][1] - o['at'][1]
+                    del o['at']; continue
+        keep.append(s)
+    spec['strings'] = keep
+    return spec
+
+
 def _mechanics(spec, parts, labels, box=FRAME):
     _defs(parts)
+    spec = _hang_straight(json.loads(json.dumps(spec)))
     track = [tuple(p) for p in spec.get('track', [])]
     if spec.get('smooth') and len(track) >= 3:     # 곡면 레일·언덕: 점을 지나는 매끄러운 곡선(위치·높이 계산도 이 곡선으로)
         track = [tuple(q) for q in _monotone(track)]
     world = list(track)
     world += [tuple(o['at']) for o in spec.get('objects', []) if _pt(o.get('at'))]
+    pmap = {pl.get('id', f'P{k}'): pl['at'] for k, pl in enumerate(spec.get('pulleys', [])) if _pt(pl.get('at'))}
+    world += [(pmap[o['hang']][0], pmap[o['hang']][1] - o.get('drop', 3) - 0.6) for o in spec.get('objects', []) if o.get('hang') in pmap]     # 매단 물체도 칸 안에
     world += [tuple(p['at']) for p in spec.get('pulleys', []) if _pt(p.get('at'))]
     for w_ in spec.get('walls', []): world += [(w_['x'], w_['y0']), (w_['x'], w_['y1'])]
     for c in spec.get('ceilings', []): world += [(c['x0'], c['y']), (c['x1'], c['y'])]
     for hgt in spec.get('heights', []): world += [(hgt['x'], hgt['from']), (hgt['x'], hgt['to'])]
     for s in spec.get('strings', []): world += [tuple(p) for p in s if _pt(p)]
     for s in spec.get('springs', []): world += [tuple(p) for p in (s.get('from'), s.get('to')) if _pt(p)]
-    if _num(spec.get('base_to')) and track: world.append((track[0][0], spec['base_to']))
+    table_to = None
+    if _num(spec.get('base_to')) and track:      # 탁자는 물체에 비해 지나치게 높지 않게(윗면 길이의 0.42배까지)
+        top = min(q[1] for q in track)
+        table_to = max(spec['base_to'], top - (track[-1][0] - track[0][0]) * .42)
+        world.append((track[0][0], table_to))
     if not world: world = [(0, 0), (1, 1)]
     xs = [q[0] for q in world]; ys = [q[1] for q in world]
     flat = (max(ys) - min(ys)) < (max(xs) - min(xs)) * .12            # 수평면만 있는 장면: 물체를 키우고 가운데로 모은다
+    level_table = table_to is not None and max(q[1] for q in track) - min(q[1] for q in track) < 1e-9
     u = spec.get('scale', 1.6 if flat else 1.0)
+    if level_table and 'scale' not in spec:      # 수평 탁자: 물체 너비가 탁자 윗면의 1/5쯤 되게 키운다(탁자만 광활해 보이지 않게)
+        span = (max(xs) - min(xs)) or 1
+        u = max(1.45, min(2.3, (box[2] - box[0]) * .76 * (track[-1][0] - track[0][0]) / span / (5 * 58)))
     bw = box[2] - box[0]
     pad = spec.get('pad') or ((bw * .14, 90, bw * .14, 90) if flat else (min(110, bw * .13), 64, min(110, bw * .13), 66))
+    if level_table and not spec.get('pad'):      # 커진 물체와 질량 글씨가 칸 밖으로 나가지 않게 위아래 여백을 넓힌다
+        pad = (pad[0], max(pad[1], 58 * u + 78), pad[2], max(pad[3], 58 * u * .5 + 70))
     if not spec.get('pad'):          # 높이 치수 글씨가 칸 밖으로 밀려 화살표에 겹치지 않게 여백을 넓힌다
         xs_min, xs_max = min(xs), max(xs)
         need = {'left': 0, 'right': 0}
@@ -232,7 +283,7 @@ def _mechanics(spec, parts, labels, box=FRAME):
         rr = 0 if spec.get('sharp') or spec.get('smooth') else spec.get('round', 40)
         if 0 < rr < 4: rr = 40            # 세계 좌표로 착각한 작은 값은 기본 둥글기로
         if base == 'solid':
-            bottom = P((0, spec['base_to']))[1] if _num(spec.get('base_to')) else max(y for _, y in px) + 26 * u
+            bottom = P((0, table_to))[1] if table_to is not None else max(y for _, y in px) + 26 * u
             region = _rounded(px, rr) + f'L{px[-1][0]:.1f},{bottom:.1f}L{px[0][0]:.1f},{bottom:.1f}Z'
             parts.append(f'<path d="{region}" fill="url(#{"tablefade" if _num(spec.get("base_to")) else "groundfade"})" stroke="none"/>')
             if _num(spec.get('base_to')):      # 탁자처럼 옆면이 있는 받침
@@ -362,6 +413,10 @@ def _mechanics(spec, parts, labels, box=FRAME):
         elif mount in ('up', 'down', 'left', 'right'):
             dx, dy = {'up': (0, -1), 'down': (0, 1), 'left': (-1, 0), 'right': (1, 0)}[mount]
             end = (c[0] + dx * (r + 30), c[1] + dy * (r + 30))
+            if mount == 'up':      # 천장이 위에 있으면 받침대를 천장까지 잇는다(2026-11-13: 받침대가 천장에 닿지 않았다)
+                above = [P((cl['x0'], cl['y']))[1] for cl in spec.get('ceilings', []) if min(cl['x0'], cl['x1']) <= pl['at'][0] <= max(cl['x0'], cl['x1'])]
+                above = [y for y in above if y < c[1] - r]
+                if above: end = (c[0], max(above))
             parts.append(_line(c, end, 3))
             if not spec.get('ceilings'):
                 a_ = (end[0] - dy * 26, end[1] - dx * 26); b_ = (end[0] + dy * 26, end[1] + dx * 26)
@@ -603,7 +658,11 @@ def _graph(spec, parts, labels, box=FRAME):
     ax, ay = spec.get('x') or {}, spec.get('y') or {}
     x0, x1 = min(ax.get('min', min(xs)), 0), ax.get('max', max(xs) * 1.12)
     y0, y1 = min(ay.get('min', min(ys)), 0), ay.get('max', max(ys) * 1.15)
-    L, T, R, B = box[0] + 100, box[1] + 60, box[2] - 140, box[3] - 70
+    # 오른쪽 여백은 가로축 이름이 화살표 뒤에 다 들어갈 만큼(2026-11-13: 좁은 칸에서 '시간(s)'이 화살표를 덮었다)
+    xw = _width(ax.get('label', ''), round(24 * TEXT)) if ax.get('label') else 0
+    yw = _measure(_tex(ay['label']), round(24 * TEXT))[0] if ay.get('label') else 0
+    y_up = yw + 30 > 100 - 8         # 세로축 이름이 축 왼쪽에 다 들어가지 않으면 화살표 끝 위에 놓는다
+    L, T, R, B = box[0] + 100, box[1] + (96 if y_up else 60), box[2] - max(140, 40 + 16 + xw + 14), box[3] - 70
     X = lambda v: L + (v - x0) / (x1 - x0) * (R - L)
     Y = lambda v: B - (v - y0) / (y1 - y0) * (B - T)
     ox, oy = X(0), Y(0)
@@ -622,12 +681,16 @@ def _graph(spec, parts, labels, box=FRAME):
         gx, gy = X(g[0]), Y(g[1])
         parts.append(_line((gx, gy), (gx, oy), 1.4, '5 4')); parts.append(_line((gx, gy), (ox, gy), 1.4, '5 4'))
     parts.append(_arrow((X(x0), oy), (R + 40, oy), 2.2, 13)); parts.append(_arrow((ox, Y(y0)), (ox, T - 30), 2.2, 13))
-    labels.append(_lab_side(ax.get('label', ''), R + 46, oy, 'right', 24, 4)) if ax.get('label') else None
-    labels.append(_lab_side(ay.get('label', ''), ox - 8, T - 24, 'left', 24, 4)) if ay.get('label') else None
+    labels.append(_lab_side(ax.get('label', ''), R + 46, oy, 'right', 24, 16)) if ax.get('label') else None      # 화살표 끝과 띄운다(2026-11-13)
+    if ay.get('label'):
+        labels.append(_lab_side(ay['label'], ox, T - 34, 'up', 24, 8) if y_up else _lab_side(ay['label'], ox - 8, T - 24, 'left', 24, 14))
     labels.append(_lab_side(spec.get('origin', '0'), ox - 4, oy + 4, 'left', 24, 6)) if spec.get('origin', '0') != '' else None
+    zero = spec.get('origin', '0') != ''            # 원점에 0을 이미 쓰면 두 축의 0 눈금 글씨는 다시 쓰지 않는다
     for v, text in ax.get('ticks', []):
+        if zero and v == 0: continue
         parts.append(_line((X(v), oy), (X(v), oy - 8), 1.8)); labels.append(_lab_side(text, X(v), oy + 4, 'down', 24, 6))
     for v, text in ay.get('ticks', []):
+        if zero and v == 0: continue
         parts.append(_line((ox, Y(v)), (ox + 8, Y(v)), 1.8)); labels.append(_lab_side(text, ox - 6, Y(v), 'left', 24, 8))
     for c, line in zip(spec['curves'], lines):
         pts = [(X(x), Y(y)) for x, y in c['points']]
@@ -644,27 +707,43 @@ PANEL_TYPES = {'mechanics': _mechanics, 'circuit': _circuit, 'graph': _graph}
 PANEL_CHECK = {'mechanics': _check_mechanics, 'circuit': _check_circuit, 'graph': _check_graph}
 
 
+def _chart_panel():
+    from . import diagrams_chart, diagrams_function       # 사회·과학 그래프와 수학 그래프도 (가)(나)로 나란히 놓는다
+    PANEL_TYPES['chart'] = diagrams_chart.render; PANEL_CHECK['chart'] = diagrams_chart.check
+    PANEL_TYPES['function'] = diagrams_function.render; PANEL_CHECK['function'] = diagrams_function.check
+
+
 def _check_panels(spec):
+    _chart_panel()
     items = spec.get('items')
     if not isinstance(items, list) or not 1 <= len(items) <= 3: return ['panels는 items(1~3칸)가 필요합니다.']
     out = []
     for it in items:
-        if it.get('type') not in PANEL_TYPES: out.append('칸의 type은 mechanics, circuit, graph 중 하나입니다.'); continue
+        if it.get('type') not in PANEL_TYPES: out.append('칸의 type은 mechanics, circuit, graph, chart, function 중 하나입니다.'); continue
         out += PANEL_CHECK[it['type']](it)
     return out
 
 
 def _panels(spec, parts, labels):
+    _chart_panel()
     items = spec['items']; n = len(items)
     row = spec.get('layout', 'row') == 'row'
     weights = [it.get('weight', 1) for it in items]; total = sum(weights); pos = 0
+    names = lambda it: [x.get('name') for x in it.get('series') or it.get('lines') or [] if isinstance(x, dict)]
+    charts = [it for it in items if it.get('type') == 'chart']
+    if row and len(charts) > 1 and all(names(it) == names(charts[0]) for it in charts) and names(charts[0]):
+        items = [dict(it, legend='space', legend_span=(0, W)) if it.get('type') == 'chart' else it for it in items]     # 같은 범례는 한 번만
+        k = items.index(next(it for it in items if it.get('type') == 'chart'))
+        items[k] = dict(items[k], legend_span=(0, W), legend=True)
     for it, wgt in zip(items, weights):
         if row: box = (W * pos / total, 0, W * (pos + wgt) / total, H - 40)
         else: box = (0, (H - 10) * pos / total, W, (H - 10) * (pos + wgt) / total - 34)
         pos += wgt
         bottom = PANEL_TYPES[it['type']](it, parts, labels, box)
         y = min(box[3] + 14, bottom + 30) if isinstance(bottom, (int, float)) else box[3] + 14
-        if it.get('caption'): labels.append(_lab(it['caption'], (box[0] + box[2]) / 2, y, 26))
+        if it.get('caption'):           # 그래프 칸의 (가)(나)는 그래프 글씨와 같은 크기(그래프 글씨 규칙)
+            small = it.get('type') == 'chart'
+            labels.append(_lab(it['caption'], (box[0] + box[2]) / 2, y, 26, scaled=small))
 
 
 CHECK = {'mechanics': _check_mechanics, 'circuit': _check_circuit, 'graph': _check_graph, 'panels': _check_panels}
@@ -672,7 +751,7 @@ RENDER = {'mechanics': _mechanics, 'circuit': _circuit, 'graph': _graph, 'panels
 
 PROMPT = """
 물리 도식(앱이 그림, 이 종류의 그림은 SVG 규칙 대신 반드시 이 명세를 쓴다): 역학 상황, 회로, 그래프, 그리고 이들을 (가)(나)로 나란히 놓는 panels. 예: 수평면 위 물체 A와 끝의 도르래에 매단 B → {"type":"mechanics","track":[[0,4],[8,4]],"base_to":1.5,"objects":[{"kind":"block","on":3,"id":"A","label":"$A$"},{"kind":"block","hang":"P0","drop":2.2,"id":"B","label":"$B$","mass":"$1\\\\,\\\\mathrm{kg}$"}],"pulleys":[{"at":[8.5,4.4],"mount":"corner","align":"A","id":"P0"}],"strings":[["A.right","P0"]]}. 좌표는 세계 좌표(y가 위로 커짐)이고 앱이 칸에 맞춰 늘이고 줄인다. 물체·도르래·부품 크기는 앱이 정한다. 글씨는 수식이면 글씨 하나를 $...$ 하나로 통째로 쓰고(예: "$3\\,\\mathrm{kg}$", "$5\\,\\mathrm{m/s}$"), 한글이면 평문이다.
-- 역학 상황: {"type":"mechanics","track":[[0,4],[3,1],[8,1]],"base":"solid|line|hatch","datum":0,"objects":[{"kind":"block|ball|cart","on":0.8,"label":"A","mass":"$2m$","ghost":false},{"kind":"block","at":[x,y],"label":"B"}],"walls":[{"x":8,"y0":1,"y1":2.2,"side":"right","label":"벽"}],"zones":[{"x0":1,"x1":2,"label":"마찰 구간"}],"heights":[{"x":-0.5,"from":1,"to":4,"label":"$3h$","x_to":0}],"lengths":[{"from":[3,1],"to":[8,1],"label":"$L$","offset":-30}],"angles":[{"at":1,"label":"$30^{\\\\circ}$"}],"points":[{"x":5,"label":"p"}],"arrows":[{"from":"A.right","dir":0,"len":90,"label":"$F$"}],"pulleys":[{"at":[x,y],"mount":"up"}],"ceilings":[{"x0":..,"x1":..,"y":..}],"strings":[["A.top","P0.left"]],"springs":[{"from":[x,y],"to":"A.left"}],"texts":[{"at":[x,y],"text":"수평면"}]} 물체에는 label(예: "$A$")을 붙이고, 문두에 주어진 높이·길이·각·질량·속력은 heights·lengths·angles·mass·arrows로 그림에 표시한다. track의 x는 왼쪽부터 커진다. 기울기는 마찰 구간이나 점에서 바꾸지 말고 문항의 상황대로만 꺾는다(꺾이는 곳은 앱이 둥글게, round는 화면 픽셀 반지름으로 기본 40). 곡면 레일·언덕처럼 굽은 바닥은 점 4~6개에 "smooth":true를 붙여 매끄러운 곡선으로 잇는다. 출발하는 물체는 공중에 띄우지 말고 on으로 바닥 위에 놓는다. on은 바닥 위 x 위치(빗면이면 물체가 기울어 놓인다). 기준점은 물체 이름.top/bottom/left/right/center, 도르래 P0.left 등. dir는 도(오른쪽 0, 위 90). 값이 문항 조건(높이 비, 각)과 맞게 쓴다.
+- 역학 상황: {"type":"mechanics","track":[[0,4],[3,1],[8,1]],"base":"solid|line|hatch","datum":0,"objects":[{"kind":"block|ball|cart","on":0.8,"label":"A","mass":"$2m$","ghost":false},{"kind":"block","at":[x,y],"label":"B"}],"walls":[{"x":8,"y0":1,"y1":2.2,"side":"right","label":"벽"}],"zones":[{"x0":1,"x1":2,"label":"마찰 구간"}],"heights":[{"x":-0.5,"from":1,"to":4,"label":"$3h$","x_to":0}],"lengths":[{"from":[3,1],"to":[8,1],"label":"$L$","offset":-30}],"angles":[{"at":1,"label":"$30^{\\\\circ}$"}],"points":[{"x":5,"label":"p"}],"arrows":[{"from":"A.right","dir":0,"len":90,"label":"$F$"}],"pulleys":[{"at":[x,y],"mount":"up"}],"ceilings":[{"x0":..,"x1":..,"y":..}],"strings":[["A.top","P0.left"]],"springs":[{"from":[x,y],"to":"A.left"}],"texts":[{"at":[x,y],"text":"수평면"}]} 물체에는 label(예: "$A$")을 붙이고, 문두에 주어진 높이·길이·각·질량·속력은 heights·lengths·angles·mass·arrows로 그림에 표시한다. track의 x는 왼쪽부터 커진다. 기울기는 마찰 구간이나 점에서 바꾸지 말고 문항의 상황대로만 꺾는다(꺾이는 곳은 앱이 둥글게, round는 화면 픽셀 반지름으로 기본 40). 곡면 레일·언덕처럼 굽은 바닥은 점 4~6개에 "smooth":true를 붙여 매끄러운 곡선으로 잇는다. 출발하는 물체는 공중에 띄우지 말고 on으로 바닥 위에 놓는다. 탁자·수평면은 물체에 비해 넓게 잡지 않는다: 물체가 하나둘이면 track 길이는 4~5로 충분하고, 물체는 가운데쯤에 놓는다. on은 바닥 위 x 위치(빗면이면 물체가 기울어 놓인다). 기준점은 물체 이름.top/bottom/left/right/center, 도르래 P0.left 등. dir는 도(오른쪽 0, 위 90). 값이 문항 조건(높이 비, 각)과 맞게 쓴다.
 - 회로: {"type":"circuit","nodes":{"a":[0,0],"b":[0,3],"c":[4,3],"d":[4,0]},"parts":[{"kind":"battery","from":"a","to":"b","label":"$12\\\\,\\\\mathrm{V}$"},{"kind":"resistor","from":"b","to":"c","label":"$3\\\\,\\\\Omega$"},{"kind":"wire","from":"c","to":"d"},…]} kind: wire, resistor, battery(긴 판 (+)이 to 쪽), switch(state open|closed), bulb, ammeter, voltmeter, led·diode(to 쪽이 순방향), capacitor, ac, coil. 갈림점 점은 앱이 찍는다. terminals:["a"]는 단자.
 - 그래프: {"type":"graph","x":{"label":"시간","ticks":[[1,"$t_{0}$"],[2,"$2t_{0}$"]]},"y":{"label":"속력","ticks":[[2,"$v_{0}$"]]},"curves":[{"points":[[0,3],[1,2],[2,0]],"smooth":true,"label":"A"}],"guides":[[1,2]],"fills":[{"curve":0,"x0":0,"x1":1}]} 점선 guides는 그 점에서 두 축으로 내린다. smooth는 점을 지나는 매끄러운 곡선. 힘-시간처럼 0에서 부드럽게 올라갔다 내려오는 곡선은 {"pulse":{"x0":0,"x1":1,"peak":3,"at":0.4},"label":"A"}로 쓴다(at은 꼭대기 위치 비율).
 - 여러 칸: {"type":"panels","layout":"row|column","items":[{"type":"mechanics",…,"caption":"(가)"},{"type":"graph",…,"caption":"(나)"}]}

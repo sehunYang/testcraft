@@ -6,6 +6,8 @@
 종류(type): pedigree 가계도 · foodweb 먹이 그물 · pyramid 생태 피라미드 · sequence 염기 서열 · cell 세포 소기관 ·
 particles 반응 입자 모형 · energy 반응 경로-에너지
 물리(diagrams_physics): mechanics 역학 상황 · circuit 회로 · graph 그래프 · panels 여러 칸
+수치 그래프(diagrams_chart, 사회·과학): chart 막대 · 꺾은선 · 원 · 띠 · 산점
+수학 그래프(diagrams_function): function 식으로 주는 곡선 · 구간 끝점 · 점근선 · 원 · 선분 · 넓이
 """
 import json
 import math
@@ -16,7 +18,7 @@ from .maps import _label
 PREFIX = '도식:'
 W, H = 1000, 640
 LINE, GRAY, DARK = '#111111', '#9a9a9a', '#555555'
-TYPES = ('pedigree', 'foodweb', 'pyramid', 'sequence', 'cell', 'particles', 'energy', 'mechanics', 'circuit', 'graph', 'panels')
+TYPES = ('pedigree', 'foodweb', 'pyramid', 'sequence', 'cell', 'particles', 'energy', 'mechanics', 'circuit', 'graph', 'panels', 'chart', 'function')
 ORGANELLES = {'nucleus': '핵', 'mitochondria': '미토콘드리아', 'chloroplast': '엽록체', 'golgi': '골지체', 'er': '소포체',
               'ribosome': '리보솜', 'lysosome': '리소좀', 'vacuole': '액포', 'cellwall': '세포벽', 'membrane': '세포막', 'centriole': '중심체'}
 BASES = set('ATGCU')
@@ -79,14 +81,18 @@ def errors(locked):
     return out
 
 
-def render(locked):
+def render(locked, box=None):
+    """box를 주면 그 칸 안에 그린다((가)(나)를 나란히 놓을 때 반 폭 칸에 다시 그려 글씨 크기·간격이 맞게, 2026-11-13)."""
     problems = errors(locked)
     if problems: raise ValueError(' / '.join(problems))
     spec = spec_of(locked)
     parts, labels = [f'<rect x="0" y="0" width="{W}" height="{H}" fill="white"/>'], []
-    RENDER[spec['type']](spec, parts, labels)
+    if box: RENDER[spec['type']](spec, parts, labels, box)
+    else: RENDER[spec['type']](spec, parts, labels)
     labels = [x for lab in labels for x in _split_roman(lab)]
-    if spec['type'] not in _phys.RENDER: labels = [_grow(x) for x in labels]      # 물리 도식은 자리를 잡을 때 이미 키웠다
+    labels = [x for lab in labels for x in _split_hangul_math(lab)]
+    labels = [x for x in labels if str(x.get('text', '')).strip()]        # 빈 글씨는 만들지 않는다(염기 서열 끝 표시가 비어 출력이 막혔다)
+    if spec['type'] not in _phys.RENDER and spec['type'] not in ('chart', 'function'): labels = [_grow(x) for x in labels]      # 물리 도식은 자리를 잡을 때 이미 키웠다
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}"><g id="geometry">{"".join(parts)}</g></svg>', labels
 
 
@@ -95,6 +101,13 @@ TEXT_SCALE = 1.25     # 시험지에 들어가면 그림 글씨가 본문보다 
 
 
 ROMAN = dict(zip('ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ', ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']))
+
+
+def _split_hangul_math(label):
+    """'힘의 $x$성분(kN)'처럼 한글과 수식이 섞인 수식 글씨는 한글 조각과 수식 조각으로 나눈다.
+    수식 글씨 안의 한글은 승인 단계에서 거부된다(2026-11-13: 통합과학 힘-시간 그래프의 축 이름에서 출력이 막혔다)."""
+    if label.get('kind') != 'physics' or not re.search('[가-힣]', str(label.get('text', ''))): return [label]
+    return _chart._fonts_safe({**label, 'kind': 'korean'})
 
 
 def _split_roman(label):
@@ -762,3 +775,7 @@ PROMPT = """
 from . import diagrams_physics as _phys      # noqa: E402  (물리 도식은 위의 그리기 도구를 쓴다)
 CHECK.update(_phys.CHECK); RENDER.update(_phys.RENDER)
 PROMPT += _phys.PROMPT
+from . import diagrams_chart as _chart      # noqa: E402  (사회·과학 수치 그래프. 글씨 크기는 그래프가 정한다)
+CHECK['chart'] = _chart.check; RENDER['chart'] = _chart.render
+from . import diagrams_function as _function      # noqa: E402  (수학 함수 그래프)
+CHECK['function'] = _function.check; RENDER['function'] = _function.render

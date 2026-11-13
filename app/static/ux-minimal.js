@@ -308,20 +308,27 @@ function standardField(c){
  return `<label class="full">성취기준 · ${esc(subjectLabel())}<select data-field="standard" aria-label="성취기준 선택"><option value="">성취기준 선택</option>${c.standard&&!options.some(([code])=>code===c.standard)?`<option selected value="${esc(c.standard)}">${esc(c.standard)} · 과목 확인 필요</option>`:''}${options.map(([code,v])=>`<option value="${esc(code)}" ${code===c.standard?'selected':''}>${esc(code)} · ${esc(v.name)}</option>`).join('')}</select></label>`
 }
 // 앱이 그리는 도식·지도는 JSON 대신 무엇을 그리는지 말로 보여 준다(2026-11-04).
-const APP_DIAGRAM_NAMES={mechanics:'역학 상황',circuit:'회로',graph:'그래프',panels:'여러 칸',pedigree:'가계도',foodweb:'먹이 그물',pyramid:'생태 피라미드',sequence:'염기 서열',cell:'세포 소기관',particles:'반응 입자 모형',energy:'반응 경로-에너지'};
+const APP_DIAGRAM_NAMES={mechanics:'역학 상황',circuit:'회로',graph:'그래프',panels:'여러 칸',pedigree:'가계도',foodweb:'먹이 그물',pyramid:'생태 피라미드',sequence:'염기 서열',cell:'세포 소기관',particles:'반응 입자 모형',energy:'반응 경로-에너지',function:'함수 그래프'};
+const APP_CHART_NAMES={bar:'막대그래프',line:'꺾은선그래프',pie:'원그래프',band:'띠그래프',scatter:'산점 그래프'};
+const appDiagramName=item=>item.type==='chart'?(APP_CHART_NAMES[item.chart]||'그래프'):(APP_DIAGRAM_NAMES[item.type]||item.type);
 function appDrawnSummary(locked){
  const text=String(locked||'').trim(),map=text.startsWith('지도:'),diagram=text.startsWith('도식:');
  if(!map&&!diagram)return null;
  let spec;try{spec=JSON.parse(text.slice(3))}catch{return null}
  const plain=v=>String(v).replace(/\\mathrm\{([^}]*)\}/g,'$1').replace(/\\,/g,' ').replace(/\$/g,'').replace(/\\([A-Za-z]+)/g,'$1').trim();
  const words=[];(function walk(v,key){if(Array.isArray(v))v.forEach(x=>walk(x,key));else if(v&&typeof v==='object')Object.entries(v).forEach(([k,x])=>walk(x,k));else if(['label','mass','text','caption'].includes(key)&&String(v).trim())words.push(plain(v))})(spec);
- const kinds=diagram?(spec.type==='panels'?(spec.items||[]).map(i=>APP_DIAGRAM_NAMES[i.type]||i.type):[APP_DIAGRAM_NAMES[spec.type]||spec.type]):[];
+ const kinds=diagram?(spec.type==='panels'?(spec.items||[]).map(appDiagramName):[appDiagramName(spec)]):[];
  const parts=[];
  if(diagram&&spec.type==='mechanics'){const n=k=>(spec[k]||[]).length;const objs=(spec.objects||[]).map(o=>plain(o.label||o.id||'')).filter(Boolean);
   if(objs.length)parts.push('물체 '+objs.join(', '));for(const [k,name] of [['pulleys','도르래'],['springs','용수철'],['walls','벽'],['zones','마찰 구간'],['heights','높이 표시']])if(n(k))parts.push(name+' '+n(k))}
+ const charts=diagram?(spec.type==='panels'?(spec.items||[]):[spec]):[];
+ for(const g of charts){
+  if(g.type==='chart'){const names=(g.series||g.lines||[]).map(x=>plain(x.name||'')).filter(Boolean);if(names.length)parts.push('계열 '+names.join(', '));if((g.categories||[]).length)parts.push('항목 '+g.categories.length+'개');if((g.slices||[]).length)parts.push(g.slices.map(x=>plain(x.name)+' '+x.value).join(', '))}
+  if(g.type==='function'){const exprs=(g.curves||[]).map(x=>x.expr).filter(Boolean);if(exprs.length)parts.push('식 '+[...new Set(exprs)].join(' / '));const ends=(g.curves||[]).flatMap(x=>x.ends||[]).filter(e=>e==='open'||e==='closed').length;if(ends)parts.push('끝점 '+ends+'개');if((g.asymptotes||[]).length)parts.push('점근선 '+g.asymptotes.length+'개')}
+ }
  const items=[(map?'지도':'그림: '+kinds.join(' + '))+(parts.length?' — '+parts.join(' · '):'')];
  items.push(words.length?'글씨: '+[...new Set(words)].join(', ')+' (명세에서 앱이 자리를 잡아 넣습니다)':'글씨 없음');
- items.push('AI가 쓴 명세대로 앱이 평가원 꼴로 그립니다. 수치를 바꾸려면 계획 수정에서 명세의 숫자를 고칩니다.');
+ items.push('AI가 쓴 명세대로 앱이 평가원 꼴로 그립니다. 수치를 바꾸려면 계획 수정의 그래프 수치 칸에서 고칩니다.');
  return {title:map?'앱이 그리는 지도 · strict':'앱이 그리는 도식 · '+kinds.join(' + '),items,json:JSON.stringify(spec,null,1)};
 }
 const uxBaseImagePlanFields=imagePlanFields;

@@ -586,6 +586,29 @@ def written_order(cards, card):
     written = [c['id'] for c in cards if c.get('type') in SUBJECTIVE_TYPES]
     return written.index(card['id']) + 1
 
+def figure_runs(blocks, ok=None):
+    """이름이 (가), (나)…인 그림 자료가 잇달아 오면 한 묶음. 시험지에서는 좌우로 나란히 한 그림으로 넣는다(2026-11-13 교사 요청).
+    ok(블록)이 거짓인 그림(교사가 손댄 앱 도식 등)이 끼면 그 묶음은 나란히 놓지 않는다."""
+    runs, cur = [], []
+    for b in blocks:
+        if b.get('kind') == 'image' and re.fullmatch(r'\([가-하]\)', str(b.get('label') or '').strip()): cur.append(b); continue
+        if len(cur) >= 2: runs.append(cur)
+        cur = []
+    if len(cur) >= 2: runs.append(cur)
+    return [run for run in runs if ok is None or all(ok(b) for b in run)]
+
+def merge_figure_runs(blocks, ok=None):
+    """묶음의 첫 그림 하나만 남기고(이름 없이) 나머지는 뺀다. 그림은 출력할 때 하나로 합친다."""
+    out, skip = [], set()
+    runs = figure_runs(blocks, ok)
+    for run in runs:
+        skip.update(b['id'] for b in run[1:])
+    for b in blocks:
+        if b['id'] in skip: continue
+        lead = next((run for run in runs if run[0]['id'] == b['id']), None)
+        out.append({**b, 'label': '', 'merged': [x['id'] for x in lead]} if lead else b)
+    return out
+
 def set_context(exam, card):
     """What a passage-set question must know: the shared passage and what its siblings ask."""
     passage_set = next((s for s in exam.get('sets', []) if s['id'] == card.get('set_id')), None)
@@ -854,7 +877,7 @@ def safe_expr(source):
     def walk(n):
         if isinstance(n,ast.Constant) and type(n.value) in (int,float) and abs(n.value)<1e12:
             return sp.Rational(str(n.value))
-        if isinstance(n,ast.Name) and re.fullmatch('[A-Za-z][A-Za-z0-9]{0,15}',n.id):
+        if isinstance(n,ast.Name) and re.fullmatch('[A-Za-z][A-Za-z0-9_]{0,15}',n.id):
             return {'pi':sp.pi}.get(n.id,sp.Symbol(n.id,positive=True))
         if isinstance(n,ast.UnaryOp) and isinstance(n.op,(ast.USub,ast.UAdd)):
             return -walk(n.operand) if isinstance(n.op,ast.USub) else walk(n.operand)
@@ -867,8 +890,11 @@ def safe_expr(source):
                     raise ValueError('검산 숫자의 크기가 너무 큽니다.')
                 return a**b
             return {ast.Add:lambda:a+b,ast.Sub:lambda:a-b,ast.Mult:lambda:a*b,ast.Div:lambda:a/b}[type(n.op)]()
-        if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id in ('sqrt','sin','cos','tan','Abs','log') and len(n.args)==1 and not n.keywords:
+        if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id in ('sqrt','sin','cos','tan','Abs','log','exp') and len(n.args)==1 and not n.keywords:
             return getattr(sp,n.func.id)(walk(n.args[0]))
+        # 대수의 로그 문항: log(x, 밑) (2026-11-12, 밑이 있는 로그를 쓴 검산식이 거부되어 승인이 막혔다)
+        if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='log' and len(n.args)==2 and not n.keywords:
+            return sp.log(walk(n.args[0]),walk(n.args[1]))
         raise ValueError('허용되지 않는 검산식입니다.')
     return walk(tree.body)
 

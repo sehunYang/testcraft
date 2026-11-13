@@ -17,6 +17,16 @@ class SubjectPromptTests(unittest.TestCase):
         physics=cli.question_instructions('12물리')
         self.assertIn('물리 상황을 바꾸지',physics);self.assertIn('## 과학',physics);self.assertNotIn('## 국어',physics)
 
+    # 2026-11-12: the caveat rule lived only in a physics-only section, so math items put "(단, …)" in the 문두.
+    def test_every_subject_puts_the_caveat_after_the_question(self):
+        for subject in ('12대수','10공수1','12문학','12세지','12물리'):
+            self.assertIn('발문 끝(question 칸)에 붙인다',cli.question_instructions(subject),subject)
+
+    # 2026-11-12: a folding item wrote "AB=12" and "선분 CE의 길이는?" without the segment bar
+    def test_segment_lengths_carry_the_bar(self):
+        prompt=cli.prompt_for(core.blank_card(1),'question',subject='수학',subject_id='9수')
+        self.assertIn('\\overline{AB}=12',prompt);self.assertIn('변 $BC$ 위의 점',prompt)
+
     def test_language_rule_follows_the_subject(self):
         self.assertIn('영어로 쓴다',cli.language_rule('10공영1'))
         self.assertIn('한자',cli.language_rule('12한문'))

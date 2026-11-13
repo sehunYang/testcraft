@@ -1,0 +1,27 @@
+/* 앱 그래프 수치 입력 칸(spec-form.js, 2026-11-13) */
+.spec-form { margin: 8px 0 16px; padding: 12px; border: 1px solid var(--studio-line, #dde1e8); border-radius: var(--studio-radius, 8px); background: #fbfcfd; }
+.spec-form-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 8px; }
+.spec-graph { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--studio-line, #dde1e8); border-radius: 6px; background: #fff; min-width: 0; }
+.spec-graph legend { padding: 0 6px; font-weight: 700; }
+.spec-table-wrap { max-width: 100%; overflow-x: auto; }
+.spec-table { border-collapse: collapse; margin: 4px 0 8px; }
+.spec-table th, .spec-table td { border: 1px solid var(--studio-line, #dde1e8); padding: 2px; font-weight: 400; }
+.spec-table thead th { background: #f3f5f8; font-size: 13px; }
+.spec-table input, .spec-table select { width: 100%; min-width: 72px; min-height: 0; height: 30px; box-sizing: border-box; border: 0; border-radius: 0; padding: 4px 6px; font: inherit; background: transparent; }
+.spec-table td input[inputmode="decimal"] { text-align: right; min-width: 64px; }
+.spec-table input:focus, .spec-table select:focus { outline: 2px solid #4b6bfb; outline-offset: -2px; background: #f7f9ff; }
+.spec-ops { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.spec-axis { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: end; margin: 6px 0; }
+.spec-axis > b { flex-basis: 100%; font-size: 13px; }
+.spec-field { display: flex; flex-direction: column; gap: 2px; font-size: 13px; min-width: 0; }
+.spec-field input { width: 110px; padding: 5px 6px; font: inherit; }
+.spec-field.wide { flex: 1 1 220px; }
+.spec-field.wide input { width: 100%; box-sizing: border-box; }
+.spec-field.spec-check { flex-direction: row; align-items: center; gap: 6px; }
+.spec-field.spec-check input { width: auto; }
+.spec-form [aria-invalid="true"] { outline: 2px solid #c62828; outline-offset: -2px; background: #fff3f3; }
+.spec-errors { color: #b42318; font-size: 13px; margin: 4px 0; }
+.spec-errors:empty { display: none; }
+.spec-preview { margin: 8px 0 0; }
+.spec-preview img { display: block; width: 100%; max-width: 560px; border: 1px solid var(--studio-line, #dde1e8); background: #fff; }
+.spec-preview figcaption { font-size: 12px; color: var(--muted, #616873); margin-top: 4px; }

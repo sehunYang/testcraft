@@ -151,7 +151,8 @@ def _tokens(line, cs, style=''):
             for piece in re.split(r'( +)', part.replace(r'\~', '∼').replace('~', '∼')):
                 if not piece: continue
                 if piece.isspace():
-                    if tokens[-1]['parts'] and tokens[-1]['parts'][-1][0] == 'text': tokens[-1]['parts'][-1] = ('text', tokens[-1]['parts'][-1][1] + piece, tokens[-1]['parts'][-1][2])
+                    # 밑줄 구절 바로 뒤의 띄어쓰기는 밑줄을 잇지 않는다(같은 모양일 때만 앞 조각에 붙인다)
+                    if tokens[-1]['parts'] and tokens[-1]['parts'][-1][0] == 'text' and tokens[-1]['parts'][-1][2] == mark: tokens[-1]['parts'][-1] = ('text', tokens[-1]['parts'][-1][1] + piece, mark)
                     else: tokens[-1]['parts'].append(('text', piece, mark))
                     tokens[-1]['space'] += text_width(piece, cs); tokens[-1]['glyphs'] += text_width(piece, cs)
                     tokens.append(dict(parts=[], width=0.0, glyphs=0, space=0.0))
@@ -373,12 +374,60 @@ def bogi_table(items):
     tb.set('RowCount', str(len(rows)))
     for c in side: c.set('RowSpan', str(len(items)))
     for j, row in enumerate(rows[2:-1]):
-        cells = [c for c in row.findall('CELL') if int(c.get('RowSpan') or 1) == 1]
+        # 양옆 여백 칸은 보기가 하나면 RowSpan이 1이 되므로 RowSpan이 아니라 칸 자체로 뺀다
+        cells = [c for c in row.findall('CELL') if not any(c is s for s in side)]
         for cell in cells: cell.set('Height', '1666')
         set_cell(cells[0], MARKS[j].strip()); set_cell(cells[1], items[j], fit=(BOGI_W,))
-        if r'\frac' in items[j]:
+        # 분수가 든 한 줄 보기만 가운데 맞춤. 두 줄로 넘어가면 'ㄷ.'이 두 줄 사이에 뜨므로 위 맞춤(2026-11-12)
+        if r'\frac' in items[j] and _txt_w(items[j]) <= BOGI_W:
             for cell in cells: _CENTERED.add(id(cell.find('PARALIST')))
     for c in side: c.set('Height', str(1666 * len(items)))
+    return tb
+
+SPEAKER = re.compile(r'\s+(?=[을병정무기]\s?:\s)')
+
+STEP = re.compile(r'\s+(?=\([나-하]\)\s)')
+
+def speaker_lines(lines):
+    """'갑: … 을: … 병: …'처럼 한 줄에 이어 쓴 대화와 '(가) … (나) …'처럼 이어 쓴 과정·사례는
+    평가원처럼 발언자·단계마다 줄을 바꾼다(2026-11-13)."""
+    out = []
+    for line in lines:
+        if re.match(r'\s*갑\s?:\s', line): out += SPEAKER.split(line)
+        elif re.match(r'\s*\(가\)\s', line): out += STEP.split(line)
+        else: out.append(line)
+    return out
+
+BLANK_LABEL = r'\((?:[A-Z]|[가-하])\)'
+
+def blank_labels(choices):
+    """선택지 첫 줄이 "(A) / (B)" 같은 머리글이면 그 이름들. 아니면 빈 목록."""
+    first = next((x.strip() for x in str(choices or '').splitlines() if x.strip()), '')
+    parts = [p.strip() for p in first.split('/')]
+    return parts if len(parts) >= 2 and all(re.fullmatch(BLANK_LABEL, p) for p in parts) else []
+
+def blank_marks(line, labels):
+    """글 속에 홀로 선 빈칸 이름 (A)를 밑줄 친 빈칸 '　　(A)　　'으로. 이미 밑줄 안이면 그대로 둔다."""
+    for label in labels:
+        # 뒤에 '로', '는' 같은 조사가 바로 붙는 국어 빈칸도 잡는다(영문 낱말 속 괄호만 피한다)
+        line = re.sub(r'(?<![A-Za-z0-9\[])' + re.escape(label) + r'(?![A-Za-z0-9\]])', f'[[　　{label}　　]]', line)
+    return line
+
+def bogi_prose_table(lines):
+    """글로 된 〈보기〉(국어의 외적 준거 등). 평가원처럼 '<보 기>' 제목 상자 안에 글을 넣는다(2026-11-12).
+    양식의 <보 기> 표를 그대로 복제해 보기 한 줄만 남기고, 기호 칸은 비우고 내용 칸에 문단을 넣는다."""
+    tb = bogi_table(['x'])
+    row = tb.findall('ROW')[2]
+    text_of = lambda c: ''.join(c.itertext()).strip()
+    mark = next(c for c in row.findall('CELL') if text_of(c) == 'ㄱ.')
+    body = next(c for c in row.findall('CELL') if text_of(c) == 'x')
+    set_cell(mark, '')
+    set_cell(body, lines[0] if lines else '', fit=(BOGI_W,))
+    pl = body.find('PARALIST'); first = pl.find('P')
+    for line in lines[1:]:
+        np = ET.SubElement(pl, 'P', {'ParaShape': first.get('ParaShape'), 'Style': first.get('Style')})
+        cs = next((t.get('CharShape') for t in first.findall('TEXT')), CS_BODY)
+        for t in fit_runs(line, cs, BOGI_W): np.append(t)
     return tb
 
 BOX_KEEP_CHARS = 700      # 이보다 긴 글상자는 단 하나를 넘을 수 있어 나뉘게 둔다
@@ -504,6 +553,7 @@ def data_table(rows, keep=False):
             c.set('ColAddr', str(ci)); c.set('RowAddr', str(ri))
             c.set('Width', str(ws[ci])); c.set('Height', str(RH))
             set_cell(c, row[ci] if ci < len(row) else '')
+            _CENTERED.add(id(c.find('PARALIST')))      # 자료 표 칸은 상하 가운데(2026-11-13 교사 요청: 줄 수가 다른 칸이 균형 있게)
             rw.append(c)
     return tb
 
@@ -713,6 +763,9 @@ def build(src=None, out=None, exam=None, title=None, records=None, school='', su
             else:
                 body.extend(question_paragraphs(text, f'[{pt}점]', ps_line, pre))
         if not head_done: question_line()
+        # 불완전 문장형의 빈칸 (A)·(B)·(가)·(나)는 평가원처럼 밑줄 친 빈칸으로 인쇄한다(2026-11-12 교사 요청).
+        # 어느 이름이 빈칸인지는 선택지 머리글("(A) / (B)")에서 읽는다.
+        blanks = blank_labels(N) if str(g(7)).strip() == '불완전 문장형' else []
         material_data=record[20] if len(record)>20 else None
         if isinstance(material_data,str) and material_data.strip():
             material_data=json.loads(material_data)
@@ -720,7 +773,15 @@ def build(src=None, out=None, exam=None, title=None, records=None, school='', su
             if not isinstance(material_data,list): raise ValueError(f'{no}번: 자료 블록은 배열이어야 합니다.')
             for block in material_data:
                 kind=block.get('kind'); label=str(block.get('label') or '').strip(); content=str(block.get('content') or '').strip()
-                if printed_label(label): body.append(mkP(label,PS_NORM,CS_NUM))
+                # 표는 〈보기〉 상자에 넣지 않고 '표'로 가리킨다(2026-11-12 교사 지정). 글 〈보기〉만 상자에 넣는다.
+                prose_bogi = kind=='text' and label.replace('<','〈').replace('>','〉') == '〈보기〉'
+                # 글상자의 (A)·(가) 같은 이름은 평가원처럼 상자 안 첫머리에 붙인다(2026-11-12, 지문 세트와 같은 꼴)
+                inline_label = kind=='text' and bool(re.fullmatch(r'\((?:[A-Z]|[가-하])\)', label))
+                if printed_label(label) and not prose_bogi and not inline_label: body.append(mkP(label,PS_NORM,CS_NUM))
+                if prose_bogi:             # 글 〈보기〉는 <보 기> 제목 상자에(평가원 꼴)
+                    body.append(wrapP(bogi_prose_table([x for x in content.splitlines() if x.strip()] or [''])))
+                    body.append(mkP(''))
+                    continue
                 if kind=='image':
                     mid=str(block.get('id') or '')
                     if not re.fullmatch(r'[a-f0-9]{16}',mid): raise ValueError(f'{no}번: 그림 자료 ID 오류')
@@ -730,6 +791,9 @@ def build(src=None, out=None, exam=None, title=None, records=None, school='', su
                 elif kind=='text':
                     lines=[x for x in content.splitlines() if x.strip()]
                     if lines and lines[0].strip().startswith('(글상자'): lines=lines[1:]
+                    lines=speaker_lines(lines)
+                    if inline_label and lines and not lines[0].lstrip().startswith(label): lines[0]=f'{label} {lines[0]}'
+                    if blanks: lines=[blank_marks(x, blanks) for x in lines]
                     body.append(wrapP(box_table(lines or [''], keep=True)))
                     body.append(mkP(''))
                 elif kind=='table':

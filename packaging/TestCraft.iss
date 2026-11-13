@@ -5,8 +5,8 @@
 [Setup]
 AppId={{3C24F521-2636-4B44-BE3D-6947866D3950}
 AppName=TestCraft
-AppVersion=1.2.5
-AppVerName=TestCraft 1.2.5
+AppVersion=1.2.6
+AppVerName=TestCraft 1.2.6
 AppPublisher=TestCraft
 DefaultDirName={localappdata}\Programs\TestCraft
 DefaultGroupName=TestCraft
@@ -20,7 +20,7 @@ SetupIconFile={#ReleaseStage}\app\static\favicon.ico
 UninstallDisplayIcon={app}\TestCraft.exe
 InfoBeforeFile={#RequirementsInfo}
 OutputDir={#ReleaseOutput}
-OutputBaseFilename=TestCraft-1.2.5-windows-x64-setup
+OutputBaseFilename=TestCraft-1.2.6-windows-x64-setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 Uninstallable=yes

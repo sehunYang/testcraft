@@ -40,6 +40,38 @@ def normalize_labels(items):
     if len({x['id'] for x in out})!=len(out): raise ValueError('글씨 객체 ID 중복')
     return out
 
+def carry(before,current,fresh):
+    """명세대로 다시 그릴 때 교사가 손본 글씨를 새 그림으로 옮긴다(2026-11-13).
+    before: 지난번 앱이 놓은 기본 글씨(id 포함), current: 지금 글씨, fresh: 새 명세의 기본 글씨.
+    같은 종류·내용의 기본 글씨끼리 짝짓고, 교사가 바꾼 만큼(이동·크기·회전·내용·숨김)만 새 자리에 더한다.
+    지운 기본 글씨는 다시 넣지 않고, 교사가 추가한 글씨는 그대로 둔다. 명세에서 내용이 바뀐 글씨(눈금 수 등)는 새 기본값을 쓴다.
+    돌려주는 값: (새 글씨 목록, 다음에 쓸 기본 글씨 목록)."""
+    now={x['id']:x for x in current}
+    pools={}
+    for d in before: pools.setdefault((d['kind'],d['text']),[]).append(d)
+    clamp=lambda v,lo,hi: max(lo,min(hi,v))
+    out,defaults=[],[]
+    for n in fresh:
+        pool=pools.get((n['kind'],n['text']))
+        d=pool.pop(0) if pool else None
+        c=now.get(d['id']) if d else None
+        if d is None:
+            out.append(dict(n));defaults.append(dict(n));continue
+        if c is None:                               # 교사가 지운 글씨: 다음에도 지운 채로 둔다
+            defaults.append(dict(n,id=d['id']));continue
+        item=dict(n,id=c['id'])
+        item['x']=clamp(n['x']+c['x']-d['x'],0,1000)
+        item['y']=clamp(n['y']+c['y']-d['y'],0,640)
+        item['size']=clamp(n['size']+c['size']-d['size'],8,120)
+        if c['rotation']!=d['rotation']: item['rotation']=c['rotation']
+        if c['text']!=d['text'] or c['kind']!=d['kind']: item['text'],item['kind']=c['text'],c['kind']
+        for key in ('name','visible','locked'):
+            if key in c: item[key]=c[key]
+        out.append(item);defaults.append(dict(n,id=c['id']))
+    known={d['id'] for d in before}
+    out+=[dict(c) for c in current if c['id'] not in known]
+    return normalize_labels(out),normalize_labels(defaults)
+
 def render(kind,text,size):
     item=normalize_labels([dict(id='0'*16,kind=kind,text=text,x=0,y=0,size=size,rotation=0)])[0]
     key=hashlib.sha256(json.dumps([kind,text,item['size'],'v2'],ensure_ascii=False).encode()).hexdigest()

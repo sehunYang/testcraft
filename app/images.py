@@ -3,6 +3,7 @@ import base64
 import copy
 import hashlib
 import io
+import math
 import json
 import os
 from pathlib import Path
@@ -93,6 +94,86 @@ def trim_margins(png, pad=.03):
         out=io.BytesIO(); img.convert('RGB').crop(box).save(out,format='PNG')
         return out.getvalue(),size
 
+SIDE_TEXT = 1.7      # 나란히 놓으면 그림 폭이 반쯤으로 줄어 글씨도 작아진다. 그만큼 글씨를 키워 다시 붙인다(2026-11-13).
+
+
+def relabeled(base_path, objects, k=SIDE_TEXT):
+    """글씨 없는 바탕 그림에 글씨를 k배로 키워(각 글씨의 가운데는 그대로) 다시 붙인 PNG. 캔버스 밖으로 나가면 안으로 들인다."""
+    from . import labels
+    out_objs = []
+    for o in labels.normalize_labels(objects):
+        if o.get('visible', True) is False: continue
+        a = labels.render(o['kind'], o['text'], o['size']); size = max(8, min(120, round(o['size'] * k)))
+        b = labels.render(o['kind'], o['text'], size)
+        cx, cy = o['x'] + a['width'] / 2, o['y'] + a['height'] / 2
+        x = min(max(1, cx - b['width'] / 2), 999 - b['width']); y = min(max(1, cy - b['height'] / 2), 639 - b['height'])
+        out_objs.append({**o, 'size': size, 'x': math.floor(x * 10) / 10, 'y': math.floor(y * 10) / 10})
+    import tempfile, os
+    fd, tmp = tempfile.mkstemp(suffix='.png'); os.close(fd)
+    try:
+        labels.compose(base_path, out_objs, tmp)
+        return Path(tmp).read_bytes()
+    finally:
+        os.remove(tmp)
+
+
+def untouched(block):
+    """앱 도식을 교사가 손대지 않았는가: 그림 객체 편집이 없고 글씨가 명세로 그린 그대로인가(2026-11-13).
+    손댔으면 반 폭으로 다시 그리지 않는다(다시 그리면 옮기거나 고친 글씨가 사라진다)."""
+    from . import diagrams, labels as lab
+    if block.get('image_scene') is not None: return False
+    try: fresh = diagrams.render(str(block.get('image_locked') or '').strip())[1]
+    except Exception: return False
+    key = lambda o: (o['kind'], o['text'], round(float(o['x']), 1), round(float(o['y']), 1), o['size'], o.get('rotation', 0), o.get('visible', True) is not False)
+    norm = lambda items: sorted(key(o) for o in lab.normalize_labels([dict(o, id=f'{k:016x}') for k, o in enumerate(items)]))
+    return norm(fresh) == norm(block.get('image_labels') or [])
+
+
+def half_width(block, base_path, n):
+    """(가)(나) 묶음의 그림 하나를 1/n 폭으로 만든 PNG(글씨는 보통 크기로 보이게).
+    앱 도식은 1/n 폭 칸에 처음부터 다시 그리고, AI 그림·지도는 글씨를 n배로 키워 붙인 뒤 그림을 1/n로 줄인다."""
+    from . import diagrams, labels as lab
+    locked = str(block.get('image_locked') or '').strip()
+    if locked.startswith('도식:') and untouched(block):
+        try:
+            box = (0, 0, round(1000 / n), 640)
+            svg, objs = diagrams.render(locked, box)
+            import tempfile, os
+            d = Path(tempfile.mkdtemp()); base = d / 'base.png'; out = d / 'out.png'
+            render_svg(svg, base)
+            objs = [{**o, 'id': f'{k:016x}'} for k, o in enumerate(objs)]
+            lab.compose(base, objs, out)
+            with Image.open(out) as im: png = im.crop((0, 0, box[2] * 3, 1920))
+            buf = io.BytesIO(); png.save(buf, format='PNG')
+            return buf.getvalue()
+        except Exception:
+            pass           # 칸에 다시 그리지 못하는 도식은 아래처럼 글씨를 키워 줄인다
+    raw = relabeled(base_path, block.get('image_labels') or [], n)
+    with Image.open(io.BytesIO(raw)) as im: small = im.convert('RGB').resize((im.width // n, im.height // n), Image.Resampling.LANCZOS)
+    buf = io.BytesIO(); small.save(buf, format='PNG')
+    return buf.getvalue()
+
+
+def side_by_side(pngs, captions, gap=90, caption_size=34):
+    """(가)(나) 그림을 좌우로 나란히 놓고 아래 가운데에 (가), (나)를 쓴 한 그림(PNG). 글씨는 그림 글씨와 같은 신명 중명조.
+    각 그림은 여백을 잘라 낸 원래 배율 그대로 둔다(글씨 크기가 서로 같게)."""
+    from . import labels
+    figs = [Image.open(io.BytesIO(trim_margins(p)[0])).convert('RGB') for p in pngs]
+    caps = []
+    for text in captions:
+        info = labels.render('korean', text, caption_size)
+        caps.append(Image.open(labels.CACHE / (info['key'] + '.png')).convert('RGBA'))
+    row_h = max(f.height for f in figs); cap_h = max(c.height for c in caps)
+    width = sum(f.width for f in figs) + gap * (len(figs) - 1)
+    canvas = Image.new('RGB', (width, row_h + 40 + cap_h), 'white')
+    x = 0
+    for f, c in zip(figs, caps):
+        canvas.paste(f, (x, (row_h - f.height) // 2))
+        canvas.paste(c, (x + (f.width - c.width) // 2, row_h + 40), c)
+        x += f.width + gap
+    out = io.BytesIO(); canvas.save(out, format='PNG')
+    return out.getvalue()
+
 def picture(png, bin_id, idx, original=None):
     # Clone the proven Hancom picture structure, preserving schema attributes.
     template=ET.parse(ROOT/'app/picture.xml').getroot()
@@ -164,3 +245,26 @@ def embed(hml, assets, student=False):
     for idx,raw in enumerate(trimmed,1):
         if base64.b64decode(root.find(f"TAIL/BINDATASTORAGE/BINDATA[@Id='{idx}']").text)!=raw: raise ValueError('그림 바이트 검증 실패')
     return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'+result
+
+
+def diagram_preview(locked):
+    """그래프 수치 입력 칸의 미리보기(2026-11-13): 명세를 앱 도식으로 그려 글씨까지 붙인 작은 PNG.
+    오류가 있으면 그림 없이 오류만 돌려준다. 교사가 옮긴 글씨는 반영하지 않는 명세 기본 모양이다."""
+    from . import diagrams, labels
+    if len(str(locked or '')) > 200000: return {'errors': ['도식 명세가 너무 깁니다.']}
+    problems = diagrams.errors(locked)
+    if problems: return {'errors': problems}
+    import tempfile
+    try:
+        svg, objs = diagrams.render(locked)
+    except ValueError as e:
+        return {'errors': [str(e)]}
+    objs = labels.normalize_labels([dict(o, id=f'{k:016x}') for k, o in enumerate(objs)])
+    with tempfile.TemporaryDirectory() as folder:
+        base, out = Path(folder) / 'base.png', Path(folder) / 'out.png'
+        render_svg(svg, base)
+        labels.compose(base, objs, out)
+        with Image.open(out) as im:
+            small = im.convert('RGB').resize((1000, 640), Image.Resampling.LANCZOS)
+        buf = io.BytesIO(); small.save(buf, format='PNG')
+    return {'errors': [], 'png': 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()}

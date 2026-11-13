@@ -10,7 +10,7 @@ import threading
 import time
 from .core import ROOT, uid, now, atomic, image_prompt, SUBJECTIVE_TYPES
 from . import runtime
-from . import diagrams, formats, maps, variants
+from . import diagrams, diagrams_chart, diagrams_function, formats, maps, variants
 from .catalog import GROUP_OF
 
 PROCESSES={}
@@ -164,7 +164,9 @@ QUESTION_SCHEMA=object_schema({**{k:{'type':'string'} for k in ['stem','material
 MATH_WRITING_RULE=('카드와 그림 글씨의 기호·변수·물리량·수식은 LaTeX로 작성하고 $...$로 감싼다. '
     '아래첨자와 위첨자는 각각 중괄호로 묶고, 곱해지는 변수·항은 서로 분리한다(예: $P_{0} V_{0}$, $v_{y}^{2}$). '
     '카드에 한글 native HWP 수식 SCRIPT 문법을 직접 쓰지 않는다. 한글 SCRIPT 변환은 HML 생성 단계에서 처리한다. '
-    '단위와 한글 서술은 수식 밖에 둔다.')
+    '단위와 한글 서술은 수식 밖에 둔다. 한글 자모·음운(ㄱ, ㅁ, ㅇ)과 발음 표기([궁물])는 수식이 아니므로 $...$로 감싸지 않는다. '
+    '선분의 길이는 선분 기호를 붙여 쓴다: 식 속의 길이와 "~의 길이는?"은 $\\overline{AB}=12$, $\\overline{CE}$의 길이는?처럼 쓰고, '
+    '도형 자체를 가리킬 때만 "선분 $AB$를 내분하는 점", "변 $BC$ 위의 점"처럼 기호 없이 쓴다.')
 MATH_TEXT_DESCRIPTION=MATH_WRITING_RULE+' 예: $V_{0}$, $v_{y}$, $v=at$.'
 for _field in ('stem','material','question','statements','choices','explanation','concepts'):
     QUESTION_SCHEMA['properties'][_field]['description']=MATH_TEXT_DESCRIPTION
@@ -198,7 +200,7 @@ def schema_for(kind, variant=False):
 
 IMAGE_POLICY = '''현재 그림·글씨 분리 규칙이 과거 지침의 라벨·문자 규칙보다 우선한다.
 image_locked가 `지도:`로 시작하면 앱이 그리는 지도 명세이므로 내용을 그대로 두고 글씨 프롬프트는 비운다. `도식:`으로 시작하는 도식 명세도 같다.
-과목 지침에 도식 종류가 있는 그림(물리의 역학 상황·회로·운동 그래프, 생명과학·화학 도식)은 SVG 규칙을 쓰지 않고 image_locked에 `도식:` 명세를 쓴다. 앱이 평가원 그림 꼴로 그린다.
+과목 지침에 도식 종류가 있는 그림(물리의 역학 상황·회로·운동 그래프, 생명과학·화학 도식, 사회·과학의 수치 그래프, 수학의 함수 그래프)은 SVG 규칙을 쓰지 않고 image_locked에 `도식:` 명세를 쓴다. 앱이 평가원 그림 꼴로 그린다.
 strict: image_locked에 SVG 규칙(또는 지도·도식 명세)만 작성한다. image_creative는 반드시 빈 문자열이다.
 flexible: image_creative에 모든 시각 요소와 창작 조건을 작성한다. image_locked는 반드시 빈 문자열이다.
 mixed: 두 영역 모두 작성하되 완전히 서로 다른 요소를 지정한다. 각 줄은 영문 요소ID: 설명 형식이다. 예: image_locked의 floor: 수평 바닥선 / image_creative의 ball: 공의 외관. 두 영역의 ID나 의미상 요소가 겹치면 안 된다. 같은 물체의 윤곽선을 두 영역에 반복해서 지시하지 않는다. 고정 요소와 창작 요소의 공간 관계를 제약으로 설명할 수 있으나 다른 영역 요소를 다시 그리도록 지시하면 안 된다.
@@ -207,6 +209,15 @@ mixed: 두 영역 모두 작성하되 완전히 서로 다른 요소를 지정�
 기호·수식의 글꼴은 Latin Modern Math, 한글은 신명 중명조이며, 실제 렌더링은 앱이 처리한다. 기본 그림에는 어떠한 글씨도 그리지 않는다. 글씨처럼 보이는 윤곽선을 path로 그리는 것도 금지한다.
 교사가 image_mode를 선택했다면 바꾸지 않는다. 선택하지 않았으면 유형을 제안한다. 자료가 그림이 아니면 그림·글씨 프롬프트 필드는 전부 빈 문자열이다.
 SVG 생성시 strict는 g id="geometry"만, flexible은 g id="illustration"만, mixed는 둘 모두 사용한다. mixed의 각 레이어 안에서 각 요소를 g data-element="요소ID"로 분리하고 프롬프트의 ID와 정확히 일치시킨다. 배경 흰 사각형 외에는 모든 시각 요소를 해당 그룹 안에 둔다. text/tspan은 사용하지 않는다. 좌표계는 viewBox="0 0 1000 640"이다.'''
+
+# 자유롭게 그리는 그림(flexible, mixed의 창작 영역)도 앱이 그리는 도식과 같은 평가원 그림 꼴을 따른다(2026-11-11 교사 지정).
+KICE_STYLE = """그림 꼴(모든 유형 공통, flexible과 mixed의 창작 영역 포함): 평가원 그림 문항처럼 그린다.
+- 윤곽선은 검은 선(굵기 2.5 안팎), 보조선·숨은 선은 가는 선(1.5 안팎)이나 점선으로 굵기에 위계를 둔다.
+- 색은 쓰지 않는다. 흰색·검정과 회색 두세 단계(#f2f2f2, #d9d9d9, #b3b3b3 안팎)만 쓴다.
+- 입체감은 옅은 회색 음영으로만 준다(linearGradient·radialGradient를 쓸 수 있다). 구·원기둥은 한쪽이 밝은 회색 음영으로 그린다.
+- 사물은 교과서·평가원 삽화처럼 단순하고 정돈된 선화로 그린다. 만화풍·사진풍·장식 무늬·떨어진 그림자·배경 풍경은 넣지 않는다.
+- 문항 풀이에 필요한 것만 그리고, 그림은 칸에 알맞게 채우되 여백을 고르게 둔다."""
+
 
 def _sections(text, level='## '):
     """Split a markdown document into (heading, body) pairs at the given heading level."""
@@ -219,6 +230,10 @@ def _sections(text, level='## '):
     parts.append((head, '\n'.join(body)))
     return parts
 
+
+ENGLISH_CHART = '''
+영어 도표 문항: 그래프의 제목(title), 축 이름, 항목·범례 이름은 모두 영어로 쓴다(예: "title":"<Favorite Sports of Students>", "y":{"label":"(%)"}). 선택지는 그래프를 설명하는 영어 문장 다섯 개이고, 그래프에서 읽히는 값만으로 참거짓이 정해지게 한다.
+'''
 
 # Rules in 문항-문안-다듬기-지침.md written for physics items (상황 보존 사례, 좌표축, 단서 조항, 용어 표, 물리량 〈보기〉).
 PHYSICS_PHRASING = ('1.5 ', '4. ', '5. ', '6. ', '9. ')
@@ -239,6 +254,10 @@ def question_instructions(subject_id='', written=False):
                               if head.startswith('2. ') or (science and head.startswith('1. ')))
     map_help = maps.PROMPT if group in ('사회', '과학') else ''
     if group == '과학': map_help += diagrams.PROMPT
+    if group in ('사회', '과학'): map_help += diagrams_chart.PROMPT
+    # 영어 도표 문항(수능 25번 꼴)도 앱이 그래프를 그린다(2026-11-12). 그래프 글씨는 영어로 쓴다.
+    if group == '영어': map_help += diagrams_chart.PROMPT + ENGLISH_CHART
+    if group == '수학': map_help += diagrams_function.PROMPT
     return '\n\n'.join(x for x in (agent, style, map_help, phrasing, reference) if x.strip())
 
 
@@ -254,12 +273,12 @@ def language_rule(subject_id=''):
 def prompt_for(card, kind, feedback='', subject='', background_svg='', subject_id='', set_context=''):
     if kind=='image':
         # Deliberately omit the original material, question and text prompts so old labels cannot leak into the image.
-        return f'시험용 글씨 없는 SVG 선화만 생성한다. JSON으로 응답한다.\n{IMAGE_POLICY}\n{image_prompt(card)}\n흰 바탕·검은 선·충분한 여백. 외부 참조·script·style·image·use·foreignObject는 금지. constraints는 SVG에 실제로 쓴 좌표·길이 숫자만으로 만든 등식이다. x, y, width 같은 속성 이름이나 미지수는 쓰지 않고, 좌표쌍은 괄호로 묶어도 된다(예: lhs "(350+230, 280+160/2)", rhs "(580, 360)"). review_note는 사람이 확인할 기하 조건이다. 수정 요청도 글씨 없는 그림에만 적용한다.\n수정 요청: {feedback}'
+        return f'시험용 글씨 없는 SVG 선화만 생성한다. JSON으로 응답한다.\n{IMAGE_POLICY}\n{image_prompt(card)}\n{KICE_STYLE}\n흰 바탕·충분한 여백. 외부 참조·script·style·image·use·foreignObject는 금지. constraints는 SVG에 실제로 쓴 좌표·길이 숫자만으로 만든 등식이다. x, y, width 같은 속성 이름이나 미지수는 쓰지 않고, 좌표쌍은 괄호로 묶어도 된다(예: lhs "(350+230, 280+160/2)", rhs "(580, 360)"). review_note는 사람이 확인할 기하 조건이다. 수정 요청도 글씨 없는 그림에만 적용한다.\n수정 요청: {feedback}'
     if kind=='labels':
         prompts={k:card.get(k,'') for k in ('image_text_physics','image_text_math','image_text_korean')}
         return f'다음 글씨 프롬프트만 편집 가능한 객체 목록으로 바꾼다. 그림 자체를 만들지 않는다.\n{json.dumps(prompts,ensure_ascii=False)}\n기존 글씨 객체(절대 중복 추가하지 말 것): {json.dumps(card.get("image_labels",[]),ensure_ascii=False)}\n배경 그림 SVG(좌표 배치 참고): {background_svg[:200000]}\n배경 설명: {image_prompt(card)}\nJSON labels 배열에 kind(physics/math/korean), text, x,y,size,rotation을 반환한다. 기호·수식은 LaTeX, 한글은 평문이다. 각각 독립 선택·이동 가능한 객체로 나눈다. x,y는 1000×640 캔버스의 글씨 상자 왼쪽 위 좌표, size는 8~120(기본 28), rotation은 -180~180도. 영역 밖·선 겹침을 피한다. 지정된 글씨가 없으면 빈 배열. 프롬프트에 없는 정답·설명은 추가하지 않는다.'
     instructions=question_instructions(subject_id,card.get('type') in SUBJECTIVE_TYPES) if kind=='question' else ''
-    task='기존 문항 내용은 바꾸지 말고 material의 기존 이미지 프롬프트를 그림 프롬프트 두 영역과 글씨 프롬프트 세 종류로 분리·정리한다. 선택된 유형을 유지하고 해당 스키마 필드만 응답한다.' if kind=='plan' else ('교사 입력의 과목·성취기준·유형·난이도·아이디어를 보존하여 문항·상세해설을 작성한다. 배점(points)은 생성하지 않는다. 본문·자료·보기·선택지·해설의 기호·변수·물리량·수식은 항상 LaTeX로 작성한다. '+MATH_WRITING_RULE+' 답지는 ①~⑤ 다섯 줄, 짝짓기 열은 /로 구분. 계산은 calculation=true, checks에 Python식 + - * / ** sqrt sin cos tan Abs pi 등식(lhs/rhs)을 넣는다. estimate와 discrimination은 0~1. 자료는 순서가 있는 materials 배열에 image/text/table 블록으로 작성하며 필요하면 그림·글상자·표와 (가)(나) 그림을 한 문항에 함께 둔다. 각 블록의 id, 순서, kind, label, content를 기존 materials에서 그대로 보존하고, 기존 그림의 image_mode가 비어 있지 않으면 바꾸지 않는다. 새 블록은 id를 빈 문자열로 둔다. image에는 계획 프롬프트 필드만 작성하고 image, image_plan_approval, image_scene 등 승인·자산 상태는 만들지 않는다. 구형 호환 필드 material/data_kind는 첫 자료를 나타낸다. 그림이면 현재 분리 규칙을 적용한다. 글상자는 content를 본문으로 쓰고 자료 표는 content에 Markdown 표를 쓴다. review_note에는 교사 검토 사항을 정직하게 적는다.')
+    task='기존 문항 내용은 바꾸지 말고 material의 기존 이미지 프롬프트를 그림 프롬프트 두 영역과 글씨 프롬프트 세 종류로 분리·정리한다. 선택된 유형을 유지하고 해당 스키마 필드만 응답한다.' if kind=='plan' else ('교사 입력의 과목·성취기준·유형·난이도·아이디어를 보존하여 문항·상세해설을 작성한다. 배점(points)은 생성하지 않는다. 본문·자료·보기·선택지·해설의 기호·변수·물리량·수식은 항상 LaTeX로 작성한다. '+MATH_WRITING_RULE+' 답지는 ①~⑤ 다섯 줄, 짝짓기 열은 /로 구분. 계산은 calculation=true, checks에 Python식 + - * / ** sqrt sin cos tan Abs exp log(x) log(x, 밑) pi 등식(lhs/rhs)을 넣는다. estimate와 discrimination은 0~1. 자료는 순서가 있는 materials 배열에 image/text/table 블록으로 작성하며 필요하면 그림·글상자·표와 (가)(나) 그림을 한 문항에 함께 둔다. 각 블록의 id, 순서, kind, label, content를 기존 materials에서 그대로 보존하고, 기존 그림의 image_mode가 비어 있지 않으면 바꾸지 않는다. 새 블록은 id를 빈 문자열로 둔다. image에는 계획 프롬프트 필드만 작성하고 image, image_plan_approval, image_scene 등 승인·자산 상태는 만들지 않는다. 구형 호환 필드 material/data_kind는 첫 자료를 나타낸다. 그림이면 현재 분리 규칙을 적용한다. 글상자는 content를 본문으로 쓰고 자료 표는 content에 Markdown 표를 쓴다. review_note에는 교사 검토 사항을 정직하게 적는다.')
     prompt_card=copy.deepcopy(card)
     if kind=='question':
         from .core import material_blocks
@@ -300,4 +319,4 @@ def prompt_for(card, kind, feedback='', subject='', background_svg='', subject_i
         if prompt_card.get('authoring_mode')=='variant': materials_policy+=variants.prompt(prompt_card)+'\n'
     else:
         materials_policy=''
-    return f'한국 학교 {subject or "교과"} 출제 보조자다. 도구·파일 변경 없이 요청 JSON만 반환한다. {language_rule(subject_id)}\n{instructions}\n{set_context or "지문 세트 문항이 아니다. passage_marks는 빈 배열로 둔다."}\n현재 과목의 성취기준을 과거 시험 범위보다 우선한다.\n현재 작업: {task}\n{materials_policy}{IMAGE_POLICY}\n교사 문항카드(JSON 데이터):\n{card_json}\n\n그림 제작 요청:\n그림 자체는 아직 만들지 않는다.\n교사 수정 요청: {feedback}'
+    return f'한국 학교 {subject or "교과"} 출제 보조자다. 도구·파일 변경 없이 요청 JSON만 반환한다. {language_rule(subject_id)}\n{instructions}\n{set_context or "지문 세트 문항이 아니다. passage_marks는 빈 배열로 둔다. 이 문항의 자료는 발문 아래에 인쇄되므로 발문에서 자료를 윗글·윗시가 아니라 다음 글·다음 발언·다음 시구처럼 가리킨다."}\n현재 과목의 성취기준을 과거 시험 범위보다 우선한다.\n현재 작업: {task}\n{materials_policy}{IMAGE_POLICY}\n교사 문항카드(JSON 데이터):\n{card_json}\n\n그림 제작 요청:\n그림 자체는 아직 만들지 않는다.\n교사 수정 요청: {feedback}'

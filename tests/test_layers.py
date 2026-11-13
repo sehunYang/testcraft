@@ -106,4 +106,14 @@ class LayerTests(unittest.TestCase):
             labels.compose(base,[obj],output)
         with Image.open(output) as im:self.assertEqual(im.getextrema(),((255,255),(255,255),(255,255)))
 
+
+class KiceStyleTests(unittest.TestCase):
+    def test_free_drawing_follows_kice_figure_style(self):
+        from app import cli, core
+        c=core.blank_card(1,'ai');c.update(data_kind='image',image_mode='flexible',image_creative='beaker: 비커와 용액')
+        prompt=cli.prompt_for(c,'image')
+        self.assertIn('평가원 그림 문항처럼',prompt)
+        self.assertIn('색은 쓰지 않는다',prompt)
+
+
 if __name__=='__main__':unittest.main(verbosity=2)

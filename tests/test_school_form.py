@@ -66,6 +66,85 @@ class PaperLayoutTests(unittest.TestCase):
             self.assertEqual([c.get('RowSpan') for c in rows[2].findall('CELL') if int(c.get('RowSpan') or 1)>1],[str(n),str(n)])
         short=gen.bogi_table(['정당성','합법성','효율성','책임성']);self.assertEqual(short.get('ColCount'),'8')
 
+    # 2026-11-12: with one statement the side margin cells have RowSpan 1, and the text went into the margin cell
+    def test_one_statement_and_prose_bogi_fill_the_wide_cell(self):
+        cells=lambda t:[''.join(c.itertext()).strip() for c in t.findall('ROW')[2].findall('CELL')]
+        one=cells(gen.bogi_table(['하나뿐인 보기 문장']));self.assertIn('ㄱ.',one);self.assertIn('하나뿐인 보기 문장',one)
+        self.assertEqual(one.index('하나뿐인 보기 문장'),one.index('ㄱ.')+1)
+        prose=gen.bogi_prose_table(['반어는 겉말과 속뜻이 반대인 표현이다.','둘째 문단.'])
+        text=cells(prose);self.assertNotIn('ㄱ.',text);self.assertTrue(any('반어는' in x and '둘째 문단' in x for x in text))
+        self.assertIn('보',''.join(prose.findall('ROW')[0].itertext())+''.join(prose.findall('ROW')[1].itertext()))
+
+    # 2026-11-12: (A)/(B)/(C) text boxes carry their label inside, at the start of the paragraph
+    def test_lettered_text_boxes_carry_the_label_inside(self):
+        blocks=[{'id':core.uid(),'kind':'text','label':'','content':'Given text.'},
+                {'id':core.uid(),'kind':'text','label':'(A)','content':'First part.'},
+                {'id':core.uid(),'kind':'text','label':'(B)','content':'Second part.'}]
+        _,root=printed(server.cards_to_records([choice(1,materials=blocks,data_kind='text',material='Given text.')]))
+        text=' '.join(lines(root))
+        self.assertIn('(A) First part.',text);self.assertIn('(B) Second part.',text)
+        self.assertFalse(any(x.strip()=='(A)' for x in lines(root)))          # no separate label line
+
+    # 2026-11-12: summary blanks (A), (B) print as underlined blanks, as in KICE papers
+    def test_summary_blanks_are_underlined(self):
+        self.assertEqual(gen.blank_labels('(A) / (B)\n① a / b'),['(A)','(B)']);self.assertEqual(gen.blank_labels('① a\n② b'),[])
+        self.assertEqual(gen.blank_marks('grew (A) they used (B).',['(A)','(B)']).count('[['),2)
+        self.assertEqual(gen.blank_marks('오늘날 (가)로 이해된다. 그 구성에는 (나).',['(가)','(나)']).count('[['),2)   # 조사가 붙은 국어 빈칸
+        c=choice(1,type='불완전 문장형',choices='(A) / (B)\n① a / b\n② c / d\n③ e / f\n④ g / h\n⑤ i / j',data_kind='text',material='Plants grew (A) the students used (B).')
+        _,root=printed(server.cards_to_records([c]))
+        leaf=[t for t in root.iter('TEXT') if t.find('CHAR') is not None]
+        marked=[t for t in leaf if '　(A)　' in t.findtext('CHAR')]
+        after=[t for t in leaf if t.findtext('CHAR').startswith(' the students')]
+        self.assertTrue(after);self.assertNotIn(after[0].get('CharShape'),gen.UNDERLINED.values())   # the space after the blank is not underlined
+        self.assertTrue(marked);self.assertTrue(all(t.get('CharShape') in gen.UNDERLINED.values() for t in marked),[t.get('CharShape') for t in marked])
+
+    # 2026-11-13: a dialogue written on one line prints one speaker per line, as in KICE papers
+    def test_dialogue_prints_one_speaker_per_line(self):
+        self.assertEqual(gen.speaker_lines(['갑: 하나다. 을: 둘이다. 병: 셋이다.']),['갑: 하나다.','을: 둘이다.','병: 셋이다.'])
+        self.assertEqual(gen.speaker_lines(['정당 갑: 의석 을: 없음']),['정당 갑: 의석 을: 없음'])     # not a dialogue
+        self.assertEqual(gen.speaker_lines(['(가) 넣는다. (나) 섞는다. (다) 잰다.']),['(가) 넣는다.','(나) 섞는다.','(다) 잰다.'])
+        self.assertEqual(gen.speaker_lines(['A와 (나)를 비교한다.']),['A와 (나)를 비교한다.'])         # (나) in a sentence stays
+        _,root=printed(server.cards_to_records([choice(1,data_kind='text',material='갑: 찬성한다. 을: 반대한다.')]))
+        text=[''.join(p.itertext()).strip() for p in root.iter('P')]
+        self.assertIn('갑: 찬성한다.',text);self.assertIn('을: 반대한다.',text)
+
+    # 2026-11-12: tables are not put in a 〈보기〉 box; the question calls them "표"
+    # 2026-11-13: figures (가), (나) in a row become one side-by-side picture with one placeholder on the paper
+    def test_lettered_figures_share_one_picture_slot(self):
+        ids=[core.uid() for _ in range(3)]
+        blocks=[{'id':ids[0],'kind':'image','label':'(가)','content':'지도'},{'id':ids[1],'kind':'image','label':'(나)','content':'지도'},
+                {'id':ids[2],'kind':'table','label':'','content':'| a |\n|---|\n| 1 |'}]
+        self.assertEqual([[b['id'] for b in r] for r in core.figure_runs(blocks)],[ids[:2]])
+        merged=core.merge_figure_runs(blocks)
+        self.assertEqual([b['id'] for b in merged],[ids[0],ids[2]]);self.assertEqual(merged[0]['label'],'');self.assertEqual(merged[0]['merged'],ids[:2])
+        self.assertEqual(core.figure_runs([blocks[0],blocks[2],blocks[1]]),[])      # 사이에 다른 자료가 있으면 따로 둔다
+        c=choice(1,materials=blocks,data_kind='image',material='자료 그림')
+        hml,_=printed(server.cards_to_records([c]))
+        self.assertEqual(hml.count('그림 프롬프트 시작'),1);self.assertNotIn('>(가)<',hml)
+        # 교사가 글씨를 옮긴 앱 도식이 끼면 나란히 합치지 않고 한 폭씩 둔다(고친 글씨를 지키고, 줄여서 글씨가 붙지 않게)
+        from app import diagrams
+        locked='도식: {"type":"chart","chart":"bar","categories":["a","b"],"series":[{"name":"x","values":[1,2]}]}'
+        drawn=[dict(o,id=f'{k:016x}') for k,o in enumerate(diagrams.render(locked)[1])]
+        moved=[dict(drawn[0],x=drawn[0]['x']+20)]+drawn[1:]
+        app_block=lambda labels:{**blocks[1],'image_locked':locked,'image_labels':labels}
+        self.assertEqual(len(core.figure_runs([blocks[0],app_block(drawn)],server.side_ok)),1)
+        self.assertEqual(core.figure_runs([blocks[0],app_block(moved)],server.side_ok),[])
+        hml,_=printed(server.cards_to_records([choice(1,materials=[blocks[0],app_block(moved)],data_kind='image',material='자료 그림')]))
+        self.assertEqual(hml.count('그림 프롬프트 시작'),2)
+
+    # 2026-11-13: data-table cells are centred vertically so cells with fewer lines sit balanced
+    def test_data_table_cells_are_centred_vertically(self):
+        c=choice(1,data_kind='table',material='| 이름 | 설명 |\n|---|---|\n| 가 | 아주 긴 설명이라서 두 줄 이상으로 넘어가는 칸입니다. 아주 긴 설명이라서 두 줄 이상으로 넘어가는 칸입니다. |')
+        _,root=printed(server.cards_to_records([c]))
+        cell=next(cl for cl in root.iter('CELL') if ''.join(cl.itertext()).strip()=='가')
+        self.assertEqual(cell.find('PARALIST').get('VertAlign'),'Center')
+
+    def test_tables_are_called_tables_not_bogi(self):
+        from app import cli
+        prompt=cli.question_instructions('12화언')
+        self.assertIn('표 자료에는 〈보기〉라는 이름을 붙이지 않는다',prompt)
+        self.assertFalse(hasattr(gen,'bogi_data_table'))
+
 class LineBreakTests(unittest.TestCase):
     def lines(self,text,width=11000):
         tokens=gen._tokens(text,gen.CS_BODY)

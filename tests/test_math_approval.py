@@ -257,5 +257,15 @@ class ApprovalOverrideApiTests(unittest.TestCase):
         self.assertTrue(core.validate(saved)['ready'])
 
 
+
+class SubscriptSymbolTests(unittest.TestCase):
+    def test_symbols_with_subscripts_are_checked(self):
+        from app import core
+        lhs=core.safe_expr('(m_A + m_B) * (sqrt(2*m_B*g*h/(m_A + m_B)))**2 / 2')
+        import sympy as sp
+        self.assertEqual(sp.simplify(lhs-core.safe_expr('m_B*g*h')),0)
+        with self.assertRaises(ValueError): core.safe_expr('__import__')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -119,6 +119,12 @@ def image_material_targets(card, material_id=None, all_when_missing=False):
     else: raise ValueError('그림 자료가 여러 개입니다. material_id를 지정해 주세요.')
     return [(core.material_projection(card,b['id'],require_image=True)[0],b['id']) for b in targets]
 
+def side_ok(block):
+    """(가)(나)를 나란히 줄여 넣어도 되는 그림인가: 교사가 손대지 않은 앱 도식, AI 그림, 지도.
+    교사가 글씨를 옮기거나 그림 객체를 고친 앱 도식은 그대로 한 폭으로 둔다(줄이면 글씨가 붙고, 다시 그리면 고친 것이 사라진다)."""
+    locked=str(block.get('image_locked') or '').strip()
+    return not locked.startswith('도식:') or images.untouched(block)
+
 def cards_to_records(cards, sets=None):
     records=[]
     by_id={s['id']:s for s in sets or []}
@@ -129,7 +135,7 @@ def cards_to_records(cards, sets=None):
         elif c['data_kind']=='text' and not c['material'].startswith('(글상자)'): c['material']='(글상자)\n'+c['material']
         row=[None]*20
         for col,key in core.COLS.items(): row[col-1]=c.get(key,'')
-        row.append(core.material_blocks(c))
+        row.append(core.merge_figure_runs(core.material_blocks(c),side_ok))      # (가)(나) 그림은 한 그림 자리로
         first=c.get('set_id') and c['set_id'] in by_id and next(x for x in cards if x.get('set_id')==c['set_id'])['id']==c['id']
         row.append({'range':core.set_range(cards,c['set_id']),'passages':by_id[c['set_id']]['passages']} if first else None)
         order=core.written_order(cards,c)
@@ -147,13 +153,25 @@ def export_exam(exam, *, convert_hwpx=True):
         school=exam.get('school',''),subject=re.sub(r'\s*\((?:중|고등)학교\)$','',subject_name(exam['subject'])) if exam.get('subject') else exam['title'],passage_size=exam.get('passage_size','11'))
     assets=[]
     for c in exam['cards']:
-        for block in core.material_blocks(c):
+        blocks=core.material_blocks(c); raws={}
+        for block in blocks:
             if block.get('kind')!='image': continue
             projection,_=core.material_projection(c,block['id'],require_image=True)
             im=block.get('image') or {}
             raw=asset_path(eid,im['final_file']).read_bytes()
             if hashlib.sha256(raw).hexdigest()!=im['final_sha256']: raise ValueError('확정된 그림 파일의 내용이 변경되었습니다.')
-            assets.append((c['no'],block['id'],raw))
+            raws[block['id']]=raw
+        runs={run[0]['id']:run for run in core.figure_runs(blocks,side_ok)}
+        later={b['id'] for run in runs.values() for b in run[1:]}
+        for block in blocks:
+            if block.get('kind')!='image' or block['id'] in later: continue
+            if block['id'] in runs:      # (가)(나) 그림을 좌우로 나란히 한 그림으로(2026-11-13 교사 요청)
+                run=runs[block['id']]
+                # 바탕은 최종 확정 때와 같게: 그림 객체를 편집했으면 편집본, 아니면 원본
+                base=lambda b:asset_path(eid,b['image']['edited_file'] if b.get('image_scene') is not None and b['image'].get('edited_file') else b['image']['file'])
+                big=[images.half_width(b,base(b),len(run)) if (b.get('image') or {}).get('file') else raws[b['id']] for b in run]
+                assets.append((c['no'],block['id'],images.side_by_side(big,[b['label'].strip() for b in run])))
+            else: assets.append((c['no'],block['id'],raws[block['id']]))
     for student,name in [(True,'시험지_학생용.hml'),(False,'시험지_교사용.hml')]:
         (out/name).write_text(images.embed(hml,assets,student),encoding='utf-8')
     from .answers import build_answer_hml
@@ -820,9 +838,13 @@ def launch_job(eid, payload):
             if card.get('image'): card['image']['approved']=False
         elif kind=='image':
             check_results=core.verify_checks(result.get('constraints',[]),symbols=False)
+            before=(card.get('image') or {}).get('spec_labels')
             card['image']=make_image(eid,card,None,svg=result['svg'],notes=result.get('review_note',''),checks=check_results)
             if 'map_labels' in result:
-                card['image_labels']=labels.normalize_labels([dict(x,id=core.uid()) for x in result['map_labels']]);card['labels_initialized']=True
+                fresh=labels.normalize_labels([dict(x,id=core.uid()) for x in result['map_labels']])
+                # 다시 그려도 교사가 옮기거나 고친 글씨는 지킨다(지난번 기본 글씨를 기억해 둔 그림만).
+                kept,defaults=labels.carry(before,card.get('image_labels') or [],fresh) if before is not None and card.get('labels_initialized') else (fresh,fresh)
+                card['image_labels']=kept;card['image']['spec_labels']=defaults;card['labels_initialized']=True
             persist()  # Preserve the new background even if text creation fails.
         if kind=='image' and card.get('image_text_none') and not card.get('image_labels'):
             card['labels_initialized']=True;card['image']['approved']=False;persist()
@@ -994,7 +1016,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(core.TEMPLATE.read_bytes(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); return
             static={'/image-flow.js':'image-flow.js','/snapping.js':'snapping.js','/designer.css':'designer.css','/ux-minimal.css':'ux-minimal.css','/ux-designer.css':'ux-designer.css','/generation.css':'generation.css','/designer.js':'designer.js','/distribution.js':'distribution.js','/onboarding.js':'onboarding.js','/onboarding.css':'onboarding.css','/vendor/svg-edit/studio-core.js':'vendor/svg-edit/studio-core.js','/':'index.html','/app.js':'app.js','/ux-minimal.js':'ux-minimal.js','/ux-designer.js':'ux-designer.js','/hwpx-export.js':'hwpx-export.js','/layers.js':'layers.js','/vectors.js':'vectors.js','/style.css':'style.css','/teacher-theme.css':'teacher-theme.css','/teacher-ui.js':'teacher-ui.js','/fonts/pretendard-gov.woff2':'../fonts/pretendard-gov/PretendardGOVVariable.woff2'}
             static.update({path:path.lstrip('/') for path in ('/favicon.ico','/favicon-192.png','/icons/studio.svg','/icons/testcraft.svg','/icons/icon-16.png','/icons/icon-24.png','/icons/icon-32.png','/icons/icon-48.png','/icons/icon-64.png','/icons/icon-128.png','/icons/icon-180.png','/icons/icon-192.png','/icons/icon-256.png','/icons/icon-512.png','/site.webmanifest')})
-            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/variant.js','/variant.css','/update.js','/update.css','/map-editor.css')})
+            static.update({path:path.lstrip('/') for path in ('/tutorials.js','/tutorials.css','/tutorials-manifest.json','/passage-sets.js','/passage-sets.css','/written.js','/map-editor.js','/formats.js','/variant.js','/variant.css','/update.js','/update.css','/map-editor.css','/spec-form.js','/spec-form.css')})
             # Bundled help videos, captions and posters (tools/media_v2/build_help.py); names are checked, not listed.
             if re.fullmatch(r'/tutorials/[0-9]{2}-[a-z-]+\.(mp4|vtt|jpg)',p) and (core.ROOT/'app/static'/p.lstrip('/')).is_file():
                 static[p]=p.lstrip('/')
@@ -1043,6 +1065,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(labels.render(data.get('kind'),data.get('text'),data.get('size')));return
             if path=='/api/map-preview':
                 self.send(maps.preview(data.get('locked')));return
+            if path=='/api/diagram-preview':
+                self.send(images.diagram_preview(data.get('locked')));return
             if path=='/api/math-preview':
                 from .mathtext import math_segments
                 source=data.get('text','')

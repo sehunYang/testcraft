@@ -61,6 +61,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue(core.verify_checks([{'lhs':'sqrt(3)**2','rhs':'3'}])[0]['ok'])
         self.assertFalse(core.verify_checks([{'lhs':'2+2','rhs':'5'}])[0]['ok'])
         self.assertTrue(core.verify_checks([{'lhs':'log(9)/log(3)','rhs':'2'}])[0]['ok'])
+        self.assertTrue(core.verify_checks([{'lhs':'log(1/4, 2)','rhs':'-2'}])[0]['ok'])      # 밑이 있는 로그(대수)
+        self.assertTrue(core.verify_checks([{'lhs':'exp(0)','rhs':'1'}])[0]['ok'])
         for bad in ["__import__('os').system('echo test')",'x.__class__','2**1000000','sqrt(x,y)']:
             with self.assertRaises((ValueError,TypeError)): core.safe_expr(bad)
     def test_figure_constraints_compare_coordinate_pairs(self):
@@ -132,7 +134,8 @@ class WorkflowTests(unittest.TestCase):
         root=ET.fromstring(gen.build(str(core.TEMPLATE),str(folder/'labels.hml'),str(folder),title='이름표',records=server.cards_to_records([c])).split('?>',1)[1])
         paragraphs=[''.join(p.itertext()).strip() for p in root.iter('P')]
         for label in ('그림','자료 표','<그림 2>'): self.assertNotIn(label,paragraphs)
-        self.assertIn('(가)',paragraphs)
+        self.assertIn('(가) 내용',paragraphs)              # 2026-11-12: a lettered text box prints its label inside, at the start
+        self.assertNotIn('(가)',paragraphs)
     def test_path_guard(self):
         with self.assertRaises(ValueError):core.exam_path('../templates')
         with self.assertRaises(ValueError):server.asset_path(core.uid(),'../../README.md')
