@@ -42,7 +42,9 @@ AUTHORING_MODES = ('ai','manual','legacy','variant')
 MATERIALS_REQUEST_MAX = 4000
 MATERIAL_KINDS = ('image','text','table')
 MATERIAL_REQUEST_IMAGE_MODES = ('strict','mixed','flexible')
-MATERIAL_IMAGE_FIELDS = ('image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version','image_plan_approval','image_labels','labels_initialized','image_scene','image')
+# 창작 요소를 AI 그림 생성 PNG로 만드는 방식(2026-11-26): 빈칸=SVG 선화, elements=요소별 PNG, whole=창작 요소 전체를 PNG 한 장.
+IMAGE_RASTER_MODES = ('elements','whole')
+MATERIAL_IMAGE_FIELDS = ('image_raster','image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version','image_plan_approval','image_labels','labels_initialized','image_scene','image')
 MATERIAL_SERVER_FIELDS = ('image_plan_approval','image')
 
 def now():
@@ -115,6 +117,7 @@ def read_exam(eid):
     for card in exam['cards']:
         card['type']=current_type(card.get('type'))
         card.setdefault('image_text_none',False)
+        card.setdefault('image_raster','')
         for key in ('image_text_physics','image_text_math','image_text_korean'): card.setdefault(key,'')
         card.setdefault('calculation_override',None)
         card.setdefault('image_labels',[])
@@ -146,7 +149,7 @@ def save_exam(exam):
 
 def blank_card(no=1, authoring_mode='legacy'):
     mode=normalize_authoring_mode(authoring_mode)
-    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, partial_credit=False, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', format='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,materials=None, set_id='', variant=None)
+    return dict(id=uid(), no=no, **{k:'' for k in TEXT_FIELDS}, partial_credit=False, answer='', estimate='', discrimination='', original_no='', data_kind='none', calculation=False, checks=[], calculation_override=None, review_approved=False, image=None, ai_requested=mode!='manual', authoring_mode=mode, materials_request='', material_request_kinds=[], material_request_image_mode='', format='', image_plan_approval=None,image_labels=[],labels_initialized=False,image_plan_version=2,image_scene=None,image_text_none=False,image_raster='',materials=None, set_id='', variant=None)
 
 def legacy_material(card):
     """Project a pre-materials card as its single stable material block."""
@@ -162,7 +165,7 @@ def legacy_material(card):
     block={'id':card['id'],'kind':kind,'label':'','content':content}
     if kind=='image':
         for key in MATERIAL_IMAGE_FIELDS: block[key]=copy.deepcopy(card.get(key))
-        block.setdefault('image_mode',''); block.setdefault('image_locked',''); block.setdefault('image_creative','')
+        block.setdefault('image_mode',''); block.setdefault('image_locked',''); block.setdefault('image_creative',''); block['image_raster']=block.get('image_raster') or ''
         block.setdefault('image_text_physics',''); block.setdefault('image_text_math',''); block.setdefault('image_text_korean','')
         block.setdefault('image_text_none',False); block.setdefault('image_plan_version',2); block.setdefault('image_plan_approval',None)
         block.setdefault('image_labels',[]); block.setdefault('labels_initialized',False); block.setdefault('image_scene',None)
@@ -189,7 +192,7 @@ def material_projection(card, material_id=None, require_image=False):
     projected.update(data_kind=block.get('kind','none'),material=str(block.get('content') or ''))
     if block.get('kind')=='image':
         for key in MATERIAL_IMAGE_FIELDS: projected[key]=copy.deepcopy(block.get(key))
-        projected.setdefault('image_mode',''); projected.setdefault('image_locked',''); projected.setdefault('image_creative','')
+        projected.setdefault('image_mode',''); projected.setdefault('image_locked',''); projected.setdefault('image_creative',''); projected['image_raster']=projected.get('image_raster') or ''
         projected.setdefault('image_text_physics',''); projected.setdefault('image_text_math',''); projected.setdefault('image_text_korean','')
         projected.setdefault('image_text_none',False); projected.setdefault('image_plan_version',2); projected.setdefault('image_plan_approval',None)
         projected.setdefault('image_labels',[]); projected.setdefault('labels_initialized',False); projected.setdefault('image_scene',None); projected.setdefault('image',None)
@@ -220,7 +223,7 @@ def sync_material_aliases(card):
     card['data_kind']='image' if images else (blocks[0].get('kind') if blocks else 'none')
     card['material']=str((blocks[0].get('content') if blocks else '') or '')
     for key in MATERIAL_IMAGE_FIELDS:
-        card[key]=copy.deepcopy(first.get(key)) if first else (False if key in ('image_text_none','labels_initialized') else [] if key=='image_labels' else 2 if key=='image_plan_version' else None if key in ('image','image_plan_approval','image_scene') else '')
+        card[key]=copy.deepcopy(first.get(key, '' if key=='image_raster' else None)) if first else (False if key in ('image_text_none','labels_initialized') else [] if key=='image_labels' else 2 if key=='image_plan_version' else None if key in ('image','image_plan_approval','image_scene') else '')
     return card
 
 def normalize_materials(card):
@@ -251,6 +254,7 @@ def normalize_materials(card):
             for key,default in (('image_mode',''),('image_locked',''),('image_creative',''),('image_text_physics',''),('image_text_math',''),('image_text_korean','')):
                 b[key]=str(b.get(key,default) or '').strip()
             if b['image_mode'] not in ('',*IMAGE_MODES): raise ValueError('그림 유형은 strict / mixed / flexible 중 하나여야 합니다.')
+            b['image_raster']=normalize_raster(b.get('image_raster'))
             b['image_text_none']=b.get('image_text_none',False)
             if type(b['image_text_none']) is not bool: raise ValueError('글씨 없음 설정은 Yes 또는 No여야 합니다.')
             b['image_plan_version']=b.get('image_plan_version',2)
@@ -266,14 +270,14 @@ def normalize_materials(card):
     return sync_material_aliases(card)
 
 def content_hash(card):
-    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','format','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override','variant')
+    excluded=('image','review_approved','review_note','no','ai_requested','ai_feedback','authoring_mode','materials_request','material_request_kinds','material_request_image_mode','format','image_plan_approval','image_labels','labels_initialized','image_scene','materials','calculation_override','variant','image_raster')
     fields = {k:v for k,v in card.items() if k not in excluded}
     if 'type' in fields: fields['type']=hashed_type(fields['type'])
     for key in ('set_id','model_answer','rubric','conditions','partial_credit'):   # cards saved before these fields keep their hash
         if not fields.get(key): fields.pop(key,None)
     blocks=card.get('materials')
     if blocks is not None and not material_array_matches_legacy(card,blocks):
-        fields['materials']=[{k:v for k,v in block.items() if k not in ('image','image_plan_approval','image_labels','labels_initialized','image_scene')} for block in blocks]
+        fields['materials']=[{k:v for k,v in block.items() if k not in ('image','image_plan_approval','image_labels','labels_initialized','image_scene','image_raster')} for block in blocks]
     return hashlib.sha256(json.dumps(fields, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 def material_array_matches_legacy(card, blocks):
@@ -283,12 +287,26 @@ def material_array_matches_legacy(card, blocks):
     if block.get('id')!=card.get('id') or block.get('label','') or block.get('kind')!=card.get('data_kind') or block.get('content','')!=card.get('material',''): return False
     if block.get('kind')=='image':
         for key in MATERIAL_IMAGE_FIELDS:
-            if key in ('image','image_plan_approval','image_labels','labels_initialized','image_scene'): continue
+            if key in ('image','image_plan_approval','image_labels','labels_initialized','image_scene','image_raster'): continue
             if block.get(key)!=card.get(key): return False
     return True
 
+def normalize_raster(value):
+    value=str(value or '').strip()
+    if value not in ('',*IMAGE_RASTER_MODES): raise ValueError('창작 요소 그림 방식은 SVG 선화 / 요소별 PNG / PNG 한 장 중 하나여야 합니다.')
+    return value
+
+def raster_mode(card):
+    """창작 요소를 PNG로 만들 그림이면 elements 또는 whole. 앱이 그리는 지도·도식과 strict는 늘 SVG다."""
+    value=str(card.get('image_raster') or '')
+    locked=str(card.get('image_locked') or '')
+    if value not in IMAGE_RASTER_MODES or card.get('image_mode') not in ('mixed','flexible') or maps.is_map(locked) or diagrams.is_diagram(locked): return ''
+    return value
+
 def image_context(card):
-    return hashlib.sha256(json.dumps({k:card.get(k) for k in ('idea','stem','material','question','statements','choices','data_kind','image_mode','image_locked','image_creative')},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    fields={k:card.get(k) for k in ('idea','stem','material','question','statements','choices','data_kind','image_mode','image_locked','image_creative')}
+    if card.get('image_raster'): fields['image_raster']=card['image_raster']      # 비어 있으면 넣지 않아 예전 그림의 승인이 그대로 남는다
+    return hashlib.sha256(json.dumps(fields,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
 
 def image_plan_errors(card):
     if card['data_kind']!='image': return []
@@ -305,6 +323,9 @@ def image_plan_errors(card):
     if mode in ('flexible','mixed') and not creative: errors.append('창작 허용 영역을 적어 주세요.')
     if mode=='strict' and creative: errors.append('strict의 창작 허용 영역은 빈칸이어야 합니다.')
     if mode=='flexible' and locked: errors.append('flexible의 SVG 규칙은 빈칸이어야 합니다.')
+    raster=card.get('image_raster') or ''
+    if raster and mode=='strict': errors.append('strict 그림은 창작 요소가 없어 PNG로 만들 수 없습니다. 그림 방식을 SVG 선화로 두세요.')
+    if raster=='elements' and mode=='flexible' and not element_ids(creative): errors.append('요소별 PNG는 창작 허용 영역의 각 줄을 요소ID: 설명 형식으로 작성하세요. 예: cart: 손수레의 외관')
     if mode=='mixed':
         left=element_ids(locked); right=element_ids(creative)
         if not left or not right: errors.append('mixed는 각 줄을 요소ID: 설명 형식으로 작성하세요. 예: floor: 수평 바닥선')
@@ -409,6 +430,8 @@ def image_prompt(card):
     if card.get('image_text_none'): parts.append('[글씨 없음: 별도 글씨 객체를 만들지 않는다.]')
     if card.get('image_mode') in ('strict','mixed'): parts+=['[SVG 규칙]',card.get('image_locked','')]
     if card.get('image_mode') in ('flexible','mixed'): parts+=['[창작 허용 영역]',card.get('image_creative','')]
+    raster=raster_mode(card)
+    if raster: parts.append('[창작 요소 그림 방식] '+{'elements':'창작 요소마다 AI 그림 생성 PNG를 따로 만든다.','whole':'창작 요소 전체를 AI 그림 생성 PNG 한 장으로 만든다.'}[raster])
     return '\n'.join(parts)
 
 def check_subject(subject, cards):
@@ -677,6 +700,7 @@ def normalize(card, no):
     if c['data_kind'] not in ('none','image','text','table'):
         raise ValueError('자료 유형 오류')
     if c['image_mode'] not in ('',*IMAGE_MODES): raise ValueError('그림 유형은 strict / mixed / flexible 중 하나여야 합니다.')
+    c['image_raster']=normalize_raster(c.get('image_raster'))
     if type(c['ai_requested']) is not bool: raise ValueError('AI 생성 요청은 Yes 또는 No여야 합니다.')
     if type(c['image_text_none']) is not bool: raise ValueError('글씨 없음 설정은 Yes 또는 No여야 합니다.')
     from .labels import normalize_labels

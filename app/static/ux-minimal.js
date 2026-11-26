@@ -42,7 +42,7 @@ function uxStatsObserveSize(){
  uxStatsMeasureHeight();
 }
 window.addEventListener('resize',uxStatsMeasureHeight,{passive:true});
-const uxMaterialImageFields=['image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version','image_plan_approval','image_labels','labels_initialized','image_scene','image'];
+const uxMaterialImageFields=['image_raster','image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version','image_plan_approval','image_labels','labels_initialized','image_scene','image'];
 const uxImageRequestPaths=new Set(['/api/confirm-image-plan','/api/image','/api/vectorize']);
 function uxMakeId(){return crypto.randomUUID().replaceAll('-','').slice(0,16)}
 function uxLegacyMaterial(card){
@@ -338,7 +338,7 @@ imagePlanFields=function(c){
   const mode={strict:'정확 도형 · strict',mixed:'혼합 · mixed',flexible:'자유 표현 · flexible'}[c.image_mode]||'유형 미선택';
   const app=appDrawnSummary(c.image_locked);
   if(app)return `<section class="image-plan-readonly app-drawn"><div><b>${esc(app.title)}</b><button class="small-btn" data-ux-action="edit-image-plan">계획 수정</button></div><p>${esc(c.material||'장면 설명이 없습니다.')}</p><ul>${app.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><details><summary>명세 보기</summary><pre>${esc(app.json)}</pre></details></section>`;
-  const rules=[c.image_locked&&`SVG 규칙: ${c.image_locked}`,c.image_creative&&`창작 허용 영역: ${c.image_creative}`].filter(Boolean);
+  const rules=[c.image_locked&&`SVG 규칙: ${c.image_locked}`,c.image_creative&&`창작 허용 영역: ${c.image_creative}`,c.image_creative&&`창작 요소 그림 방식: ${rasterNames[c.image_raster||'']}`].filter(Boolean);
   const labels=[['기호·변수',c.image_text_physics],['수식',c.image_text_math],['한글',c.image_text_korean]].filter(([,value])=>String(value||'').trim());
   return `<section class="image-plan-readonly"><div><b>${esc(mode)}</b><button class="small-btn" data-ux-action="edit-image-plan">계획 수정</button></div><p>${esc(c.material||'장면 설명이 없습니다.')}</p>${rules.length?`<ul>${rules.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="hint">유형별 그림 규칙이 비어 있습니다.</p>'}${c.image_text_none?'<p>그림에 넣을 글씨 없음</p>':labels.length?`<ul class="planned-labels">${labels.map(([kind,value])=>`<li>${kind}: ${esc(value)}</li>`).join('')}</ul>`:'<p class="hint">독립 글씨 계획을 확인해 주세요.</p>'}</section>`;
  }
@@ -398,7 +398,7 @@ function uxPrimary(){
   const flow=imageFlowState();if(flow.step===0)return `<div class="task-action"><span>${esc(imageLabel)} 계획은 저장됐습니다. 이 그림의 제작 범위를 확인한 뒤에 진행할 수 있습니다.</span><button class="primary" data-ux-action="confirm-plan">${esc(imageLabel)} 계획 확인</button></div>`;
   if(flow.step===1&&!uxCliReady())return `<div class="task-action"><span>그림 생성 전에 AI 연결을 완료하세요.</span><button class="primary" data-ux-action="connect">AI 연결</button></div>`;
   if(flow.step===1&&/^\s*(도식|지도):/.test(c?.image_locked||''))return `<div class="task-action"><span>앱이 명세대로 그림과 글씨를 바로 만듭니다.</span><button class="primary" data-ux-action="generate-image">그림 생성</button></div>`;
-  if(flow.step===1)return `<div class="task-action"><span>현재 문항의 배경 그림을 생성합니다. 글씨 레이어는 따로 보존합니다.</span><button class="primary" data-ux-action="generate-image">그림 생성</button></div>`;
+  if(flow.step===1)return `<div class="task-action"><span>현재 문항의 배경 그림을 생성합니다. 글씨 레이어는 따로 보존합니다.${c.image_raster&&c.image_mode!=='strict'?' 그림 생성은 문항 생성보다 구독 사용량을 더 씁니다.':''}</span><button class="primary" data-ux-action="generate-image">그림 생성</button></div>`;
   if(flow.step===2&&!c.labels_initialized&&uxCliReady())return `<div class="task-action"><span>배경 그림은 저장됐습니다. 글씨 레이어만 다시 배치합니다.</span><button class="primary" data-ux-action="retry-labels">글씨만 자동 배치</button></div>`;
   if(flow.step===2&&!c.labels_initialized)return `<div class="task-action"><span>AI 연결 후 글씨 레이어를 배치하거나 ‘글씨 없음’을 선택하세요.</span><button class="primary" data-ux-action="connect">AI 연결</button></div>`;
   if(flow.step===2)return `<div class="task-action"><span>캔버스에서 그림과 독립 글씨를 편집하고 저장하세요.</span><button class="primary" data-ux-action="save-image-edit">완성본 확인</button></div>`;
@@ -466,7 +466,7 @@ function uxMaterialStatus(block){
  if(!block.image)return '그림 생성 대기';
  return block.labels_initialized?'최종 확인 필요':'글씨 배치 필요';
 }
-function uxImageDefaults(){return {image_mode:'',image_locked:'',image_creative:'',image_text_physics:'',image_text_math:'',image_text_korean:'',image_text_none:false,image_plan_version:2,image_plan_approval:null,image_labels:[],labels_initialized:false,image_scene:null,image:null}}
+function uxImageDefaults(){return {image_raster:'',image_mode:'',image_locked:'',image_creative:'',image_text_physics:'',image_text_math:'',image_text_korean:'',image_text_none:false,image_plan_version:2,image_plan_approval:null,image_labels:[],labels_initialized:false,image_scene:null,image:null}}
 function uxImageLabel(index){return `(${['가','나','다','라','마','바','사','아','자','차','카','타','파','하'][Math.min(index,13)]||`그림 ${index+1}`})`}
 function uxAddMaterial(card,kind){
  const blocks=uxEnsureMaterials(card),imageCount=blocks.filter(block=>block.kind==='image').length;
@@ -808,7 +808,8 @@ document.addEventListener('input',event=>{
  if(key==='data_kind'&&c.data_kind!=='image'&&uxState.tab==='plan')uxState.tab='question';
  if(['image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','material','stem','question','choices','statements','data_kind'].includes(key)){c.image_plan_approval=null;if(c.image&&['stem','material','question','choices','statements','data_kind'].includes(key))c.image.approved=false}
  if(key==='image_mode'){
-  if(el.value==='strict')c.image_creative='';if(el.value==='flexible')c.image_locked='';c.image_plan_version=2;
+  if(el.value==='strict'){c.image_creative='';c.image_raster=''}if(el.value==='flexible')c.image_locked='';c.image_plan_version=2;
+  const raster=$('#rasterField'),rasterHint=$('#rasterHint');if(raster){raster.hidden=el.value==='strict'||!el.value;raster.querySelector('select').value=c.image_raster||''}if(rasterHint)rasterHint.hidden=el.value==='strict'||!el.value;
   for(const [name,hide] of [['image_locked',el.value==='flexible'],['image_creative',el.value==='strict']]){const field=document.querySelector(`[data-field="${name}"]`);if(field){field.value=c[name]||'';field.closest('label').hidden=hide}}
   const hint=$('#imageModeHint');if(hint)hint.textContent=modeDescription(el.value);
  }
@@ -819,6 +820,7 @@ document.addEventListener('input',event=>{
  if(key==='data_kind')requestAnimationFrame(()=>render());
 },true);
 document.addEventListener('change',event=>{
+ const rasterSelect=event.target.closest('[data-raster]');if(rasterSelect&&state.exam){event.stopImmediatePropagation();const c=current();c.image_raster=rasterSelect.value;c.image_plan_approval=null;if(c.image)c.image.approved=false;uxState.lastField='image_raster';markDirty(false);return}
  const authoringForm=event.target.closest('#authoringDraftForm'),session=state.authoringDraft;if(authoringForm&&session?.mode){const requestKind=event.target.closest('[data-authoring-request-kind]');if(requestKind){event.stopImmediatePropagation();authoringSetRequestKinds(session.draft,[...authoringForm.querySelectorAll('[data-authoring-request-kind]:checked')].map(input=>input.dataset.authoringRequestKind));authoringSyncRequestImageMode(authoringForm,session.draft);authoringPersistLocal();return}const bool=event.target.closest('[data-authoring-bool]');if(bool){event.stopImmediatePropagation();session.draft[bool.dataset.authoringBool]=bool.checked;authoringPersistLocal();return}const field=event.target.closest('[data-authoring-field]');if(field&&field.tagName==='SELECT'){event.stopImmediatePropagation();field.dispatchEvent(new Event('input',{bubbles:true}));return}}
  const bulkImage=event.target.closest('[data-bulk-image]');if(bulkImage){event.stopImmediatePropagation();const id=bulkImage.dataset.bulkImage;if(bulkImage.checked)uxState.bulkImageIds.add(id);else uxState.bulkImageIds.delete(id);uxUpdateBulkImageBar();return}
  const request=event.target.closest('[data-ai-request]');if(request){event.stopImmediatePropagation();const c=state.exam.cards.find(item=>item.id===request.dataset.aiRequest);if(c){c.ai_requested=request.checked;request.value=request.checked?'yes':'no';markDirty(false);renderStats();const label=request.closest('.ai-check');if(label)label.classList.toggle('is-checked',request.checked)}return}

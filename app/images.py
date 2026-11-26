@@ -45,8 +45,11 @@ def validate_mode_layers(svg,mode,card=None):
             if found[layer]!=element_ids(card[key]): raise ValueError('SVG의 요소 배정이 프롬프트와 다릅니다: '+layer)
         if found['geometry'] & found['illustration']: raise ValueError('고정·창작 레이어가 같은 요소를 포함합니다.')
 
-def validate_svg(svg):
-    if len(svg)>1_000_000 or '<!DOCTYPE' in svg.upper() or '<!ENTITY' in svg.upper():
+PNG_DATA=re.compile(r'data:image/png;base64,[A-Za-z0-9+/]+=*')
+
+def validate_svg(svg, allow_raster=False):
+    """allow_raster: 앱이 붙인 창작 요소 PNG(<image href="data:image/png;base64,...">)만 허용한다. AI가 보낸 SVG에는 쓰지 않는다."""
+    if len(svg)>(60_000_000 if allow_raster else 1_000_000) or '<!DOCTYPE' in svg.upper() or '<!ENTITY' in svg.upper():
         raise ValueError('SVG 크기 또는 선언 오류')
     root=ET.fromstring(svg)
     if root.tag.split('}')[-1]!='svg': raise ValueError('SVG 루트가 필요합니다.')
@@ -55,6 +58,10 @@ def validate_svg(svg):
     if not (0<float(box[2])<=4000 and 0<float(box[3])<=4000): raise ValueError('SVG 캔버스 크기 오류')
     if len(list(root.iter()))>5000: raise ValueError('SVG 요소가 너무 많습니다.')
     for node in root.iter():
+        if allow_raster and node.tag.split('}')[-1]=='image':
+            if set(k.split('}')[-1] for k in node.attrib)-{'width','height','href','preserveAspectRatio'} or not PNG_DATA.fullmatch(node.get('href','')):
+                raise ValueError('그림 요소 PNG 형식 오류')
+            continue
         if node.tag.split('}')[-1] not in ALLOWED: raise ValueError('허용되지 않는 SVG 요소: '+node.tag)
         for k,v in node.attrib.items():
             key=k.split('}')[-1].lower()
@@ -63,14 +70,67 @@ def validate_svg(svg):
                 if not re.fullmatch(r'#[A-Za-z0-9_-]+',target): raise ValueError('외부 SVG 참조는 허용하지 않습니다.')
     return svg
 
-def render_svg(svg, path):
-    validate_svg(svg)
+def render_svg(svg, path, allow_raster=False):
+    validate_svg(svg, allow_raster)
     path.with_suffix('.svg').write_text(svg,encoding='utf-8')
     node=runtime.node_executable(ROOT)
     if not node: raise ValueError('SVG 렌더링에 Node.js가 필요합니다.')
     env=runtime.node_environment(ROOT)
     proc=subprocess.run([node,str(ROOT/'app/render.cjs'),str(path.with_suffix('.svg')),str(path)],capture_output=True,encoding='utf-8',env=env,timeout=45,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
     if proc.returncode: raise ValueError('SVG 렌더링 실패: '+proc.stderr[-1000:])
+
+# flexible + PNG 한 장: AI 배치 없이 캔버스 가운데 큰 자리 하나.
+WHOLE_PLACEHOLDER='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640"><g id="illustration"><rect data-element="whole" x="60" y="40" width="880" height="560" fill="none" stroke="none"/></g></svg>'
+
+def placeholder_boxes(svg):
+    """창작 레이어(illustration)의 자리 상자: data-element ID → (x, y, w, h). PNG 요소를 둘 자리다."""
+    root=ET.fromstring(svg); boxes={}
+    for layer in (n for n in root.iter() if n.get('id')=='illustration'):
+        for node in layer.iter():
+            element=(node.get('data-element') or '').lower()
+            if not element or element in boxes: continue
+            rect=node if node.tag.split('}')[-1]=='rect' else next((n for n in node.iter() if n.tag.split('}')[-1]=='rect'),None)
+            if rect is None: continue
+            try: x,y,w,h=(float(rect.get(k,'0')) for k in ('x','y','width','height'))
+            except ValueError: continue
+            if w>0 and h>0: boxes[element]=(x,y,w,h)
+    return boxes
+
+def union_box(boxes):
+    xs=[b[0] for b in boxes]+[b[0]+b[2] for b in boxes]; ys=[b[1] for b in boxes]+[b[1]+b[3] for b in boxes]
+    return (min(xs),min(ys),max(xs)-min(xs),max(ys)-min(ys))
+
+def prepare_raster(raw, limit=1200):
+    """AI가 그린 PNG를 시험지 그림 요소로: 흑백으로 바꾸고, 둘레와 이어진 흰 바탕만 투명하게 하고(안쪽 흰 면은 남긴다),
+    내용만큼 잘라 긴 변을 limit 이하로 줄인다. (PNG 바이트, 너비, 높이)"""
+    from PIL import ImageDraw, ImageOps
+    Image.MAX_IMAGE_PIXELS=20_000_000
+    with Image.open(io.BytesIO(raw)) as img:
+        img.load()
+        if img.width*img.height>20_000_000: raise ValueError('그림은 2천만 픽셀 이하여야 합니다.')
+        flat=Image.new('RGB',img.size,'white')
+        flat.paste(img.convert('RGBA'),mask=img.convert('RGBA').getchannel('A'))
+    gray=ImageOps.grayscale(flat)
+    w,h=gray.size
+    mask=Image.new('L',(w+2,h+2),255); mask.paste(gray.point(lambda v:255 if v>=236 else 0),(1,1))
+    ImageDraw.floodfill(mask,(0,0),128,thresh=0)
+    background=mask.crop((1,1,w+1,h+1)).point(lambda v:255 if v==128 else 0)
+    alpha=ImageOps.invert(background)
+    box=alpha.getbbox()
+    if not box: raise ValueError('생성한 그림이 비어 있습니다. 다시 생성해 주세요.')
+    pad=max(2,round(.01*max(w,h)))
+    box=(max(0,box[0]-pad),max(0,box[1]-pad),min(w,box[2]+pad),min(h,box[3]+pad))
+    gray=gray.point(lambda v:v).crop(box); alpha=alpha.crop(box)
+    out=Image.merge('LA',(gray,alpha))
+    out.thumbnail((limit,limit),Image.Resampling.LANCZOS)
+    buf=io.BytesIO(); out.save(buf,format='PNG',optimize=True)
+    return buf.getvalue(),out.width,out.height
+
+def fit_box(width, height, box):
+    """그림 요소를 자리 상자 안에 비율을 지켜 가운데 맞춘다. (그림 너비, 높이, 위치 행렬) — 1000×640 캔버스 단위."""
+    x,y,w,h=box; k=min(w/width,h/height)
+    dw,dh=round(width*k,3),round(height*k,3)
+    return dw,dh,[1,0,0,1,round(x+(w-dw)/2,3),round(y+(h-dh)/2,3)]
 
 def normalize_png(raw):
     Image.MAX_IMAGE_PIXELS=20_000_000

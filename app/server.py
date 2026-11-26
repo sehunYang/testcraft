@@ -496,6 +496,48 @@ def make_image(eid,card,raw,svg=None,notes='',checks=None):
     card['image_scene']=None
     return {'file':path.name,'svg':aid+'.svg' if svg else None,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'context':core.image_context(card),'approved':False,'created':core.now(),'note':notes,'checks':core.image_check_results(checks or []),'mode':card['image_mode'],'layer_version':2}
 
+def make_raster_image(eid,card,svg,provider,model,cancel,workdir,feedback='',notes='',checks=None,report=lambda text:None):
+    """창작 요소를 AI 그림 생성 PNG로 만든다(2026-11-26). 고정 요소는 SVG 그대로, 창작 레이어의 자리 상자에 PNG 요소를 놓는다.
+    결과는 곧바로 그림 객체 장면이라 교사가 PNG 요소를 옮기고 크기를 바꿀 수 있다."""
+    mode=core.raster_mode(card)
+    images.validate_mode_layers(svg,card['image_mode'],card)
+    boxes=images.placeholder_boxes(svg)
+    creative=card.get('image_creative','')
+    lines={m[1].lower():m[2].strip() for m in re.finditer(r'^\s*([A-Za-z][A-Za-z0-9_-]{0,39})\s*[:：]\s*(.*)$',creative,re.M)}
+    if mode=='elements':
+        missing=[k for k in lines if k not in boxes]
+        if not lines or missing: raise ValueError('창작 요소의 자리 상자를 찾지 못했습니다: '+', '.join(missing or ['요소ID'])+'. 그림을 다시 생성해 주세요.')
+        targets=[(k,lines[k],boxes[k],'') for k in lines]
+    else:
+        whole=images.union_box(list(boxes.values())) if boxes else (60,40,880,560)
+        layout='; '.join(f'{k}: 가로 {round(100*(b[0]-whole[0])/whole[2])}~{round(100*(b[0]+b[2]-whole[0])/whole[2])}%, 세로 {round(100*(b[1]-whole[1])/whole[3])}~{round(100*(b[1]+b[3]-whole[1])/whole[3])}% 자리' for k,b in boxes.items() if len(boxes)>1)
+        targets=[('whole',creative,whole,layout)]
+    placeholders={}; elements=[]
+    for n,(key,description,box,layout) in enumerate(targets,1):
+        if cancel is not None and cancel.is_set(): raise ValueError('작업을 취소했습니다.')
+        report(f"창작 그림 생성 중 ({n}/{len(targets)}{'' if key=='whole' else ' · '+key})")
+        raw=cli.generate_png(provider,workdir/key,cli.raster_prompt(card,key,description,box,feedback,layout),model,cancel)
+        png,w,h=images.prepare_raster(raw)
+        aid=core.uid(); path=asset_path(eid,aid+'.png'); path.parent.mkdir(parents=True,exist_ok=True); path.write_bytes(png)
+        dw,dh,matrix=images.fit_box(w,h,box)
+        obj=dict(id=core.uid(),name=('창작 그림' if key=='whole' else key)+' (PNG)',svg='',raster=path.name,width=dw,height=dh,matrix=matrix,visible=True,locked=False)
+        elements.append({'id':key,'file':path.name,'sha256':hashlib.sha256(png).hexdigest()})
+        for k in (boxes if key=='whole' else [key]): placeholders[k]=obj
+        if key=='whole' and not boxes: placeholders['whole']=obj
+    scene=vectors.from_svg(svg,'0'*64,placeholders)
+    comp=asset_path(eid,core.uid()+'.png')
+    images.render_svg(vectors.to_svg(scene,lambda name:asset_path(eid,name).read_bytes()),comp,allow_raster=True)
+    sha=hashlib.sha256(comp.read_bytes()).hexdigest(); scene['source_sha']=sha
+    source=asset_path(eid,core.uid()+'.svg'); source.write_text(svg,encoding='utf-8')
+    card['image_scene']=copy.deepcopy(scene)
+    note=(notes+'\n' if notes else '')+'창작 요소는 AI 그림 생성 PNG입니다. 그림 객체 편집에서 옮기거나 크기를 바꿀 수 있고, 모양을 바꾸려면 다시 생성합니다.'
+    return {'file':comp.name,'svg':source.name,'sha256':sha,'context':core.image_context(card),'approved':False,'created':core.now(),'note':note,
+            'checks':core.image_check_results(checks or []),'mode':card['image_mode'],'layer_version':2,
+            'raster':{'mode':mode,'elements':elements,'scene':scene}}
+
+def read_asset(eid):
+    return lambda name:asset_path(eid,name).read_bytes()
+
 def save_scene(eid,card):
     scene=card.get('image_scene');im=card.get('image')
     if scene is None:
@@ -508,7 +550,7 @@ def save_scene(eid,card):
     digest=vectors.digest(scene)
     if im.get('edited_digest')==digest:return
     path=asset_path(eid,core.uid()+'.png')
-    images.render_svg(vectors.to_svg(scene),path)
+    images.render_svg(vectors.to_svg(scene,read_asset(eid)),path,allow_raster=vectors.has_raster(scene))
     im.update(edited_file=path.name,edited_svg=path.with_suffix('.svg').name,edited_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),edited_digest=digest,approved=False)
     im['original_checks']=im.get('original_checks',im.get('checks',[]))
     im['checks']=[]
@@ -617,6 +659,8 @@ def apply_question_result(card,result,subject_id=''):
         if key in ('materials','passage_marks'): continue
         if key in ('model_answer','rubric','conditions','partial_credit'):
             card[key]=result.get(key,False if key=='partial_credit' else ''); continue
+        if key=='image_raster':                     # 교사가 고른 그림 방식은 AI가 바꾸지 않는다
+            card[key]=card.get(key) or core.normalize_raster(result.get(key,'')); continue
         if key not in result: raise ValueError('CLI 결과에 필요한 필드가 없습니다: '+key)
         card[key]=result[key]
     returned=result.get('materials')
@@ -642,6 +686,7 @@ def apply_question_result(card,result,subject_id=''):
                 if kind=='image':
                     for key in ('image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version'):
                         block[key]=item.get(key,False if key=='image_text_none' else 2 if key=='image_plan_version' else '')
+                    block['image_raster']=(prior or {}).get('image_raster') or core.normalize_raster(item.get('image_raster',''))
                     if prior:
                         defaults={'image':None,'image_labels':[],'labels_initialized':False,'image_scene':None}
                         for key,default in defaults.items():
@@ -799,6 +844,8 @@ def launch_job(eid, payload):
             extra=asset_path(eid,card['image']['svg']).read_text(encoding='utf-8') if step=='labels' and (card.get('image') or {}).get('svg') else ''
             variant=step=='question' and card.get('authoring_mode')=='variant'
             images=()
+            if step=='labels' and provider=='codex' and (card.get('image') or {}).get('raster'):
+                images=(asset_path(eid,card['image']['file']),)
             if variant:
                 variants.check(card)
                 source=variants.source_file(core.exam_path(eid),card['variant']['source'])
@@ -822,7 +869,11 @@ def launch_job(eid, payload):
                     core.sync_material_projection(current_card,card,material_id)
                     current_card['review_approved']=bool(card.get('review_approved'))
                 core.save_exam(current)
-        result=execute(kind)
+        raster=core.raster_mode(card) if kind=='image' else ''
+        if raster and provider!='codex': raise ValueError('창작 요소 PNG는 Codex(ChatGPT 로그인)로만 만들 수 있습니다. 그림 방식을 SVG 선화로 바꾸거나 Codex를 골라 주세요.')
+        if raster and card.get('image_mode')=='flexible' and raster=='whole':
+            result={'svg':images.WHOLE_PLACEHOLDER,'constraints':[],'review_note':''}     # 그림 전체가 PNG 한 장이면 배치용 SVG가 필요 없다
+        else: result=execute(kind)
         if cancel.is_set(): raise ValueError('작업을 취소했습니다.')
         if kind=='question':
             marks.extend(result.get('passage_marks') or [] if card.get('set_id') else [])
@@ -831,11 +882,18 @@ def launch_job(eid, payload):
         elif kind=='plan':
             chosen=card.get('image_mode')
             if chosen and result['image_mode']!=chosen: raise ValueError('교사가 선택한 그림 유형을 변경할 수 없습니다.')
-            card.update({k:result[k] for k in cli.PLAN_SCHEMA['properties']});card['image_plan_version']=2
+            raster=card.get('image_raster') or core.normalize_raster(result.get('image_raster',''))
+            card.update({k:result[k] for k in cli.PLAN_SCHEMA['properties'] if k!='image_raster'});card['image_raster']=raster;card['image_plan_version']=2
             errors=core.image_plan_errors(card)
             if errors: raise ValueError(' / '.join(errors))
             card['review_approved']=False;card['image_plan_approval']=None
             if card.get('image'): card['image']['approved']=False
+        elif kind=='image' and raster:
+            check_results=core.verify_checks(result.get('constraints',[]),symbols=False)
+            card['image']=make_raster_image(eid,card,result['svg'],provider,str(payload.get('model','')),cancel,
+                folder/f"{card['id']}-{material_id+'-' if material_id else ''}png",feedback,result.get('review_note',''),check_results,
+                lambda text:(job.update(message=item_name+text),core.atomic(folder/'job.json',job)))
+            persist()
         elif kind=='image':
             check_results=core.verify_checks(result.get('constraints',[]),symbols=False)
             before=(card.get('image') or {}).get('spec_labels')
@@ -1194,7 +1252,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not im:raise ValueError('먼저 그림을 생성하거나 업로드하세요.')
                     if card.get('image_scene') is not None:raise ValueError('이미 객체로 변환된 그림입니다.')
                     if hashlib.sha256(asset_path(eid,im['file']).read_bytes()).hexdigest()!=im['sha256']:raise ValueError('원본 그림 파일이 변경되었습니다.')
-                    card['image_scene']=vectors.from_svg(asset_path(eid,im['svg']).read_text(encoding='utf-8'),im['sha256']) if im.get('svg') else vectors.from_raster(asset_path(eid,im['file']),im['sha256'],data.get('threshold',190))
+                    card['image_scene']=copy.deepcopy(im['raster']['scene']) if im.get('raster') else vectors.from_svg(asset_path(eid,im['svg']).read_text(encoding='utf-8'),im['sha256']) if im.get('svg') else vectors.from_raster(asset_path(eid,im['file']),im['sha256'],data.get('threshold',190))
                     save_scene(eid,card);core.sync_material_projection(parent,card,mid)
                     self.send(core.save_exam(exam));return
                 if path=='/api/confirm-image-plan':

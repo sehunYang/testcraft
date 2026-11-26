@@ -152,15 +152,17 @@ def stop_process(p):
 def object_schema(props):
     return {'type':'object','properties':props,'required':list(props),'additionalProperties':False}
 
+RASTER_FIELD={'type':'string','enum':['','elements','whole'],'description':'창작 요소 그림 방식. 빈 문자열=SVG 선화, elements=창작 요소마다 AI 그림 생성 PNG, whole=창작 요소 전체를 PNG 한 장. strict·지도·도식은 빈 문자열.'}
 CHECK=object_schema({k:{'type':'string'} for k in ('label','lhs','rhs')})
 MATERIAL_SCHEMA=object_schema({
     'id':{'type':'string'},'kind':{'type':'string','enum':['image','text','table']},
     'label':{'type':'string'},'content':{'type':'string'},
     'image_mode':{'type':'string','enum':['','strict','mixed','flexible']},
     **{k:{'type':'string'} for k in ('image_locked','image_creative','image_text_physics','image_text_math','image_text_korean')},
-    'image_text_none':{'type':'boolean'},'image_plan_version':{'type':'integer','enum':[2]}
+    'image_text_none':{'type':'boolean'},'image_plan_version':{'type':'integer','enum':[2]},
+    'image_raster':RASTER_FIELD
 })
-QUESTION_SCHEMA=object_schema({**{k:{'type':'string'} for k in ['stem','material','question','statements','choices','explanation','concepts','review_note','image_locked','image_creative']},'image_mode':{'type':'string','enum':['','strict','mixed','flexible']},'answer':{'type':'integer','enum':[0,1,2,3,4,5]},'data_kind':{'type':'string','enum':['none','image','text','table']},'estimate':{'type':'number'},'discrimination':{'type':'number'},'calculation':{'type':'boolean'},'checks':{'type':'array','items':CHECK},'materials':{'type':'array','items':MATERIAL_SCHEMA}})
+QUESTION_SCHEMA=object_schema({**{k:{'type':'string'} for k in ['stem','material','question','statements','choices','explanation','concepts','review_note','image_locked','image_creative']},'image_mode':{'type':'string','enum':['','strict','mixed','flexible']},'image_raster':RASTER_FIELD,'answer':{'type':'integer','enum':[0,1,2,3,4,5]},'data_kind':{'type':'string','enum':['none','image','text','table']},'estimate':{'type':'number'},'discrimination':{'type':'number'},'calculation':{'type':'boolean'},'checks':{'type':'array','items':CHECK},'materials':{'type':'array','items':MATERIAL_SCHEMA}})
 MATH_WRITING_RULE=('카드와 그림 글씨의 기호·변수·물리량·수식은 LaTeX로 작성하고 $...$로 감싼다. '
     '아래첨자와 위첨자는 각각 중괄호로 묶고, 곱해지는 변수·항은 서로 분리한다(예: $P_{0} V_{0}$, $v_{y}^{2}$). '
     '카드에 한글 native HWP 수식 SCRIPT 문법을 직접 쓰지 않는다. 한글 SCRIPT 변환은 HML 생성 단계에서 처리한다. '
@@ -185,7 +187,7 @@ QUESTION_SCHEMA['properties'].update({
 QUESTION_SCHEMA['required'].extend(['model_answer','rubric','conditions','partial_credit'])
 IMAGE_SCHEMA=object_schema({'svg':{'type':'string'},'description':{'type':'string'},'constraints':{'type':'array','items':CHECK},'review_note':{'type':'string'}})
 
-PLAN_SCHEMA=object_schema({**{k:{'type':'string'} for k in ('image_locked','image_creative','image_text_physics','image_text_math','image_text_korean')},'image_mode':{'type':'string','enum':['strict','mixed','flexible']}})
+PLAN_SCHEMA=object_schema({**{k:{'type':'string'} for k in ('image_locked','image_creative','image_text_physics','image_text_math','image_text_korean')},'image_mode':{'type':'string','enum':['strict','mixed','flexible']},'image_raster':RASTER_FIELD})
 PLAN_SCHEMA['properties']['image_text_physics']['description']=MATH_WRITING_RULE+' 표시할 기호·변수·물리량·단위를 적는다.'
 PLAN_SCHEMA['properties']['image_text_math']['description']=MATH_WRITING_RULE+' 표시할 수식을 적는다.'
 QUESTION_SCHEMA['properties'].update({k:{'type':'string'} for k in ('image_text_physics','image_text_math','image_text_korean')})
@@ -208,6 +210,7 @@ mixed: 두 영역 모두 작성하되 완전히 서로 다른 요소를 지정�
 필요한 글씨를 별도의 이미지 글씨 프롬프트로 분리한다: image_text_physics는 기호·변수·물리량·단위(LaTeX 표기), image_text_math는 수식(LaTeX 표기), image_text_korean은 한글·상황 설명(평문). 기호·수식은 LaTeX를 $...$로 감싸고 각 첨자를 중괄호로 쓰며 곱하는 변수를 분리한다(예: $P_{0} V_{0}$, $v_{y}^{2}$). 한글 native HWP SCRIPT는 카드·글씨 프롬프트에 직접 쓰지 않는다. 각각 정확히 표시할 내용, 기준 물체, 상대 위치를 작성한다. 필요 없으면 빈 문자열이다. 물체 이름 A/B, 패널 표기 (가)/(나), 축 이름과 눈금 숫자도 모두 글씨 레이어로 분리한다.
 기호·수식의 글꼴은 Latin Modern Math, 한글은 신명 중명조이며, 실제 렌더링은 앱이 처리한다. 기본 그림에는 어떠한 글씨도 그리지 않는다. 글씨처럼 보이는 윤곽선을 path로 그리는 것도 금지한다.
 교사가 image_mode를 선택했다면 바꾸지 않는다. 선택하지 않았으면 유형을 제안한다. 자료가 그림이 아니면 그림·글씨 프롬프트 필드는 전부 빈 문자열이다.
+창작 요소 그림 방식(image_raster): 사물·사람·동물·실험 기구처럼 실감 나게 그려야 하는 창작 요소는 AI 그림 생성 PNG로 만든다. elements는 창작 요소마다 PNG를 따로 만들어 그림 위에서 옮길 수 있게 할 때, whole은 여러 창작 요소가 한 장면으로 어우러질 때(사람이 수레를 미는 모습 등) 쓴다. 단순한 도형·기호뿐이면 빈 문자열(SVG 선화)이다. strict·지도·도식은 빈 문자열이다. 길이·각도·위치가 정확해야 하는 요소는 PNG로 만들 수 없으므로 mixed의 image_locked(고정 요소)에 둔다. elements를 고르면 창작 영역의 각 줄을 요소ID: 설명 형식으로 쓴다. 교사가 이미 고른 값이 있으면 바꾸지 않는다.
 SVG 생성시 strict는 g id="geometry"만, flexible은 g id="illustration"만, mixed는 둘 모두 사용한다. mixed의 각 레이어 안에서 각 요소를 g data-element="요소ID"로 분리하고 프롬프트의 ID와 정확히 일치시킨다. 배경 흰 사각형 외에는 모든 시각 요소를 해당 그룹 안에 둔다. text/tspan은 사용하지 않는다. 좌표계는 viewBox="0 0 1000 640"이다.'''
 
 # 자유롭게 그리는 그림(flexible, mixed의 창작 영역)도 앱이 그리는 도식과 같은 평가원 그림 꼴을 따른다(2026-11-11 교사 지정).
@@ -270,13 +273,68 @@ def language_rule(subject_id=''):
     return '문두·발문·보기·선택지·해설·자료 설명은 모두 한국어로 쓴다. 입력에 영어·중국어가 섞여 있어도 결과는 한국어다.'
 
 
+RASTER_LAYOUT = '''창작 요소는 앱이 AI 그림 생성 PNG로 따로 만들어 붙인다. 그래서 g id="illustration" 안에는 창작 요소를 그리지 않고, 창작 요소 ID마다 자리 상자 하나만 둔다:
+<rect data-element="요소ID" x=".." y=".." width=".." height=".." fill="none" stroke="none"/>. 상자는 그 요소가 그림에서 차지할 자리와 가로세로 비를 나타내며, transform 없이 캔버스 좌표로 쓴다.
+고정 요소(g id="geometry")는 자리 상자와 알맞게 맞물리도록 그린다(예: 바닥선은 수레 상자의 아래 변 높이).'''
+
+RASTER_STYLE = '''그림 꼴: 한국 평가원 시험지 삽화. 흰 바탕에 검은 윤곽선으로 그린 단순하고 정돈된 흑백 선화.
+- 색은 쓰지 않는다. 입체감은 옅은 회색 음영으로만 준다.
+- 만화풍·사진풍·장식 무늬·떨어진 그림자·바닥·배경 풍경은 넣지 않는다.
+- 글씨·숫자·기호·화살표·눈금·라벨을 절대 넣지 않는다.
+- 대상이 잘리지 않게 가운데에 두고 둘레는 흰 여백으로 남긴다.'''
+
+PNG_SCHEMA = object_schema({'note':{'type':'string'}})
+
+def _aspect(box):
+    ratio=box[2]/box[3]
+    if ratio>=1.25: return f'가로로 긴 그림(가로:세로 약 {ratio:.1f}:1)'
+    if ratio<=0.8: return f'세로로 긴 그림(가로:세로 약 1:{1/ratio:.1f})'
+    return '정사각형에 가까운 그림'
+
+def raster_prompt(card, target, description, box, feedback='', layout=''):
+    """창작 요소 하나(elements) 또는 창작 요소 전체(whole)를 그리는 그림 생성 요청."""
+    fixed=card.get('image_locked','').strip() if card.get('image_mode')=='mixed' else ''
+    lines=['image_generation 도구로 그림을 딱 한 장만 만든다. 파일을 읽거나 쓰지 않고 명령도 실행하지 않는다. 그림을 만든 뒤 note에 그린 내용을 한 줄로 적는다.',
+           ('그릴 대상(이것만 그린다): ' if target!='whole' else '한 장면으로 함께 그릴 대상:\n')+description.strip()]
+    if layout: lines.append('배치: '+layout)
+    if fixed: lines.append('다음 고정 요소는 앱이 따로 그리므로 그리지 않는다:\n'+fixed)
+    lines+=[RASTER_STYLE,'그림 비율: '+_aspect(box)+'.']
+    if feedback: lines.append('교사 수정 요청(그림에만 적용): '+feedback)
+    return '\n'.join(lines)
+
+def codex_home(env):
+    return Path(env.get('CODEX_HOME') or Path.home()/'.codex')
+
+def generate_png(provider, folder, prompt, model='', cancel=None):
+    """Codex의 image_generation 도구로 PNG 한 장을 만들고 그 바이트를 돌려준다.
+    Codex는 그림을 CODEX_HOME/generated_images/<thread_id>/ 에 저장한다(2026-11-26 실측)."""
+    if provider!='codex': raise ValueError('창작 요소 PNG는 Codex(ChatGPT 로그인)로만 만들 수 있습니다.')
+    started=time.time()
+    execute(provider,folder,prompt,PNG_SCHEMA,model,cancel)
+    env=(runtime.codex_environment(ROOT, executable=discover('codex')) if runtime.installed_mode() else dict(os.environ))
+    found=[]
+    for line in (folder/'events.log').read_text(encoding='utf-8',errors='replace').splitlines():
+        try: event=json.loads(line)
+        except ValueError: continue
+        if isinstance(event,dict) and event.get('type')=='thread.started' and event.get('thread_id'):
+            tid=str(event['thread_id'])
+            if re.fullmatch(r'[A-Za-z0-9-]{8,80}',tid):
+                found+=[f for f in (codex_home(env)/'generated_images'/tid).glob('*.png') if f.stat().st_mtime>=started-5]
+    if not found: raise ValueError('Codex가 그림을 만들지 않았습니다. 잠시 뒤 다시 생성해 주세요.')
+    newest=max(found,key=lambda f:f.stat().st_mtime)
+    raw=newest.read_bytes()
+    (folder/'generated.png').write_bytes(raw)
+    return raw
+
 def prompt_for(card, kind, feedback='', subject='', background_svg='', subject_id='', set_context=''):
     if kind=='image':
         # Deliberately omit the original material, question and text prompts so old labels cannot leak into the image.
-        return f'시험용 글씨 없는 SVG 선화만 생성한다. JSON으로 응답한다.\n{IMAGE_POLICY}\n{image_prompt(card)}\n{KICE_STYLE}\n흰 바탕·충분한 여백. 외부 참조·script·style·image·use·foreignObject는 금지. constraints는 SVG에 실제로 쓴 좌표·길이 숫자만으로 만든 등식이다. x, y, width 같은 속성 이름이나 미지수는 쓰지 않고, 좌표쌍은 괄호로 묶어도 된다(예: lhs "(350+230, 280+160/2)", rhs "(580, 360)"). review_note는 사람이 확인할 기하 조건이다. 수정 요청도 글씨 없는 그림에만 적용한다.\n수정 요청: {feedback}'
+        from .core import raster_mode
+        raster=RASTER_LAYOUT+'\n' if raster_mode(card) else ''
+        return f'시험용 글씨 없는 SVG 선화만 생성한다. JSON으로 응답한다.\n{IMAGE_POLICY}\n{raster}{image_prompt(card)}\n{KICE_STYLE}\n흰 바탕·충분한 여백. 외부 참조·script·style·image·use·foreignObject는 금지. constraints는 SVG에 실제로 쓴 좌표·길이 숫자만으로 만든 등식이다. x, y, width 같은 속성 이름이나 미지수는 쓰지 않고, 좌표쌍은 괄호로 묶어도 된다(예: lhs "(350+230, 280+160/2)", rhs "(580, 360)"). review_note는 사람이 확인할 기하 조건이다. 수정 요청도 글씨 없는 그림에만 적용한다.\n수정 요청: {feedback}'
     if kind=='labels':
         prompts={k:card.get(k,'') for k in ('image_text_physics','image_text_math','image_text_korean')}
-        return f'다음 글씨 프롬프트만 편집 가능한 객체 목록으로 바꾼다. 그림 자체를 만들지 않는다.\n{json.dumps(prompts,ensure_ascii=False)}\n기존 글씨 객체(절대 중복 추가하지 말 것): {json.dumps(card.get("image_labels",[]),ensure_ascii=False)}\n배경 그림 SVG(좌표 배치 참고): {background_svg[:200000]}\n배경 설명: {image_prompt(card)}\nJSON labels 배열에 kind(physics/math/korean), text, x,y,size,rotation을 반환한다. 기호·수식은 LaTeX, 한글은 평문이다. 각각 독립 선택·이동 가능한 객체로 나눈다. x,y는 1000×640 캔버스의 글씨 상자 왼쪽 위 좌표, size는 8~120(기본 28), rotation은 -180~180도. 영역 밖·선 겹침을 피한다. 지정된 글씨가 없으면 빈 배열. 프롬프트에 없는 정답·설명은 추가하지 않는다.'
+        return f'다음 글씨 프롬프트만 편집 가능한 객체 목록으로 바꾼다. 그림 자체를 만들지 않는다.\n{json.dumps(prompts,ensure_ascii=False)}\n기존 글씨 객체(절대 중복 추가하지 말 것): {json.dumps(card.get("image_labels",[]),ensure_ascii=False)}\n배경 그림 SVG(좌표 배치 참고{". 창작 요소는 자리 상자로만 표시되어 있고, 첨부한 그림이 실제 배경이다(1000×640 캔버스와 같은 비율)" if card.get("image",{}) and (card.get("image") or {}).get("raster") else ""}): {background_svg[:200000]}\n배경 설명: {image_prompt(card)}\nJSON labels 배열에 kind(physics/math/korean), text, x,y,size,rotation을 반환한다. 기호·수식은 LaTeX, 한글은 평문이다. 각각 독립 선택·이동 가능한 객체로 나눈다. x,y는 1000×640 캔버스의 글씨 상자 왼쪽 위 좌표, size는 8~120(기본 28), rotation은 -180~180도. 영역 밖·선 겹침을 피한다. 지정된 글씨가 없으면 빈 배열. 프롬프트에 없는 정답·설명은 추가하지 않는다.'
     instructions=question_instructions(subject_id,card.get('type') in SUBJECTIVE_TYPES) if kind=='question' else ''
     task='기존 문항 내용은 바꾸지 말고 material의 기존 이미지 프롬프트를 그림 프롬프트 두 영역과 글씨 프롬프트 세 종류로 분리·정리한다. 선택된 유형을 유지하고 해당 스키마 필드만 응답한다.' if kind=='plan' else ('교사 입력의 과목·성취기준·유형·난이도·아이디어를 보존하여 문항·상세해설을 작성한다. 배점(points)은 생성하지 않는다. 본문·자료·보기·선택지·해설의 기호·변수·물리량·수식은 항상 LaTeX로 작성한다. '+MATH_WRITING_RULE+' 답지는 ①~⑤ 다섯 줄, 짝짓기 열은 /로 구분. 계산은 calculation=true, checks에 Python식 + - * / ** sqrt sin cos tan Abs exp log(x) log(x, 밑) pi 등식(lhs/rhs)을 넣는다. estimate와 discrimination은 0~1. 자료는 순서가 있는 materials 배열에 image/text/table 블록으로 작성하며 필요하면 그림·글상자·표와 (가)(나) 그림을 한 문항에 함께 둔다. 각 블록의 id, 순서, kind, label, content를 기존 materials에서 그대로 보존하고, 기존 그림의 image_mode가 비어 있지 않으면 바꾸지 않는다. 새 블록은 id를 빈 문자열로 둔다. image에는 계획 프롬프트 필드만 작성하고 image, image_plan_approval, image_scene 등 승인·자산 상태는 만들지 않는다. 구형 호환 필드 material/data_kind는 첫 자료를 나타낸다. 그림이면 현재 분리 규칙을 적용한다. 글상자는 content를 본문으로 쓰고 자료 표는 content에 Markdown 표를 쓴다. review_note에는 교사 검토 사항을 정직하게 적는다.')
     prompt_card=copy.deepcopy(card)
@@ -288,7 +346,7 @@ def prompt_for(card, kind, feedback='', subject='', background_svg='', subject_i
         prompt_card.setdefault('material_request_image_mode','')
         prompt_card.setdefault('format','')
         blocks=[]
-        allowed=('image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version')
+        allowed=('image_raster','image_mode','image_locked','image_creative','image_text_physics','image_text_math','image_text_korean','image_text_none','image_plan_version')
         for block in material_blocks(card):
             item={k:copy.deepcopy(block.get(k,'')) for k in ('id','kind','label','content')}
             if block.get('kind')=='image':
