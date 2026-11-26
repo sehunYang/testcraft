@@ -96,6 +96,18 @@ def placeholder_boxes(svg):
             if w>0 and h>0: boxes[element]=(x,y,w,h)
     return boxes
 
+def placeholder_angles(svg):
+    """자리 상자의 data-angle(도, 시계 방향이 +). 빗면 위 물체처럼 기울여 놓을 요소에만 있다."""
+    root=ET.fromstring(svg); angles={}
+    for layer in (n for n in root.iter() if n.get('id')=='illustration'):
+        for node in layer.iter():
+            element=(node.get('data-element') or '').lower()
+            if not element or element in angles: continue
+            try: angle=float(node.get('data-angle') or 0)
+            except ValueError: angle=0
+            if math.isfinite(angle) and abs(angle)<=180 and angle: angles[element]=angle
+    return angles
+
 def union_box(boxes):
     xs=[b[0] for b in boxes]+[b[0]+b[2] for b in boxes]; ys=[b[1] for b in boxes]+[b[1]+b[3] for b in boxes]
     return (min(xs),min(ys),max(xs)-min(xs),max(ys)-min(ys))
@@ -126,11 +138,17 @@ def prepare_raster(raw, limit=1200):
     buf=io.BytesIO(); out.save(buf,format='PNG',optimize=True)
     return buf.getvalue(),out.width,out.height
 
-def fit_box(width, height, box):
-    """그림 요소를 자리 상자 안에 비율을 지켜 가운데 맞춘다. (그림 너비, 높이, 위치 행렬) — 1000×640 캔버스 단위."""
+def fit_box(width, height, box, angle=0, bottom=False):
+    """그림 요소를 자리 상자 안에 비율을 지켜 맞춘다(bottom이면 아래 변에 붙여 바닥·빗면에 닿게).
+    angle(도, 시계 방향 +)이 있으면 상자 가운데를 축으로 돌린다. (그림 너비, 높이, 위치 행렬) — 1000×640 캔버스 단위."""
     x,y,w,h=box; k=min(w/width,h/height)
     dw,dh=round(width*k,3),round(height*k,3)
-    return dw,dh,[1,0,0,1,round(x+(w-dw)/2,3),round(y+(h-dh)/2,3)]
+    px,py=x+(w-dw)/2,(y+h-dh if bottom else y+(h-dh)/2)
+    if not angle: return dw,dh,[1,0,0,1,round(px,3),round(py,3)]
+    r=math.radians(angle); c,s=math.cos(r),math.sin(r); cx,cy=x+w/2,y+h/2
+    # 점 p → R(p - 중심) + 중심, 그림의 (0,0)은 (px,py)에 놓인다
+    e=cx+c*(px-cx)-s*(py-cy); f=cy+s*(px-cx)+c*(py-cy)
+    return dw,dh,[round(c,6),round(s,6),round(-s,6),round(c,6),round(e,3),round(f,3)]
 
 def normalize_png(raw):
     Image.MAX_IMAGE_PIXELS=20_000_000

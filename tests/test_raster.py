@@ -140,6 +140,33 @@ class RasterTests(unittest.TestCase):
         svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640"><g id="illustration"><rect data-element="cart" x="10" y="10" width="100" height="100" fill="none"/></g></svg>'
         with self.assertRaisesRegex(ValueError,'kid'): self.run_raster(c,svg,[])
 
+    def test_view_and_tilt(self):
+        # 2D 옆모습 도식과 시점을 맞추고, 기울기는 앱이 정확히 돌린다(2026-11-26 교사 지적)
+        c=image_card('mixed'); c['image_raster']='elements'
+        flat=cli.raster_prompt(c,'ball','공',(0,0,200,100))
+        self.assertIn('정사영',flat); self.assertIn('쿼터뷰',flat); self.assertIn('같은 시점',flat); self.assertNotIn('기울이지 않는다',flat)
+        self.assertIn('기울이지 않는다',cli.raster_prompt(c,'ball','공',(0,0,200,100),angle=25))
+        self.assertIn('data-angle',cli.prompt_for(c,'image'))
+        svg=MIXED_SVG.replace('fill="none" stroke="none"/>','fill="none" stroke="none" data-angle="25"/>')
+        self.assertEqual(images.placeholder_angles(svg),{'ball':25.0})
+        self.assertEqual(images.placeholder_angles(MIXED_SVG),{})
+        dw,dh,m=images.fit_box(200,100,(100,100,400,400),bottom=True)
+        self.assertEqual((dw,dh),(400,200)); self.assertEqual(m,[1,0,0,1,100,300])     # 아래 변에 붙는다
+        import math
+        dw,dh,m=images.fit_box(200,100,(100,100,400,200),angle=30)
+        a,b,c_,d,e,f=m
+        self.assertAlmostEqual(a,math.cos(math.radians(30)),5); self.assertAlmostEqual(b,math.sin(math.radians(30)),5)
+        centre=(a*dw/2+c_*dh/2+e,b*dw/2+d*dh/2+f)                                  # 그림 가운데는 상자 가운데 그대로
+        self.assertAlmostEqual(centre[0],300,2); self.assertAlmostEqual(centre[1],200,2)
+
+    def test_tilted_element_is_rotated_in_scene(self):
+        c=image_card('mixed'); c['image_raster']='elements'; calls=[]
+        svg=MIXED_SVG.replace('fill="none" stroke="none"/>','fill="none" stroke="none" data-angle="20"/>')
+        self.run_raster(c,svg,calls)
+        self.assertIn('기울이지 않는다',calls[0])
+        m=[o for o in c['image_scene']['objects'] if o.get('raster')][0]['matrix']
+        self.assertGreater(m[1],0.3)                                                     # 돌아가 있다
+
     def test_generate_png_reads_codex_generated_images(self):
         home=self.root/'codex'; folder=self.root/'step'
         def fake_execute(provider,folder_,prompt,schema,model='',cancel=None,images=()):

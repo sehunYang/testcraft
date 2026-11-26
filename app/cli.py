@@ -275,13 +275,15 @@ def language_rule(subject_id=''):
 
 RASTER_LAYOUT = '''창작 요소는 앱이 AI 그림 생성 PNG로 따로 만들어 붙인다. 그래서 g id="illustration" 안에는 창작 요소를 그리지 않고, 창작 요소 ID마다 자리 상자 하나만 둔다:
 <rect data-element="요소ID" x=".." y=".." width=".." height=".." fill="none" stroke="none"/>. 상자는 그 요소가 그림에서 차지할 자리와 가로세로 비를 나타내며, transform 없이 캔버스 좌표로 쓴다.
+빗면 위 물체처럼 기울여 놓을 요소는 상자를 수평으로 놓았을 때의 크기로 적고 data-angle="각도"(도, 시계 방향이 +, 예: 오른쪽으로 내려가는 빗면 위 수레는 양수)를 붙인다. 앱이 PNG를 상자 가운데를 축으로 그 각도만큼 돌리고, 상자의 아래 변이 표면에 닿게 놓는다. 그래서 상자를 돌렸을 때 아래 변이 빗면 위에 정확히 놓이도록 x, y를 정한다.
 고정 요소(g id="geometry")는 자리 상자와 알맞게 맞물리도록 그린다(예: 바닥선은 수레 상자의 아래 변 높이).'''
 
 RASTER_STYLE = '''그림 꼴: 한국 평가원 시험지 삽화. 흰 바탕에 검은 윤곽선으로 그린 단순하고 정돈된 흑백 선화.
 - 색은 쓰지 않는다. 입체감은 옅은 회색 음영으로만 준다.
 - 만화풍·사진풍·장식 무늬·떨어진 그림자·바닥·배경 풍경은 넣지 않는다.
 - 글씨·숫자·기호·화살표·눈금·라벨을 절대 넣지 않는다.
-- 대상이 잘리지 않게 가운데에 두고 둘레는 흰 여백으로 남긴다.'''
+- 대상이 잘리지 않게 가운데에 두고 둘레는 흰 여백으로 남긴다.
+- 시점: 평가원 그림처럼 정확히 옆에서 본(물체에 따라 정면이나 위에서 본) 평면적인 모습, 곧 정사영으로 그린다. 비스듬히 내려다본 3/4 시점(쿼터뷰), 원근 투시, 윗면이 함께 보이는 입체 상자 모양은 쓰지 않는다.'''
 
 PNG_SCHEMA = object_schema({'note':{'type':'string'}})
 
@@ -291,13 +293,15 @@ def _aspect(box):
     if ratio<=0.8: return f'세로로 긴 그림(가로:세로 약 1:{1/ratio:.1f})'
     return '정사각형에 가까운 그림'
 
-def raster_prompt(card, target, description, box, feedback='', layout=''):
-    """창작 요소 하나(elements) 또는 창작 요소 전체(whole)를 그리는 그림 생성 요청."""
+def raster_prompt(card, target, description, box, feedback='', layout='', angle=0):
+    """창작 요소 하나(elements) 또는 창작 요소 전체(whole)를 그리는 그림 생성 요청.
+    angle이 있으면 수평으로 놓인 모습으로 그리게 하고 앱이 돌린다(그림 생성이 맞추는 기울기는 부정확하다)."""
     fixed=card.get('image_locked','').strip() if card.get('image_mode')=='mixed' else ''
     lines=['image_generation 도구로 그림을 딱 한 장만 만든다. 파일을 읽거나 쓰지 않고 명령도 실행하지 않는다. 그림을 만든 뒤 note에 그린 내용을 한 줄로 적는다.',
            ('그릴 대상(이것만 그린다): ' if target!='whole' else '한 장면으로 함께 그릴 대상:\n')+description.strip()]
     if layout: lines.append('배치: '+layout)
-    if fixed: lines.append('다음 고정 요소는 앱이 따로 그리므로 그리지 않는다:\n'+fixed)
+    if fixed: lines.append('다음 고정 요소는 앱이 따로 그리므로 그리지 않는다. 이 고정 요소는 옆에서 본 평면 도식이므로 그림도 같은 시점(옆모습)으로 맞춘다:\n'+fixed)
+    if angle: lines.append('설명에 기울어졌다는 말이 있어도 기울이지 않는다. 수평한 바닥에 반듯이 놓인 옆모습으로 그린다. 기울기는 앱이 그림을 돌려 맞춘다.')
     lines+=[RASTER_STYLE,'그림 비율: '+_aspect(box)+'.']
     if feedback: lines.append('교사 수정 요청(그림에만 적용): '+feedback)
     return '\n'.join(lines)

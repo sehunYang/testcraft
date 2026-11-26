@@ -501,7 +501,7 @@ def make_raster_image(eid,card,svg,provider,model,cancel,workdir,feedback='',not
     결과는 곧바로 그림 객체 장면이라 교사가 PNG 요소를 옮기고 크기를 바꿀 수 있다."""
     mode=core.raster_mode(card)
     images.validate_mode_layers(svg,card['image_mode'],card)
-    boxes=images.placeholder_boxes(svg)
+    boxes=images.placeholder_boxes(svg); angles=images.placeholder_angles(svg)
     creative=card.get('image_creative','')
     lines={m[1].lower():m[2].strip() for m in re.finditer(r'^\s*([A-Za-z][A-Za-z0-9_-]{0,39})\s*[:：]\s*(.*)$',creative,re.M)}
     if mode=='elements':
@@ -516,10 +516,11 @@ def make_raster_image(eid,card,svg,provider,model,cancel,workdir,feedback='',not
     for n,(key,description,box,layout) in enumerate(targets,1):
         if cancel is not None and cancel.is_set(): raise ValueError('작업을 취소했습니다.')
         report(f"창작 그림 생성 중 ({n}/{len(targets)}{'' if key=='whole' else ' · '+key})")
-        raw=cli.generate_png(provider,workdir/key,cli.raster_prompt(card,key,description,box,feedback,layout),model,cancel)
+        angle=angles.get(key,0) if key!='whole' else 0
+        raw=cli.generate_png(provider,workdir/key,cli.raster_prompt(card,key,description,box,feedback,layout,angle),model,cancel)
         png,w,h=images.prepare_raster(raw)
         aid=core.uid(); path=asset_path(eid,aid+'.png'); path.parent.mkdir(parents=True,exist_ok=True); path.write_bytes(png)
-        dw,dh,matrix=images.fit_box(w,h,box)
+        dw,dh,matrix=images.fit_box(w,h,box,angle,bottom=key!='whole')       # 요소는 바닥·빗면에 닿게 아래 변에 붙인다
         obj=dict(id=core.uid(),name=('창작 그림' if key=='whole' else key)+' (PNG)',svg='',raster=path.name,width=dw,height=dh,matrix=matrix,visible=True,locked=False)
         elements.append({'id':key,'file':path.name,'sha256':hashlib.sha256(png).hexdigest()})
         for k in (boxes if key=='whole' else [key]): placeholders[k]=obj
