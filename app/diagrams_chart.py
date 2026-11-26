@@ -102,6 +102,9 @@ def _scale(values, axis):
     step = axis.get('step') or _nice_step(hi - lo)
     if 'max' not in axis: hi = math.ceil(hi / step - 1e-9) * step
     if 'min' not in axis and lo < 0: lo = math.floor(lo / step + 1e-9) * step
+    if 'max' in axis:      # 교사가 준 최댓값까지 축을 그린다. 간격의 배수가 아니면(1800~2024년, 50년 간격) 눈금만 그 안까지
+        n = max(0, math.floor((hi - lo) / step + 1e-9))
+        return lo, hi, [lo + i * step for i in range(n + 1)]
     n = max(1, round((hi - lo) / step))
     return lo, lo + n * step, [lo + i * step for i in range(n + 1)]
 
@@ -205,6 +208,8 @@ def check(spec):
             q = ln.get('points') if isinstance(ln, dict) else None
             if not isinstance(q, list) or len(q) < 2 or not all(isinstance(v, list) and len(v) == 2 and all(_num(c) for c in v) for v in q):
                 out.append('lines의 points는 [x,y] 수 2개 이상입니다.')
+        if any(isinstance(ln, dict) and ln.get('axis') == 'right' for ln in lines) and not isinstance(spec.get('y2'), dict):
+            out.append('오른쪽 축(axis:"right") 계열에는 y2 눈금이 필요합니다.')
         return out
     for name in ('y', 'x'):
         brk = (spec.get(name) or {}).get('break')
@@ -400,24 +405,34 @@ def _scatter(spec, parts, labels, box):
     pts = spec.get('points') or []; ax, ay = spec.get('x') or {}, spec.get('y') or {}
     lines = [ln for ln in spec.get('lines') or [] if isinstance(ln, dict)]
     xs = [p['x'] for p in pts] + [q[0] for ln in lines for q in ln['points']]
-    ys = [p['y'] for p in pts] + [q[1] for ln in lines for q in ln['points']]
+    right = [ln for ln in lines if ln.get('axis') == 'right']      # 단위가 다른 둘째 측정값은 오른쪽 축(y2)에
+    ys = [p['y'] for p in pts] + [q[1] for ln in lines if ln not in right for q in ln['points']]
     lo_x, hi_x, tx = _scale(xs, ax)
     lo_y, hi_y, ty = _scale(ys, ay)
+    ay2 = spec.get('y2') or {}
+    if right: lo2, hi2, ty2 = _scale([q[1] for ln in right for q in ln['points']], ay2); sy2 = _ticks(ay2, ty2)
     sx, sy = _ticks(ax, tx), _ticks(ay, ty)
     show_x, show_y = bool(sx), bool(sy)
     items = [('line', (k >= 2, MARKERS[k % len(MARKERS)]), ln.get('name', '')) for k, ln in enumerate(lines)]
     items = [it for it in items if it[2]] if len(lines) > 1 else []
     top = _legend(items, box, parts, labels, size, spec)
     L = box[0] + 40 + (max(_text_width(text, size) for _, text in sy) if show_y else 10)
-    R, T, B = box[2] - 60, box[1] + 60 + top, box[3] - 62 - (size + 6 if show_x and ax.get('label') else 0)
+    R = box[2] - (50 + max([_text_width(text, size) for _, text in sy2] or [10]) if right else 60)
+    T, B = box[1] + 60 + top, box[3] - 62 - (size + 6 if show_x and ax.get('label') else 0)
     X = lambda v: L + (v - lo_x) / (hi_x - lo_x) * (R - L)
     Y, gap = _ymap(lo_y, hi_y, T, B, ay)
+    Y2 = (lambda v: B - (v - lo2) / (hi2 - lo2) * (B - T)) if right else Y
     if gap: sy = [(t, x) for t, x in sy if not (ay['break'][0] < t < ay['break'][1])]
     parts.append(_line((L, B), (R + 20, B), 2)); parts.append(_line((L, B), (L, T - 20), 2))
     for t, text in sy: parts.append(_line((L - 8, Y(t)), (L, Y(t)), 1.6)); labels.append(_text(text, L - 14, Y(t), size, 'right'))
     for t, text in sx: parts.append(_line((X(t), B), (X(t), B + 8), 1.6)); labels.append(_text(text, X(t), B + 26, size))
-    if ay.get('label'): labels.append(_text(ay['label'], L, T - 44, size))
-    if ax.get('label'): labels.append(_text(ax['label'], R + 20, B + 26 + (size + 6 if show_x else 0), size, 'right'))
+    if right:
+        parts.append(_line((R, B), (R, T - 20), 2))
+        for t, text in sy2: parts.append(_line((R, Y2(t)), (R + 8, Y2(t)), 1.6)); labels.append(_text(text, R + 14, Y2(t), size, 'left'))
+        if ay2.get('label'): labels.append(_text(ay2['label'], box[2] - 8, T - 44, size, 'right'))
+    if ay.get('label'):                            # 오른쪽 축이 있으면 두 축 이름이 겹치지 않게 칸의 양 끝에 붙인다
+        labels.append(_text(ay['label'], box[0] + 8, T - 44, size, 'left') if right else _text(ay['label'], L, T - 44, size))
+    if ax.get('label'): labels.append(_text(ax['label'], R + (0 if right else 20), B + 26 + (size + 6 if show_x else 0), size, 'right'))
     for p in pts:
         x, y = X(p['x']), Y(p['y'])
         if spec.get('guides') or p.get('guides'):
@@ -425,15 +440,16 @@ def _scatter(spec, parts, labels, box):
         parts.append(_marker(p.get('marker', 'dot'), x, y))
         if p.get('label'): labels.append(_text(p['label'], x + 14, y - 20, size, 'left'))
     for k, ln in enumerate(lines):
-        brk = ay.get('break') if gap else None
-        run = [(x, Y(v)) for x, v in _split_at(sorted((X(a), b) for a, b in ln['points']), brk)]
+        Ys = Y2 if ln in right else Y
+        brk = ay.get('break') if gap and ln not in right else None
+        run = [(x, Ys(v)) for x, v in _split_at(sorted((X(a), b) for a, b in ln['points']), brk)]
         parts.append(_p('M' + 'L'.join(f'{x:.1f},{y:.1f}' for x, y in run), width=2.4, dash='8 5' if k >= 2 else ''))
         if ln.get('markers', True):
-            for a, b in ln['points']: parts.append(_marker(MARKERS[k % len(MARKERS)], X(a), Y(b)))
+            for a, b in ln['points']: parts.append(_marker(MARKERS[k % len(MARKERS)], X(a), Ys(b)))
         if ln.get('name') and len(lines) == 1 and ln.get('tag'):
             labels.append(_text(ln['name'], run[-1][0] + 14, run[-1][1] - 18, size, 'left'))
         if spec.get('values'):
-            for a, b in ln['points']: labels.append(_text(_fmt(b), X(a), Y(b) - 22, SMALL))
+            for a, b in ln['points']: labels.append(_text(_fmt(b), X(a), Ys(b) - 22, SMALL))
     if gap: _cut_band(parts, gap, L - 14, R + 22)
     return B + 40
 
@@ -497,7 +513,7 @@ PROMPT = """
 - 꺾은선: {"type":"chart","chart":"line","categories":[…],"series":[{"name":"출생률","values":[…]},…],"y":{"label":"(‰)"},"x":{"label":"(년)"}} 빈 값은 null.
 - 원: {"type":"chart","chart":"pie","slices":[{"name":"1차 산업","value":10},{"name":"2차 산업","value":30},{"name":"3차 산업","value":60}],"unit":"%","title":"(가) 지역"} 12시 방향부터 시계 방향으로 그린다.
 - 띠: {"type":"chart","chart":"band","categories":["1990년","2020년"],"series":[{"name":"유소년층","values":[25,12]},{"name":"청장년층","values":[70,72]},{"name":"노년층","values":[5,16]}]} 줄마다 합이 100이어야 한다.
-- 산점: {"type":"chart","chart":"scatter","points":[{"label":"A","x":2,"y":80},…],"x":{"label":"1인당 GDP(만 달러)"},"y":{"label":"도시화율(%)","ticks":false}} ticks:false면 눈금 수를 감추고 상대 위치만 보인다(x·y 모두, 막대·꺾은선의 y도 같다). ticks:[1000,4000,8000]이면 그 값에만 눈금을 둔다. guides:true는 점에서 두 축으로 점선. 가로축도 수인 측정값(전압-전류, 시간-농도, 빛의 세기-기포 수)은 "lines":[{"name":"A","points":[[0,0],[1,2],[2,4]]}]로 점을 이은 꺾은선을 그린다(계열이 둘 이상이면 범례를 만든다).
+- 산점: {"type":"chart","chart":"scatter","points":[{"label":"A","x":2,"y":80},…],"x":{"label":"1인당 GDP(만 달러)"},"y":{"label":"도시화율(%)","ticks":false}} ticks:false면 눈금 수를 감추고 상대 위치만 보인다(x·y 모두, 막대·꺾은선의 y도 같다). ticks:[1000,4000,8000]이면 그 값에만 눈금을 둔다. guides:true는 점에서 두 축으로 점선. 가로축도 수인 측정값(전압-전류, 시간-농도, 빛의 세기-기포 수)은 "lines":[{"name":"A","points":[[0,0],[1,2],[2,4]]}]로 점을 이은 꺾은선을 그린다(계열이 둘 이상이면 범례를 만든다). 단위가 다른 둘째 측정값은 그 계열에 "axis":"right"를 주고 "y2":{"label":"기온(°C)","min":13,"max":16,"step":0.5}로 오른쪽 축을 쓴다.
 - 축 자르기: 세로축 범위가 커서 아래쪽 눈금끼리 붙으면(예: 막전위 -80, -75, -70과 +30) "y":{"min":-80,"max":40,"break":[-50,-10],"ticks":[-80,-75,-70,0,30]}처럼 break로 그래프 전체를 물결로 잘라 접는다(평가원 꼴). 앱이 실제 비율로 그린 뒤 잘라 붙이므로 선의 기울기는 그대로다. 잘린 아래·위 조각이 각각 그래프 높이의 1/3 이상이 되게 자를 곳을 정하고, 자른 구간 안의 눈금은 쓰지 않는다.
 - 글씨 규칙: 그래프 안 글씨는 앱이 본문 명조 한 가지, 두 크기로 맞춘다. 단위는 축 이름 뒤 괄호에 기호로 쓴다(예: \"빛의 세기(lux)\", \"전압(V)\", \"(mm)\", \"(°C)\", \"(명/km²)\"). 럭스·볼트 같은 한글 단위 이름은 쓰지 않는다. 빛의 세기는 lx가 아니라 lux로 쓴다(교사 지정). 문두·자료의 수치에도 같은 단위 기호를 쓴다.
 - 그래프마다 이름이 필요하면 "title":"도시화율 변화"를 쓴다(앱이 <도시화율 변화>로 그림 위 가운데에 쓴다). 계열 이름·항목 이름의 기호는 $X$처럼 써도 된다.

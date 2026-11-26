@@ -191,8 +191,21 @@ class DiagramTests(unittest.TestCase):
         self.assertIn('-75', texts); self.assertNotIn('-40', texts)
         ys = {l['text']: l['y'] for l in labels if l['text'] in ('-80', '-75', '-70')}
         self.assertGreater(ys['-80'] - ys['-70'], 40)                      # 접지 않으면 약 20px밖에 안 된다
-        # 그래프 전체를 자른다: 선은 자를 값에서 나뉘어 실제 기울기로 띠 가장자리에 닿고, 띠는 그림 폭 전체를 지운다
         from app import diagrams_chart as ch
+        # 2026-11-26: 연속 가로축 꺾은선도 단위가 다른 둘째 값은 오른쪽 축(y2)에. 가로축은 교사가 준 최댓값(2024)까지
+        dual = spec(type='chart', chart='scatter', lines=[{'name': '에너지', 'points': [[1800, 5650], [2024, 186400]]},
+                    {'name': '기온', 'axis': 'right', 'points': [[1850, 13.6], [2024, 15.25]]}],
+                    x={'label': '연도', 'min': 1800, 'max': 2024}, y={'label': '소비량(TWh)', 'min': 0, 'max': 200000},
+                    y2={'label': '기온(°C)', 'min': 13, 'max': 16, 'step': 0.5})
+        self.assertEqual(diagrams.errors(dual), [])
+        svg, labels = diagrams.render(dual)
+        at = {l['text']: (l['x'], l['y']) for l in labels}
+        self.assertIn('15.5', at); self.assertIn('2000', at); self.assertNotIn('2050', at)
+        self.assertGreater(at['15.5'][0], at['2000'][0])                   # 오른쪽 눈금은 그래프 오른쪽에
+        self.assertLess(at['소비량(TWh)'][0], at['기온(°C)'][0])          # 두 축 이름이 칸의 양 끝에
+        self.assertTrue(any('y2' in e for e in diagrams.errors(spec(type='chart', chart='scatter', lines=[{'name': 'a', 'axis': 'right', 'points': [[0, 0], [1, 1]]}]))))
+        self.assertEqual(ch._scale([1800, 2024], {'min': 1800, 'max': 2024, 'step': 50}), (1800, 2024, [1800, 1850, 1900, 1950, 2000]))
+        # 그래프 전체를 자른다: 선은 자를 값에서 나뉘어 실제 기울기로 띠 가장자리에 닿고, 띠는 그림 폭 전체를 지운다
         self.assertEqual(ch._split_at([(0, -70), (100, 30)], [-65, -5]), [(0, -70), (5.0, -65), (65.0, -5), (100, 30)])
         self.assertIn('fill="white"', svg)
         # 2026-11-13: (가)(나) 나란히 출력에서 앱 도식은 손대지 않았을 때만 반 폭으로 다시 그린다(옮긴 글씨를 지킨다)
